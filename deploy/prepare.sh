@@ -8,9 +8,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD="$ROOT/deploy/build"
 mkdir -p "$BUILD"
 
-echo "== 1/2 后端：打包 ruoyi-admin =="
-mvn -f "$ROOT/platform/pom.xml" -pl ruoyi-admin -am package -DskipTests -q
-cp "$ROOT/platform/ruoyi-admin/target/ruoyi-admin.jar" "$BUILD/app.jar"
+echo "== 1/2 后端：打包 aoyou-admin =="
+mvn -f "$ROOT/platform/pom.xml" -pl aoyou-admin -am package -DskipTests -q
+cp "$ROOT/platform/aoyou-admin/target/aoyou-admin.jar" "$BUILD/app.jar"
 echo "   -> $BUILD/app.jar ($(du -h "$BUILD/app.jar" | cut -f1))"
 
 echo "== 2/2 前端：生产构建 =="

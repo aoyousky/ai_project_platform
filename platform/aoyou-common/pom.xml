@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>aoyou-vue-plus</artifactId>
+        <groupId>com.aoyou</groupId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>aoyou-common-bom</module>
+        <module>aoyou-common-social</module>
+        <module>aoyou-common-core</module>
+        <module>aoyou-common-doc</module>
+        <module>aoyou-common-excel</module>
+        <module>aoyou-common-idempotent</module>
+        <module>aoyou-common-job</module>
+        <module>aoyou-common-log</module>
+        <module>aoyou-common-mail</module>
+        <module>aoyou-common-mybatis</module>
+        <module>aoyou-common-oss</module>
+        <module>aoyou-common-ratelimiter</module>
+        <module>aoyou-common-redis</module>
+        <module>aoyou-common-satoken</module>
+        <module>aoyou-common-security</module>
+        <module>aoyou-common-sms</module>
+        <module>aoyou-common-web</module>
+        <module>aoyou-common-translation</module>
+        <module>aoyou-common-sensitive</module>
+        <module>aoyou-common-json</module>
+        <module>aoyou-common-encrypt</module>
+        <module>aoyou-common-tenant</module>
+        <module>aoyou-common-websocket</module>
+        <module>aoyou-common-sse</module>
+    </modules>
+
+    <artifactId>aoyou-common</artifactId>
+    <packaging>pom</packaging>
+
+    <description>
+        common 通用模块
+    </description>
+
+</project>

@@ -8,19 +8,27 @@
 db/migrations/
 ├── pom.xml
 ├── sql/
-│   ├── V1__baseline_ruoyi_5.6.2.sql   # 上游 5.6.2 业务库快照（25 表）
-│   └── V2__workflow_ruoyi_5.6.2.sql   # 上游 5.6.2 工作流表（11 表）
+│   ├── V1__baseline_aoyou_5.6.2.sql   # 上游 5.6.2 业务库快照（25 表）
+│   └── V2__workflow_aoyou_5.6.2.sql   # 上游 5.6.2 工作流表（11 表）
 └── README.md
 ```
 
 `V1`/`V2` 是上游快照，**内容不得修改**（Flyway 校验会失败）。所有业务变更从 `V3` 开始追加。
+
+> **2026-11-01 品牌统一的一次性例外**：按用户指令把 `ruoyi` 统一改为 `aoyou`，本目录做了两处改动——
+> 1. 文件名 `V*_*_ruoyi_5.6.2.sql` → `V*_*_aoyou_5.6.2.sql`（Flyway 版本号不变，只改描述部分）；
+> 2. `V1` 中 `sys_oss_config` 的示例桶名/示例账号（`ruoyi` / `ruoyi123` / `ruoyi-1240000000`）→ `aoyou` / `aoyou123` / `aoyou-1240000000`。
+>
+> 之所以安全：改动前确认库内**没有 `flyway_schema_history` 表**（脚本由容器 entrypoint 直接执行，未经 Flyway），
+> 不存在校验和基线。此后 `V1`/`V2` 恢复"只增不改"。`V1` 中 `sys_menu` 指向上游的官网外链
+> （`PLUS官网` → `https://gitee.com/dromara/RuoYi-Vue-Plus`）**保留不改**，属出处标注。
 
 ## 命令
 
 ```bash
 # 新库：建库后执行（库本身仍需先创建，Flyway 不建库）
 mvn -f db/migrations/pom.xml flyway:migrate \
-  -Dflyway.url="jdbc:mysql://127.0.0.1:3306/ry_vue?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai" \
+  -Dflyway.url="jdbc:mysql://127.0.0.1:3306/aoyou?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai" \
   -Dflyway.user=root -Dflyway.password=***
 
 # 存量库（已手工执行过 5.6.2 脚本）：先打基线，再迁移

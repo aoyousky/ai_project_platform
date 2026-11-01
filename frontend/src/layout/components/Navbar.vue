@@ -48,11 +48,11 @@
           </div>
         </el-tooltip>
         <el-tooltip content="Github" effect="dark" placement="bottom">
-          <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />
+          <aoyou-git id="aoyou-git" class="right-menu-item hover-effect" />
         </el-tooltip>
 
         <el-tooltip :content="proxy.$t('navbar.document')" effect="dark" placement="bottom">
-          <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
+          <aoyou-doc id="aoyou-doc" class="right-menu-item hover-effect" />
         </el-tooltip>
 
         <el-tooltip :content="proxy.$t('navbar.full')" effect="dark" placement="bottom">

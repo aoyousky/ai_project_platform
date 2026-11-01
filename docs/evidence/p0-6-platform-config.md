@@ -5,7 +5,7 @@
 
 ## 1. 改了什么
 
-文件：`platform/ruoyi-admin/src/main/resources/application.yml`
+文件：`platform/aoyou-admin/src/main/resources/application.yml`
 
 ```diff
    # jwt秘钥
@@ -31,7 +31,7 @@
 改动前的核验：
 
 ```
-$ grep -rn "jwt-secret-key\|tenant.enable" platform/ruoyi-admin/src/main/resources/*.yml
+$ grep -rn "jwt-secret-key\|tenant.enable" platform/aoyou-admin/src/main/resources/*.yml
 application.yml:104:  jwt-secret-key: abcdefghijklmnopqrstuvwxyz
 application.yml:123:  enable: true      # 位于 tenant: 下
 ```
@@ -40,16 +40,16 @@ application.yml:123:  enable: true      # 位于 tenant: 下
 
 ## 3. 关闭多租户是平台支持的开关，不是硬改
 
-`ruoyi-common-tenant` 的装配是条件化的：
+`aoyou-common-tenant` 的装配是条件化的：
 
 ```
-platform/ruoyi-modules/../ruoyi-common/ruoyi-common-tenant/src/main/java/org/dromara/common/tenant/config/TenantConfig.java:32
+platform/aoyou-common/aoyou-common-tenant/src/main/java/com/aoyou/common/tenant/config/TenantConfig.java:32
   @ConditionalOnProperty(value = "tenant.enable", havingValue = "true")
 
-platform/ruoyi-modules/ruoyi-system/src/main/java/org/dromara/system/controller/system/SysTenantController.java:42
+platform/aoyou-modules/aoyou-system/src/main/java/com/aoyou/system/controller/system/SysTenantController.java:42
   @ConditionalOnProperty(value = "tenant.enable", havingValue = "true")
 
-platform/ruoyi-modules/ruoyi-system/src/main/java/org/dromara/system/controller/system/SysTenantPackageController.java:38
+platform/aoyou-modules/aoyou-system/src/main/java/com/aoyou/system/controller/system/SysTenantPackageController.java:38
   @ConditionalOnProperty(value = "tenant.enable", havingValue = "true")
 ```
 
@@ -77,14 +77,14 @@ cn.dev33.satoken.spring.SaBeanInject
 ## 5. 未验证的部分（必须如实记录）
 
 - **没有真正启动过应用**：启动需要 MySQL + Redis，本机未运行。上条结论来自字节码检查，不是运行日志。
-- 顺带清除了 `platform/ruoyi-admin/target/classes/application.yml`（旧构建产物，仍含旧密钥），
+- 顺带清除了 `platform/aoyou-admin/target/classes/application.yml`（旧构建产物，仍含旧密钥），
   下次构建会重新拷贝源文件。
 
 ## 6. 本地开发怎么跑
 
 ```bash
 export SA_TOKEN_JWT_SECRET=$(openssl rand -hex 32)
-mvn -f platform/pom.xml -pl ruoyi-admin -am spring-boot:run
+mvn -f platform/pom.xml -pl aoyou-admin -am spring-boot:run
 ```
 
 变量每次会话都要重新导出；缺失时应用会直接启动失败，这是预期行为，不要加默认值绕过。

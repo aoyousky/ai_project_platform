@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.dromara.delivery</groupId>
+    <groupId>com.aoyou.delivery</groupId>
     <artifactId>db-migrations</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
@@ -18,7 +18,7 @@
         <mysql.version>9.7.0</mysql.version>
 
         <!-- 默认指向本地库；CI 与生产必须用 -D 覆盖 -->
-        <flyway.url>jdbc:mysql://127.0.0.1:3306/ry_vue?useUnicode=true&amp;characterEncoding=utf8&amp;useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=Asia/Shanghai</flyway.url>
+        <flyway.url>jdbc:mysql://127.0.0.1:3306/aoyou?useUnicode=true&amp;characterEncoding=utf8&amp;useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=Asia/Shanghai</flyway.url>
         <flyway.user>root</flyway.user>
         <flyway.password></flyway.password>
     </properties>
