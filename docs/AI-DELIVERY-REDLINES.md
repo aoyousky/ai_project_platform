@@ -28,9 +28,10 @@
 | `platform/pom.xml` 的 `<modules>` | 追加业务模块 | 改动既有条目、改属性 |
 | `platform/aoyou-admin/pom.xml` 的 `<dependencies>` | 追加业务模块 | 改平台依赖版本 |
 | `platform/aoyou-admin/src/main/resources/` 下的配置文件 | 改**配置项取值** | 改 Java 源码、改配置结构、增删配置节点 |
-| `frontend/src/views/<context>/` | 新增业务页面 | 改 `components / layout / router / store / utils` |
-| `frontend/src/api/<context>/` | 新增业务接口封装 | 改既有 `src/api/*.ts` |
-| `frontend/.env.development` / `.env.production` | 改**已有配置项的值** | 增删配置结构 |
+| `frontend/apps/web-antdv-next/src/views/<context>/` | 新增业务页面 | 改 `packages/**`、`src/adapter/**`、布局与 store |
+| `frontend/apps/web-antdv-next/src/api/<context>/` | 新增业务接口封装 | 改既有 `src/api/core/*.ts`（适配层，见 ADR-002 §2.1） |
+| `frontend/apps/web-antdv-next/.env.*` | 改**已有配置项的值** | 增删配置结构 |
+| ADR-002 §2.1 列出的适配层文件 | 按该表逐项限定 | 超出该表的框架代码改动需另提 ADR |
 
 需要改底座代码（Java / Vue / TS）时：另提 ADR，登记改动文件清单，经批准后方可动。
 
@@ -81,11 +82,13 @@
 
 ### R8 前后端按同一限界上下文同名交付
 
-- 后端 `business/<context>/`、前端 `src/views/<context>/`、`src/api/<context>/` **必须同名**；
-  交付一个需求时三处一起改，不允许只交一半。
-- 禁止在组件里硬编码后端地址：统一走 `VITE_APP_BASE_API` + `src/api/<context>/` 的封装。
-- `frontend/package-lock.json` **必须入库**；禁止删除锁文件、禁止用 `--no-save` 绕过。
+- 后端 `business/<context>/`、前端 `apps/web-antdv-next/src/views/<context>/`、
+  `apps/web-antdv-next/src/api/<context>/` **必须同名**；交付一个需求时三处一起改，不允许只交一半。
+- 禁止在组件里硬编码后端地址：统一走 `VITE_GLOB_API_URL` + `src/api/<context>/` 的封装。
+- `frontend/pnpm-lock.yaml` **必须入库**；禁止删除锁文件、禁止用 `--no-save` 绕过、
+  禁止 `npm install` 另外生成 `package-lock.json`。
 - 前端不得引入 `frontend/PROVENANCE.md` 之外的新依赖；新增依赖先走白名单（`allowlist.md` §1.2）。
+- 迁移期说明：P4-1 起前端统一为 pnpm；`frontend/` 旧 plus-ui 代码在 P4-3 删除前仍按 R1 只读。
 
 ## 2. 强制方式
 
@@ -100,7 +103,7 @@
 | R6 微服务 | 依赖只能来自 `allowlist.md` | 半自动 |
 | R7 p6spy/fastjson | `/review` checklist | 人工 |
 | R8 目录同名 | `/review` checklist | 人工 |
-| 前端可构建 | CI `frontend` job（`npm ci && npm run build:prod`） | 自动 |
+| 前端可构建 | CI `frontend` job：迁移期仍为 `npm ci && npm run build:prod`（plus-ui）；P4-1 起改为 `corepack enable && pnpm install --frozen-lockfile && pnpm -F @vben/web-antdv-next build` | 自动 |
 
 **未自动化的项由 `/review` 的 12 项 checklist 兜底。** 未通过 `/review` 不得报告完成。
 
