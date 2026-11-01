@@ -1,0 +1,50 @@
+
+The following files have been resolved:
+   org.springframework:spring-context-support:jar:6.2.19:compile -- module spring.context.support [auto]
+   org.springframework:spring-beans:jar:6.2.19:compile -- module spring.beans [auto]
+   org.springframework:spring-context:jar:6.2.19:compile -- module spring.context [auto]
+   org.springframework:spring-expression:jar:6.2.19:compile -- module spring.expression [auto]
+   org.springframework:spring-core:jar:6.2.19:compile -- module spring.core [auto]
+   org.springframework:spring-jcl:jar:6.2.19:compile -- module spring.jcl [auto]
+   org.springframework:spring-web:jar:6.2.19:compile -- module spring.web [auto]
+   io.micrometer:micrometer-observation:jar:1.15.12:compile -- module micrometer.observation [auto]
+   io.micrometer:micrometer-commons:jar:1.15.12:compile -- module micrometer.commons [auto]
+   org.springframework.boot:spring-boot-starter-validation:jar:3.5.15:compile -- module spring.boot.starter.validation [auto]
+   org.springframework.boot:spring-boot-starter:jar:3.5.15:compile -- module spring.boot.starter [auto]
+   org.springframework.boot:spring-boot-starter-logging:jar:3.5.15:compile -- module spring.boot.starter.logging [auto]
+   ch.qos.logback:logback-classic:jar:1.5.34:compile -- module ch.qos.logback.classic
+   ch.qos.logback:logback-core:jar:1.5.34:compile -- module ch.qos.logback.core
+   org.slf4j:slf4j-api:jar:2.0.18:compile -- module org.slf4j
+   org.apache.logging.log4j:log4j-to-slf4j:jar:2.24.3:compile -- module org.apache.logging.log4j.to.slf4j
+   org.apache.logging.log4j:log4j-api:jar:2.24.3:compile -- module org.apache.logging.log4j
+   org.slf4j:jul-to-slf4j:jar:2.0.18:compile -- module jul.to.slf4j
+   jakarta.annotation:jakarta.annotation-api:jar:2.1.1:compile -- module jakarta.annotation
+   org.yaml:snakeyaml:jar:2.4:compile -- module org.yaml.snakeyaml
+   org.apache.tomcat.embed:tomcat-embed-el:jar:10.1.55:compile -- module org.apache.tomcat.embed.el
+   org.hibernate.validator:hibernate-validator:jar:8.0.3.Final:compile -- module org.hibernate.validator [auto]
+   jakarta.validation:jakarta.validation-api:jar:3.0.2:compile -- module jakarta.validation
+   org.jboss.logging:jboss-logging:jar:3.6.3.Final:compile -- module org.jboss.logging
+   com.fasterxml:classmate:jar:1.7.3:compile -- module com.fasterxml.classmate
+   org.springframework.boot:spring-boot-starter-aop:jar:3.5.15:compile -- module spring.boot.starter.aop [auto]
+   org.springframework:spring-aop:jar:6.2.19:compile -- module spring.aop [auto]
+   org.aspectj:aspectjweaver:jar:1.9.25.1:compile -- module org.aspectj.weaver [auto]
+   org.apache.commons:commons-lang3:jar:3.17.0:compile -- module org.apache.commons.lang3
+   jakarta.servlet:jakarta.servlet-api:jar:6.0.0:compile -- module jakarta.servlet
+   cn.hutool:hutool-core:jar:5.8.43:compile -- module cn.hutool.core [auto]
+   cn.hutool:hutool-http:jar:5.8.43:compile -- module cn.hutool.http [auto]
+   cn.hutool:hutool-extra:jar:5.8.43:compile -- module cn.hutool.extra [auto]
+   cn.hutool:hutool-setting:jar:5.8.43:compile -- module cn.hutool.setting [auto]
+   cn.hutool:hutool-log:jar:5.8.43:compile -- module cn.hutool.log [auto]
+   org.projectlombok:lombok:jar:1.18.44:compile -- module lombok
+   org.springframework.boot:spring-boot-configuration-processor:jar:3.5.15:compile -- module spring.boot.configuration.processor [auto]
+   org.springframework.boot:spring-boot-properties-migrator:jar:3.5.15:runtime -- module spring.boot.properties.migrator [auto]
+   org.springframework.boot:spring-boot:jar:3.5.15:compile -- module spring.boot [auto]
+   org.springframework.boot:spring-boot-configuration-metadata:jar:3.5.15:runtime -- module spring.boot.configuration.metadata [auto]
+   com.vaadin.external.google:android-json:jar:0.0.20131108.vaadin1:runtime -- module android.json (auto)
+   io.github.linpeilie:mapstruct-plus-spring-boot-starter:jar:1.5.0:compile -- module mapstruct.plus.spring.boot.starter (auto)
+   io.github.linpeilie:mapstruct-plus:jar:1.5.0:compile -- module mapstruct.plus (auto)
+   org.mapstruct:mapstruct:jar:1.6.3:compile -- module org.mapstruct [auto]
+   io.github.linpeilie:mapstruct-plus-object-convert:jar:1.5.0:compile -- module mapstruct.plus.object.convert (auto)
+   org.springframework.boot:spring-boot-autoconfigure:jar:3.5.15:compile -- module spring.boot.autoconfigure [auto]
+   org.lionsoul:ip2region:jar:3.3.7:compile -- module ip2region (auto)
+

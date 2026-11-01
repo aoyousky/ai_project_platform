@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# 生成本地 Docker 部署所需的构建产物：deploy/build/app.jar 与 deploy/build/dist/
+#
+# 只产出到 deploy/build/（已被 .gitignore 忽略），不改动 platform/ 或 frontend/。
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BUILD="$ROOT/deploy/build"
+mkdir -p "$BUILD"
+
+echo "== 1/2 后端：打包 ruoyi-admin =="
+mvn -f "$ROOT/platform/pom.xml" -pl ruoyi-admin -am package -DskipTests -q
+cp "$ROOT/platform/ruoyi-admin/target/ruoyi-admin.jar" "$BUILD/app.jar"
+echo "   -> $BUILD/app.jar ($(du -h "$BUILD/app.jar" | cut -f1))"
+
+echo "== 2/2 前端：生产构建 =="
+( cd "$ROOT/frontend" && npm ci && npm run build:prod >/dev/null )
+rm -rf "$BUILD/dist"
+cp -r "$ROOT/frontend/dist" "$BUILD/dist"
+echo "   -> $BUILD/dist ($(du -sh "$BUILD/dist" | cut -f1))"
+
+echo "== 就绪，可以执行：docker compose -f deploy/docker-compose.yml up -d --build =="

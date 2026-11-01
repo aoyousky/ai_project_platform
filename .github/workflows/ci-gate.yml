@@ -1,0 +1,65 @@
+name: delivery-gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安装评测依赖（白名单内）
+        run: pip install "pyyaml>=6,<7"
+
+      - name: 评测执行器自测
+        run: python -m unittest discover -s specs/evals/tests -v
+
+      - name: 交付门禁（5 道）
+        env:
+          # 仓库变量中配置被测服务地址；未配置且存在评测用例时门禁 5 会失败。
+          EVAL_BASE_URL: ${{ vars.EVAL_BASE_URL }}
+        run: bash scripts/ci-gate.sh
+
+  # 宪章 II 的构建门禁：DDD 四层依赖方向。
+  # 只构建 business/（业务代码），不构建 platform/（只读底座，本地 mvn verify 已验证）。
+  architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: 四层依赖门禁（ArchUnit）
+        run: mvn -B -f business/pom.xml test
+
+  # 前端底座可构建性门禁。只构建 frontend/（脚手架 + 业务页面）。
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 安装依赖（锁定版本）
+        run: npm ci
+
+      - name: 生产构建
+        run: npm run build:prod

@@ -1,0 +1,125 @@
+# 本地一键启动：MySQL + Redis + 后端 + 前端
+#
+# 用法见 deploy/README.md。前置：deploy/prepare.sh 已跑过（生成 build/app.jar 与 build/dist/）。
+#
+# 镜像全部走 REGISTRY 变量（默认 daocloud 公共镜像代理，因为本机到 Docker Hub 不通）。
+# 能直连 Docker Hub 时：export REGISTRY=docker.io/library
+
+name: ai-work-platform
+
+services:
+  mysql:
+    image: ${REGISTRY:-docker.m.daocloud.io/library}/mysql:8.0
+    container_name: awp-mysql
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ry-vue
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --lower_case_table_names=1
+      - --explicit_defaults_for_timestamp=true
+    ports:
+      # 宿主机 3306 已被本机 mysqld 占用，改映射 3307
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  # 数据库初始化：显式指定 utf8mb4 客户端字符集。
+  # 不用镜像自带的 /docker-entrypoint-initdb.d —— 那里的 mysql 客户端按容器 locale 选字符集，
+  # 默认 locale 下会选 latin1，导致中文数据触发 "Data too long for column 'nick_name'"。
+  db-init:
+    image: ${REGISTRY:-docker.m.daocloud.io/library}/mysql:8.0
+    container_name: awp-db-init
+    environment:
+      MYSQL_PWD: ${MYSQL_ROOT_PASSWORD:-root}
+    volumes:
+      - ../db/migrations/sql:/sql:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        if mysql --default-character-set=utf8mb4 -hmysql -uroot -N -e \
+             "select 1 from information_schema.tables where table_schema='ry-vue' and table_name='sys_user'" | grep -q 1; then
+          echo "数据库已初始化，跳过"
+          exit 0
+        fi
+        for f in $$(ls /sql/V*.sql | sort -V); do
+          echo "=> $$f"
+          mysql --default-character-set=utf8mb4 -hmysql -uroot ry-vue < "$$f"
+        done
+        echo "初始化完成"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: "no"
+
+  redis:
+    image: ${REGISTRY:-docker.m.daocloud.io/library}/redis:7-alpine
+    container_name: awp-redis
+    environment:
+      TZ: Asia/Shanghai
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-ruoyi123}", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-ruoyi123}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        REGISTRY: ${REGISTRY:-docker.m.daocloud.io/library}
+    image: awp/backend:local
+    container_name: awp-backend
+    environment:
+      TZ: Asia/Shanghai
+      # 必填，无默认值；缺失则启动失败（红线 R3）
+      SA_TOKEN_JWT_SECRET: ${SA_TOKEN_JWT_SECRET:?请先 export SA_TOKEN_JWT_SECRET}
+      SPRING_DATASOURCE_DYNAMIC_DATASOURCE_MASTER_URL: "jdbc:mysql://mysql:3306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true"
+      SPRING_DATASOURCE_DYNAMIC_DATASOURCE_MASTER_USERNAME: root
+      SPRING_DATASOURCE_DYNAMIC_DATASOURCE_MASTER_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-ruoyi123}
+    ports:
+      - "8080:8080"
+    # SnailJob 调度中心本次不部署，关掉客户端避免反复重连
+    command: ["--snail-job.enabled=false", "--spring.boot.admin.client.enabled=false"]
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        REGISTRY: ${REGISTRY:-docker.m.daocloud.io/library}
+    image: awp/frontend:local
+    container_name: awp-frontend
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql-data:
+  redis-data:

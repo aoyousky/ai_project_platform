@@ -1,0 +1,40 @@
+# --- Java ---
+target/
+build/
+*.class
+*.jar
+*.war
+
+# --- Node / 前端 ---
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# --- Python（评测工具链）---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# --- 密钥与本地配置 ---
+.env
+.env.*
+!.env.example
+# 前端脚手架自带的环境文件：只含上游公开默认值，是构建必需项，必须入库
+!frontend/.env.development
+!frontend/.env.production
+.claude/settings.local.json
+
+# --- 评测产物（证据由 CI 重新生成，不入库）---
+specs/evals/reports/
+
+# --- 日志 ---
+*.log

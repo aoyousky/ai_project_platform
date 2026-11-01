@@ -1,0 +1,12 @@
+ARG REGISTRY=docker.m.daocloud.io/library
+FROM ${REGISTRY}/nginx:alpine
+
+LABEL org.opencontainers.image.title="ai-work-platform-frontend"
+LABEL org.opencontainers.image.description="plus-ui 5.6.2 构建产物（由 deploy/prepare.sh 产出的 dist/）"
+
+ENV TZ=Asia/Shanghai
+
+COPY build/dist/ /usr/share/nginx/html/
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80

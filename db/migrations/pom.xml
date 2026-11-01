@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.dromara.delivery</groupId>
+    <artifactId>db-migrations</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <name>db-migrations</name>
+    <description>业务库 DDL 版本化（Flyway），独立于 platform/ 只读底座</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <flyway.version>11.7.2</flyway.version>
+        <mysql.version>9.7.0</mysql.version>
+
+        <!-- 默认指向本地库；CI 与生产必须用 -D 覆盖 -->
+        <flyway.url>jdbc:mysql://127.0.0.1:3306/ry_vue?useUnicode=true&amp;characterEncoding=utf8&amp;useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=Asia/Shanghai</flyway.url>
+        <flyway.user>root</flyway.user>
+        <flyway.password></flyway.password>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
+                <configuration>
+                    <url>${flyway.url}</url>
+                    <user>${flyway.user}</user>
+                    <password>${flyway.password}</password>
+                    <locations>
+                        <location>filesystem:${project.basedir}/sql</location>
+                    </locations>
+                    <encoding>UTF-8</encoding>
+                    <!-- 上游脚本含 ${initiator} 等字面量，禁止 Flyway 做占位符替换 -->
+                    <placeholderReplacement>false</placeholderReplacement>
+                    <!-- 存量库必须显式 flyway:baseline，禁止自动 baseline -->
+                    <baselineOnMigrate>false</baselineOnMigrate>
+                    <validateOnMigrate>true</validateOnMigrate>
+                    <!-- 防误删：clean 永久禁用 -->
+                    <cleanDisabled>true</cleanDisabled>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>flyway-mysql</artifactId>
+                        <version>${flyway.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.mysql</groupId>
+                        <artifactId>mysql-connector-j</artifactId>
+                        <version>${mysql.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+</project>
