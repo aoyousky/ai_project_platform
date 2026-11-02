@@ -6,11 +6,11 @@ export default defineConfig(async () => {
     vite: {
       server: {
         proxy: {
+          // VITE_GLOB_API_URL=/api，转发到本地后端（与 plus-ui 的 /dev-api 行为一致）
           '/api': {
             changeOrigin: true,
             rewrite: (path) => path.replace(/^\/api/, ''),
-            // mock代理目标地址
-            target: 'http://localhost:5320/api',
+            target: 'http://localhost:8080',
             ws: true,
           },
         },

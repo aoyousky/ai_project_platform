@@ -19,6 +19,9 @@ pnpm test:e2e --ui            # 调试
 ```
 
 被测地址可用 `E2E_BASE_URL` 覆盖，默认 `http://localhost:5666`。
+后端地址与 Redis 容器可用 `E2E_BACKEND_URL`、`E2E_REDIS_CONTAINER`、`E2E_REDIS_PASSWORD` 覆盖。
+验证码是**一次性**的，用例在页面发起 `/api/auth/code` 后从 Redis 读取明文（`global:captcha_codes:<uuid>`），
+不缓存、不复用；后端栈未启动时用例自动 skip。
 
 ## 产物（已 gitignore）
 

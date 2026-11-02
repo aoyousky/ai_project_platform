@@ -9,7 +9,7 @@ import { preferences } from '@vben/preferences';
 import { message } from 'antdv-next';
 
 import { getAllMenusApi } from '#/api';
-import { BasicLayout, IFrameView } from '#/layouts';
+import { BasicLayout, IFrameView, ParentView } from '#/layouts';
 import { $t } from '#/locales';
 
 const forbiddenComponent = () => import('#/views/_core/fallback/forbidden.vue');
@@ -17,9 +17,16 @@ const forbiddenComponent = () => import('#/views/_core/fallback/forbidden.vue');
 async function generateAccess(options: GenerateMenuAndRoutesOptions) {
   const pageMap: ComponentRecordType = import.meta.glob('../views/**/*.vue');
 
+  /**
+   * 后端菜单里的 `component` 是 RuoYi 的组件名（Layout / ParentView / InnerLink）
+   * 或视图相对路径。前两者与内链在这里落地为真实组件（data-model §3.1）。
+   */
   const layoutMap: ComponentRecordType = {
     BasicLayout,
     IFrameView,
+    InnerLink: IFrameView,
+    Layout: BasicLayout,
+    ParentView,
   };
 
   return await generateAccessible(preferences.app.accessMode, {

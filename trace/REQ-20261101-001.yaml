@@ -67,3 +67,23 @@ history:
       - pnpm test:unit → 35/35 文件、309/309 用例通过（上游既有用例，非本需求断言）
       - pnpm -F @vben/web-antdv-next typecheck → 通过
       - pnpm -F @vben/web-antdv-next build → 通过（17.57s，dist.zip 1.24MB）
+  - at: 2026-11-02T20:47:28+08:00
+    event: Phase 2（T006–T019 基础适配层）完成
+    note: >-
+      传输加密（ruoyi-crypto）、RuoYi 响应封装（request）、认证/用户画像 API、
+      后端菜单→Vue Router 转换（含外链 IFrameView）、/index 常量路由与首页移植、
+      layoutMap 补 Layout/ParentView/InnerLink、preferences 与 env 对接本地后端。
+      A-03 的“48 节点全部解析、duplicate_names=0、noRedirect_left=0”已由真实
+      getRouters.json fixture 单测证明；侧栏渲染需登录页（US1）完成后才能 E2E 验证，
+      因此 assertion_map 仍留空，不得据此报告完成。
+      依赖版本修正：catalog 将 @playwright/test 与 playwright 同时钉到 1.64.1
+      （原 ^1.60.0 使两者解析到 1.64.1 / 1.60.0 两个版本，Playwright 报
+      “two different versions of @playwright/test” 无法运行）；@vitest/coverage-v8
+      钉到 4.1.7 以匹配 vitest 4.1.7 的 peer 约束。
+      以下均为工程自检，不是评测证据；test_evidence 仍为空（CLAR-003）。
+    local_checks:
+      - pnpm vitest run → 40/40 文件、354/354 用例通过（含本需求新增 crypto/menu/request/auth/user 用例）
+      - RED→GREEN：新增用例在实现文件被 git stash 后全部失败，恢复后全部通过
+      - pnpm -F @vben/web-antdv-next typecheck → 通过
+      - pnpm test:e2e（smoke）→ 1 过 1 失败：未登录跳转登录页通过；登录用例因登录页尚未接入验证码（T023 未做）在预期 RED 点失败，非缺陷
+      - 真实后端 getRouters.json（48 节点 / 39 叶子）→ createRouter 注册 48 条、无重复 name、无 http 前缀路径
