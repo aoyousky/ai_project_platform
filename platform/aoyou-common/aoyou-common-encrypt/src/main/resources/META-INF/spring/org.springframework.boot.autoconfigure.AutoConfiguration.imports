@@ -1,0 +1,3 @@
+com.aoyou.common.encrypt.config.EncryptorAutoConfiguration
+com.aoyou.common.encrypt.config.ApiDecryptAutoConfiguration
+

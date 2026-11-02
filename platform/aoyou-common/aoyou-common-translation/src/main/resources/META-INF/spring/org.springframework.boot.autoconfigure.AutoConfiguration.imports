@@ -1,0 +1,6 @@
+com.aoyou.common.translation.config.TranslationConfig
+com.aoyou.common.translation.core.impl.DeptNameTranslationImpl
+com.aoyou.common.translation.core.impl.DictTypeTranslationImpl
+com.aoyou.common.translation.core.impl.OssUrlTranslationImpl
+com.aoyou.common.translation.core.impl.UserNameTranslationImpl
+com.aoyou.common.translation.core.impl.NicknameTranslationImpl

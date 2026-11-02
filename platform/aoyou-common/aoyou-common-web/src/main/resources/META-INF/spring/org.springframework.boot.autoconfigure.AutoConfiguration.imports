@@ -1,0 +1,5 @@
+com.aoyou.common.web.config.CaptchaConfig
+com.aoyou.common.web.config.FilterConfig
+com.aoyou.common.web.config.I18nConfig
+com.aoyou.common.web.config.ResourcesConfig
+com.aoyou.common.web.config.UndertowConfig

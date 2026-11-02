@@ -26,8 +26,8 @@
 | 接缝 | 允许的操作 | 禁止 |
 |---|---|---|
 | `platform/pom.xml` 的 `<modules>` | 追加业务模块 | 改动既有条目、改属性 |
-| `platform/ruoyi-admin/pom.xml` 的 `<dependencies>` | 追加业务模块 | 改平台依赖版本 |
-| `platform/ruoyi-admin/src/main/resources/` 下的配置文件 | 改**配置项取值** | 改 Java 源码、改配置结构、增删配置节点 |
+| `platform/aoyou-admin/pom.xml` 的 `<dependencies>` | 追加业务模块 | 改平台依赖版本 |
+| `platform/aoyou-admin/src/main/resources/` 下的配置文件 | 改**配置项取值** | 改 Java 源码、改配置结构、增删配置节点 |
 | `frontend/src/views/<context>/` | 新增业务页面 | 改 `components / layout / router / store / utils` |
 | `frontend/src/api/<context>/` | 新增业务接口封装 | 改既有 `src/api/*.ts` |
 | `frontend/.env.development` / `.env.production` | 改**已有配置项的值** | 增删配置结构 |
@@ -54,11 +54,11 @@
 - `frontend/.env.*` 里的 `VITE_APP_RSA_PUBLIC_KEY` / `VITE_APP_RSA_PRIVATE_KEY` 是**上游公开默认值**，
   仅用于接口传输加密，不是身份凭据；但**上线前必须重新生成并改为环境注入**，与后端 `api-decrypt` 配置成对更换。
 
-**复核**：`grep -rn "jwt-secret-key" platform/ruoyi-admin/src/main/resources/application.yml` 只能看到占位符。
+**复核**：`grep -rn "jwt-secret-key" platform/aoyou-admin/src/main/resources/application.yml` 只能看到占位符。
 
 ### R4 平台内部实现不得跨模块直连
 
-- 禁止在 `business/` 中 `import org.dromara.system.service.*Impl`、直接注入平台 Mapper。
+- 禁止在 `business/` 中 `import com.aoyou.system.service.*Impl`、直接注入平台 Mapper。
 - 需要平台能力时，走平台已暴露的接口；需要新能力时在 `business/<context>` 内自行实现。
 - 禁止改平台 Mapper XML / 实体来"顺手满足"业务需求。
 

@@ -51,7 +51,7 @@ curl -s http://localhost/prod-api/auth/code | head -c 200
 
 # 4. 数据库表已建（首次启动会执行 db/migrations/sql 下的 V1/V2）
 docker exec awp-mysql mysql -uroot -proot -e \
-  "select count(*) as tables_count from information_schema.tables where table_schema='ry-vue';"
+  "select count(*) as tables_count from information_schema.tables where table_schema='aoyou';"
 ```
 
 ## 停止与清理

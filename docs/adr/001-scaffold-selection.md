@@ -23,14 +23,14 @@
 
 **采用 RuoYi-Vue-Plus 5.X（v5.6.2 为基线 tag）作为平台底座**，代码落点为仓库内 `platform/`（来源、commit 与只读约束见 `platform/PROVENANCE.md`），并执行以下约束：
 
-1. 平台模块（`ruoyi-common-*`、`ruoyi-modules/*` 下的 `ruoyi-system`、`ruoyi-job`、`ruoyi-generator`、`ruoyi-workflow`、`ruoyi-demo`，以及 `ruoyi-extend/*`）视为**框架层，只读**；AI 与业务团队不得直接修改，需改动时另提 ADR。
+1. 平台模块（`aoyou-common-*`、`aoyou-modules/*` 下的 `aoyou-system`、`aoyou-job`、`aoyou-generator`、`aoyou-workflow`、`aoyou-demo`，以及 `aoyou-extend/*`）视为**框架层，只读**；AI 与业务团队不得直接修改，需改动时另提 ADR。
    - **唯一可写接缝**（三处，2026-11-01 增补第 3 处）：
      1. `platform/pom.xml` 的 `<modules>` 列表——追加业务模块；
-     2. `platform/ruoyi-admin/pom.xml` 的 `<dependencies>`——把业务模块挂进启动工程；
-     3. `platform/ruoyi-admin/src/main/resources/` 下的**配置文件**（`application*.yml`、`logback-plus.xml`、`banner.txt`）——仅允许改配置项取值，**禁止改 Java 源码、禁止改变配置结构**。增设原因是：多租户开关（`tenant.enable`）与 JWT 密钥（`sa-token.jwt-secret-key`）只存在于该目录，而二者都必须偏离上游默认值（见 §9）。
+     2. `platform/aoyou-admin/pom.xml` 的 `<dependencies>`——把业务模块挂进启动工程；
+     3. `platform/aoyou-admin/src/main/resources/` 下的**配置文件**（`application*.yml`、`logback-plus.xml`、`banner.txt`）——仅允许改配置项取值，**禁止改 Java 源码、禁止改变配置结构**。增设原因是：多租户开关（`tenant.enable`）与 JWT 密钥（`sa-token.jwt-secret-key`）只存在于该目录，而二者都必须偏离上游默认值（见 §9）。
      
      除此之外任何既有文件不得改动。
-   - 业务代码包名统一 `org.dromara.business.<context>`（启动类在 `org.dromara`，自动扫描生效）；MyBatis 扫描已配置为 `org.dromara.**.mapper`，仓储实现按 `...infrastructure.mapper` 放置即可被发现。
+   - 业务代码包名统一 `com.aoyou.business.<context>`（启动类在 `com.aoyou`，自动扫描生效）；MyBatis 扫描已配置为 `com.aoyou.**.mapper`，仓储实现按 `...infrastructure.mapper` 放置即可被发现。
 2. 新业务一律落在 `business/<bounded-context>/` 的 DDD 四层模块内，结构固定为：
    ```
    business/<context>/
@@ -99,7 +99,7 @@
 | P0-9 | 前端已有功能巡检（真实浏览器 + 真实加密登录） | **已完成（2026-11-01）**：Headless Edge 驱动，真实 RSA+AES 登录（未关 `api-decrypt`/`captcha`），菜单 39 叶子页中 32 个实访、**31 个通过**，30 页渲染出表格数据；**发现并修复 1 个真实缺陷**——`deploy/nginx/default.conf` 静态资源正则 location 劫持 `/prod-api/` 下以 `.js/.css` 结尾的请求，导致流程设计器整页不可用（后端直连 200），已加 `^~` 修复并复验；证据 `docs/evidence/frontend-verify.md` |
 | P1 | 补 OpenAPI 校验、覆盖率门禁、CVE 扫描、前端测试基线 | 接入 `scripts/ci-gate.sh` |
 
-**构建注意（P0-2 实测）**：`platform/pom.xml` 默认 `<skipTests>true</skipTests>`，`mvn verify` 显示 `Tests are skipped`；显式 `-DskipTests=false` 则 **BUILD FAILURE**——`ruoyi-admin` 的 `TagUnitTest`（`@SpringBootTest`）要连真实 MySQL/Redis，报 `Could not create connection to database server`。因此：
+**构建注意（P0-2 实测）**：`platform/pom.xml` 默认 `<skipTests>true</skipTests>`，`mvn verify` 显示 `Tests are skipped`；显式 `-DskipTests=false` 则 **BUILD FAILURE**——`aoyou-admin` 的 `TagUnitTest`（`@SpringBootTest`）要连真实 MySQL/Redis，报 `Could not create connection to database server`。因此：
 
 - 任何声称“测试通过”的交付，必须显式使用 `mvn verify -DskipTests=false` 并给出 Tests run 统计；
 - 平台侧 4 个测试类均为演示性质，**不存在可用测试基线**（D8 实测确认）；
@@ -120,12 +120,12 @@
 > 逐项证据见 [001-verification-record.md](001-verification-record.md)。核验坐标：tag `v5.6.2` @ `8136a01`（2026-06-17）；分支 `5.X` head `815087e7`（2026-09-07）。
 
 - [x] 实际 Spring Boot / Java 版本 → **Spring Boot 3.5.15 / Java 17**
-- [x] 代码生成器是否保留、生成物默认落点 → 保留（`ruoyi-generator`）；模板 `vm/{java,ts,vue,xml,sql}`；默认包 `org.dromara.system`
+- [x] 代码生成器是否保留、生成物默认落点 → 保留（`aoyou-generator`）；模板 `vm/{java,ts,vue,xml,sql}`；默认包 `com.aoyou.system`
 - [x] 是否内置 Flyway → **否**
 - [x] Sa-Token 的 JWT 模式与刷新机制 → `StpLogicJwtForSimple`；**默认弱密钥，必须改**
-- [x] 多租户隔离方式 → 有 `ruoyi-common-tenant`（9 个类，行级 `tenant_id` + 缓存/会话隔离）；**本次不启用**
+- [x] 多租户隔离方式 → 有 `aoyou-common-tenant`（9 个类，行级 `tenant_id` + 缓存/会话隔离）；**本次不启用**
 - [x] 数据权限拦截器的作用范围与绕过方式 → 注解 + 拦截器；`@InterceptorIgnore` 与线程上下文两条绕过路径
-- [x] 模块依赖图是否存在环 → **无环**；`ruoyi-common-*` 不反向依赖业务模块
+- [x] 模块依赖图是否存在环 → **无环**；`aoyou-common-*` 不反向依赖业务模块
 - [x] 前端是否可裁剪 → `plus-ui` 5.X（Vue3 + TS + Element Plus），可裁剪；额外带 vxe-table / echarts / vue-quill
 - [x] 第三方依赖许可证清单 → Warm-Flow 1.8.5 Apache-2.0、SnailJob 1.10.0 Apache-2.0、JustAuth 1.16.7 MIT、主仓 MIT
 - [x] 官方文档与社区活跃度 → 5.X 按月发版至 2026-06-17，分支仍有提交至 2026-09-07；6.0.0 后主线转向 6.X
@@ -140,9 +140,11 @@
 
 **2026-10-31 补充裁决（D4 落点）**：Flyway 以独立模块 `db/migrations/` 接入，**不扩大 `platform/` 可写接缝**。代价是迁移不在应用启动时自动执行，改为发布前/CI 显式执行；换取的是平台升级时无补丁负担。
 
-**2026-11-01 裁决（接缝 3 + 遗留裁决点关闭）**：P0-6 编写红线文档时发现两处上游默认值必须偏离——`sa-token.jwt-secret-key` 是仓库公开的弱密钥，`tenant.enable` 默认为 `true`（与“不做多租户”冲突）。二者都只存在于 `platform/ruoyi-admin/src/main/resources/`，不在既有两个接缝内。经裁决：**把该 resources 目录加入可写接缝，但仅限改配置项取值**，禁止改 Java 源码与配置结构。同时关闭 2026-10-31 的遗留裁决点：多租户从“保留不启用”改为“配置层关闭（`enable: false`）”，租户管理接口随之不注册，代码保留以便回退。密钥改为无默认值的 `${SA_TOKEN_JWT_SECRET}`，缺失即启动失败。证据：`docs/evidence/p0-6-platform-config.md`。
+**2026-11-01 裁决（接缝 3 + 遗留裁决点关闭）**：P0-6 编写红线文档时发现两处上游默认值必须偏离——`sa-token.jwt-secret-key` 是仓库公开的弱密钥，`tenant.enable` 默认为 `true`（与“不做多租户”冲突）。二者都只存在于 `platform/aoyou-admin/src/main/resources/`，不在既有两个接缝内。经裁决：**把该 resources 目录加入可写接缝，但仅限改配置项取值**，禁止改 Java 源码与配置结构。同时关闭 2026-10-31 的遗留裁决点：多租户从“保留不启用”改为“配置层关闭（`enable: false`）”，租户管理接口随之不注册，代码保留以便回退。密钥改为无默认值的 `${SA_TOKEN_JWT_SECRET}`，缺失即启动失败。证据：`docs/evidence/p0-6-platform-config.md`。
 
 **2026-11-01 裁决（前端同仓）**：前端 `plus-ui` 由"独立仓库"改为**迁入本仓 `frontend/`**，tag 与后端配套（`v5.6.2-v2.6.2`），D7 偏离随之关闭。处置要点：① 前端与后端同等对待——框架代码只读，可写接缝仅 `src/views/<context>/`、`src/api/<context>/`、`.env.*` 配置取值；② 业务目录名与后端限界上下文同名，一次交付覆盖前后端；③ 上游 `.gitignore` 忽略锁文件，本项目改为 `package-lock.json` 入库，记入 `frontend/PROVENANCE.md` 已登记改动；④ 前端零测试基线，补测列入 P1。
+
+**2026-11-01 变更（品牌统一改名）**：按用户指令把脚手架内 `ruoyi` 统一改为 `aoyou`，Java 包前缀 `org.dromara` → `com.aoyou`。范围与边界：① 模块目录 `ruoyi-*` → `aoyou-*`（含 `business/` 的 `com.aoyou.business`）；② 启动类 `DromaraApplication` → `AoyouApplication`、`ServletInitializer` 同步；③ 默认库名 `ry-vue` → `aoyou`，Redis/MySQL 示例口令同步；④ **不动的三类**——`LICENSE`、源码 `@author ruoyi` 署名、指向上游的 URL 与第三方包 `org.dromara.warm` / `org.dromara.sms4j`（改了会污染出处并破坏第三方引用）。§2 的四类只读接缝、§3 的偏离表结论均不变，只是路径前缀换了名。复验证据：`docs/evidence/docker-verify.md` §0、`docs/evidence/frontend-verify.md` §0、`docs/evidence/p0-5-archunit-gate.md` §3。
 
 **与 v1 的关系**：v1 基于 6.X 且依据未核验的版本检索结论（3.4/3.5），已作废，本版为唯一有效版本。
 

@@ -2,9 +2,9 @@
   <div class="app-container home">
     <el-row :gutter="20">
       <el-col :sm="24" :lg="12" style="padding-left: 20px">
-        <h2>RuoYi-Vue-Plus多租户管理系统</h2>
+        <h2>Aoyou-Vue-Plus多租户管理系统</h2>
         <p>
-          RuoYi-Vue-Plus 是基于 RuoYi-Vue 针对 分布式集群 场景升级(不兼容原框架)
+          Aoyou-Vue-Plus 是基于 Aoyou-Vue 针对 分布式集群 场景升级(不兼容原框架)
           <br />
           * 前端开发框架 Vue3、TS、Element Plus<br />
           * 后端开发框架 Spring Boot<br />
@@ -47,9 +47,9 @@
       </el-col>
 
       <el-col :sm="24" :lg="12" style="padding-left: 20px">
-        <h2>RuoYi-Cloud-Plus多租户微服务管理系统</h2>
+        <h2>Aoyou-Cloud-Plus多租户微服务管理系统</h2>
         <p>
-          RuoYi-Cloud-Plus 微服务通用权限管理系统 重写 RuoYi-Cloud 全方位升级(不兼容原框架)
+          Aoyou-Cloud-Plus 微服务通用权限管理系统 重写 Aoyou-Cloud 全方位升级(不兼容原框架)
           <br />
           * 前端开发框架 Vue3、TS、Element UI<br />
           * 后端开发框架 Spring Boot<br />

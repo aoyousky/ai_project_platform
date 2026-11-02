@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.dromara</groupId>
-    <artifactId>ruoyi-vue-plus</artifactId>
+    <groupId>com.aoyou</groupId>
+    <artifactId>aoyou-vue-plus</artifactId>
     <version>${revision}</version>
 
-    <name>RuoYi-Vue-Plus</name>
+    <name>Aoyou-Vue-Plus</name>
     <url>https://gitee.com/dromara/RuoYi-Vue-Plus</url>
-    <description>Dromara RuoYi-Vue-Plus多租户管理系统</description>
+    <description>Aoyou-Vue-Plus 多租户管理系统</description>
 
     <properties>
         <revision>5.6.2</revision>
@@ -67,7 +67,7 @@
                 <!-- 环境标识，需要与配置文件的名称相对应 -->
                 <profiles.active>local</profiles.active>
                 <logging.level>info</logging.level>
-                <monitor.username>ruoyi</monitor.username>
+                <monitor.username>aoyou</monitor.username>
                 <monitor.password>123456</monitor.password>
             </properties>
         </profile>
@@ -77,7 +77,7 @@
                 <!-- 环境标识，需要与配置文件的名称相对应 -->
                 <profiles.active>dev</profiles.active>
                 <logging.level>info</logging.level>
-                <monitor.username>ruoyi</monitor.username>
+                <monitor.username>aoyou</monitor.username>
                 <monitor.password>123456</monitor.password>
             </properties>
             <activation>
@@ -90,7 +90,7 @@
             <properties>
                 <profiles.active>prod</profiles.active>
                 <logging.level>warn</logging.level>
-                <monitor.username>ruoyi</monitor.username>
+                <monitor.username>aoyou</monitor.username>
                 <monitor.password>123456</monitor.password>
             </properties>
         </profile>
@@ -120,8 +120,8 @@
 
             <!-- common 的依赖配置-->
             <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-common-bom</artifactId>
+                <groupId>com.aoyou</groupId>
+                <artifactId>aoyou-common-bom</artifactId>
                 <version>${revision}</version>
                 <type>pom</type>
                 <scope>import</scope>
@@ -327,33 +327,33 @@
             </dependency>
 
             <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-system</artifactId>
+                <groupId>com.aoyou</groupId>
+                <artifactId>aoyou-system</artifactId>
                 <version>${revision}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-job</artifactId>
+                <groupId>com.aoyou</groupId>
+                <artifactId>aoyou-job</artifactId>
                 <version>${revision}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-generator</artifactId>
+                <groupId>com.aoyou</groupId>
+                <artifactId>aoyou-generator</artifactId>
                 <version>${revision}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-demo</artifactId>
+                <groupId>com.aoyou</groupId>
+                <artifactId>aoyou-demo</artifactId>
                 <version>${revision}</version>
             </dependency>
 
             <!--  工作流模块  -->
             <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-workflow</artifactId>
+                <groupId>com.aoyou</groupId>
+                <artifactId>aoyou-workflow</artifactId>
                 <version>${revision}</version>
             </dependency>
 
@@ -361,10 +361,10 @@
     </dependencyManagement>
 
     <modules>
-        <module>ruoyi-admin</module>
-        <module>ruoyi-common</module>
-        <module>ruoyi-extend</module>
-        <module>ruoyi-modules</module>
+        <module>aoyou-admin</module>
+        <module>aoyou-common</module>
+        <module>aoyou-extend</module>
+        <module>aoyou-modules</module>
     </modules>
     <packaging>pom</packaging>
 

@@ -4,6 +4,36 @@
 - **环境**：Windows 10 + Docker Desktop（Linux 容器），JDK 17 / Maven 3.9+ / Node v24.15.0
 - **范围**：`deploy/docker-compose.yml` 定义的 4 个容器（mysql / redis / backend / frontend）+ 1 个一次性初始化容器（db-init）
 - **结论**：脚手架**可启动、可访问、可登录、可读库**。下文每条结论都附实际命令输出。
+- **本轮状态**：本文件已按 **`ruoyi` → `aoyou` 改名后**（包名 `com.aoyou`、库名 `aoyou`、主类 `AoyouApplication`）重跑并更新，见 §0。
+
+---
+
+## 0. 改名后复验（2026-11-01，第二轮）
+
+改名的可验证面：模块目录 `ruoyi-*` → `aoyou-*`、Java 包 `org.dromara` → `com.aoyou`、
+启动类 `DromaraApplication` → `AoyouApplication`、默认库名 `ry-vue` → `aoyou`、Redis 密码 `ruoyi123` → `aoyou123`。
+
+```bash
+# 全量重建：连数据卷一起删（旧卷里是 ry-vue 库）
+docker compose down -v
+docker compose up -d --build
+```
+
+| 检查 | 命令 | 结果 |
+|---|---|---|
+| 初始化脚本用的是改名后文件 | `docker logs awp-db-init` | `=> /sql/V1__baseline_aoyou_5.6.2.sql` / `=> /sql/V2__workflow_aoyou_5.6.2.sql` / `初始化完成` |
+| 主类已改名 | `docker logs awp-backend \| grep Started` | `Started AoyouApplication in 50.474 seconds` |
+| 包名已生效（日志 logger 前缀） | 同上 | `c.a.common.json.config.JacksonConfig`、`c.b.m.e.s.MybatisPlusApplicationContextAware`（`com.aoyou.*` 缩写） |
+| 库名已是 aoyou | `show databases` | `aoyou`（无 `ry-vue`） |
+| 建表数 | `select count(*) ... table_schema='aoyou'` | 36 |
+| 中文未损坏 | `select hex(nick_name), char_length(nick_name)` | `E796AFE78B82E79A84E78BAEE5AD904C69` / 7 |
+| 前端 | `curl -I http://localhost/` | 200，114072 字节 |
+| 验证码接口（经 nginx） | `curl http://localhost/prod-api/auth/code` | 200，`captchaEnabled:true` |
+| 流程设计器（nginx `^~` 回归） | `curl http://localhost/prod-api/warm-flow-ui/index.html` | 200，5816 字节，与直连 8080 完全一致；`js/index-B4cSnZcq.js` 经 nginx 与直连均为 `text/javascript` 3199479 字节 |
+| 业务测试单测 | `mvn -f platform/pom.xml -pl aoyou-admin -am package -DskipTests` | BUILD SUCCESS，产出 `aoyou-admin.jar` |
+| ArchUnit 门禁 | `mvn -f business/pom.xml test` | `Tests run: 7, Failures: 0, Errors: 0`，测试类 `com.aoyou.business.arch.LayerArchitectureTest` |
+
+> 控制台里 `?` 代替中文是 Windows 终端代码页（GBK）所致，`hex`/`char_length` 才是判据。
 
 ---
 
@@ -12,10 +42,10 @@
 ```
 $ docker compose -f deploy/docker-compose.yml ps
 NAME           STATUS
-awp-backend    Up 10 minutes
-awp-frontend   Up 10 minutes
-awp-mysql      Up 22 minutes (healthy)
-awp-redis      Up 22 minutes (healthy)
+awp-backend    Up 7 minutes
+awp-frontend   Up 7 minutes
+awp-mysql      Up 8 minutes (healthy)
+awp-redis      Up 8 minutes (healthy)
 ```
 
 `awp-db-init` 为一次性容器（`restart: "no"`），执行完即退出，不在 `ps` 中显示属预期。
@@ -34,7 +64,7 @@ awp-redis      Up 22 minutes (healthy)
 
 ```
 $ docker logs awp-backend | grep "Started"
-Started DromaraApplication in 166.115 seconds
+Started AoyouApplication in 50.474 seconds
 ```
 
 - Sa-Token v1.45.0 启动横幅正常
@@ -65,17 +95,17 @@ $ curl -s http://localhost/prod-api/system/user/list
 
 ```
 $ docker exec awp-mysql mysql -uroot -proot -e \
-    "select count(*) from information_schema.tables where table_schema='ry-vue';"
+    "select count(*) from information_schema.tables where table_schema='aoyou';"
 36
 ```
 
-（另有 `flyway_schema_history` 为框架自带，按业务表统计为 36 张。）
+（初始化由 `db-init` 直接执行 `V*.sql`，**不走 Flyway**，故库内没有 `flyway_schema_history`；36 张即全部业务表。）
 
 ### 5.1 中文完整性
 
 ```
 $ docker exec awp-mysql mysql --default-character-set=utf8mb4 -uroot -proot -N -e \
-    "select nick_name, hex(nick_name), char_length(nick_name) from \`ry-vue\`.sys_user where user_id=1;"
+    "select nick_name, hex(nick_name), char_length(nick_name) from \`aoyou\`.sys_user where user_id=1;"
 疯狂的狮子Li    E796AFE78B82E79A84E78BAEE5AD904C69    7
 ```
 

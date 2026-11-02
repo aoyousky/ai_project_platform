@@ -4,6 +4,42 @@
 - **方式**：Headless Edge（puppeteer-core 驱动本机 msedge.exe，未下载浏览器）→ `http://localhost`（nginx）→ backend:8080 → MySQL/Redis
 - **前置**：`deploy/docker-compose.yml` 四容器已起；**未修改前端代码，未修改后端配置**
 - **结论**：菜单内 **31/32 个业务页可直接访问并渲染真实数据**；发现并修复 **1 个真实缺陷**（nginx 配置导致流程设计器整页不可用）。
+- **第二轮**：`ruoyi` → `aoyou` 改名后（包名 `com.aoyou`、库名 `aoyou`）整栈重建并**重跑同一套巡检**，结果见 §0。
+
+---
+
+## 0. 改名后复验（2026-11-01，第二轮）
+
+改名完成后 `docker compose down -v` + `up -d --build` 全量重建（新库 `aoyou`），用同一脚本重跑：
+
+```
+PASS | 租户选择框不存在（tenant.enable=false 已传导到前端）
+PASS | 从 Redis 取到真实验证码 | uuid=da9a5c97... code=12
+PASS | 登录接口响应 | 200 {"code":200,"msg":"操作成功","data":{"access_token":"eyJ..."}}
+PASS | 登录成功（离开登录页） | http://localhost/index
+PASS | 后端返回菜单路由 | 48 条，可访问叶子页 39 个
+PASS | 待访问页面分类 | 访问 32 个，跳过 7 个（外部/参数化/iframe）
+PASS | 列表页渲染出表格数据 | 30 页有表格行
+FAIL | 逐页访问菜单叶子页 | 32 页，异常 1 页
+```
+
+| 结果 | 页面数 | 说明 |
+|---|---|---|
+| ok | 31 | 见 §3 表；含 `/workflow/design/index` —— iframe 指向 `/prod-api/warm-flow-ui/index.html`，**改名后仍正常** |
+| BAD | 1 | `/system/log/logininfor`：跳回登录页。原因同 §5（测试侧把 32 次整页刷新打在 `/auth/tenant/list` 的 20 次/60 秒限流上）。**单独复测 2/2 通过**，列表接口 `200 total=3` |
+| 跳过 | 7 | 同 §3.1，非缺陷 |
+
+定向复验 `warm-flow-ui` 静态资源（§4 缺陷的回归项）：
+
+```
+$ curl -s -o /dev/null -w "%{http_code} %{content_type}
+" http://localhost/prod-api/warm-flow-ui/index.html
+200 text/html                     # 5816 字节，与直连 :8080 完全一致
+
+$ curl -s -o /dev/null -w "%{http_code} %{content_type} %{size_download}
+"     http://localhost/prod-api/warm-flow-ui/js/index-B4cSnZcq.js
+200 text/javascript 3199479       # 经 nginx 与直连后端字节数一致
+```
 
 ---
 

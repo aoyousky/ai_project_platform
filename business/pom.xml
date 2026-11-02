@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.dromara.business</groupId>
+    <groupId>com.aoyou.business</groupId>
     <artifactId>business-parent</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
@@ -27,7 +27,7 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- 仅用于对齐测试/基础库版本；业务模块对平台产物的依赖需显式声明 org.dromara:ruoyi-common-* -->
+            <!-- 仅用于对齐测试/基础库版本；业务模块对平台产物的依赖需显式声明 com.aoyou:aoyou-common-* -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>

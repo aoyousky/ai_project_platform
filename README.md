@@ -39,7 +39,7 @@ ai_work_platform/
 │   ├── adr/                      # 架构决策记录（ADR-001 脚手架选型）
 │   ├── evidence/                 # 核验证据快照（依赖树、门禁日志等）
 │   └── AI-DELIVERY-REDLINES.md   # 平台底座红线（只读接缝/多租户/密钥/迁移）
-├── platform/                     # 平台底座（RuoYi-Vue-Plus 5.X v5.6.2，框架层只读）
+├── platform/                     # 平台底座（RuoYi-Vue-Plus 5.X v5.6.2，已改名 aoyou / 包名 com.aoyou；框架层只读）
 │   └── PROVENANCE.md             # 来源、许可证与只读约束
 ├── frontend/                     # 前端底座（plus-ui v5.6.2-v2.6.2，框架层只读）
 │   └── PROVENANCE.md             # 来源、接缝与已登记改动
@@ -50,7 +50,7 @@ ai_work_platform/
 │   └── migrations/               # Flyway DDL 版本化（独立于 platform）
 ├── deploy/                       # 本地 Docker 一键启动（MySQL/Redis/后端/前端，非交付物）
 │   ├── docker-compose.yml        # 4 服务 + db-init 一次性初始化
-│   ├── Dockerfile.backend        # 打包 ruoyi-admin.jar
+│   ├── Dockerfile.backend        # 打包 aoyou-admin.jar
 │   ├── Dockerfile.frontend       # nginx 托管 frontend/dist
 │   ├── prepare.sh                # 产出 build/（已 gitignore）
 │   └── README.md                 # 三步启动 / 端口 / 排错
@@ -183,10 +183,10 @@ bash scripts/ci-gate.sh      # 门禁3–5：机器终审（含评测执行）
 
 ```bash
 export SA_TOKEN_JWT_SECRET=$(openssl rand -hex 32)   # 缺失则启动失败（红线 R3）
-mvn -f platform/pom.xml -pl ruoyi-admin -am spring-boot:run
+mvn -f platform/pom.xml -pl aoyou-admin -am spring-boot:run
 ```
 
-默认端口 `8080`（`platform/ruoyi-admin/src/main/resources/application.yml` 的 `server.port`）。
+默认端口 `8080`（`platform/aoyou-admin/src/main/resources/application.yml` 的 `server.port`）。
 数据库需先执行 `db/migrations/` 下的 Flyway 迁移（见 `db/migrations/README.md`）；多租户已关闭（红线 R2）。
 
 ### 前端

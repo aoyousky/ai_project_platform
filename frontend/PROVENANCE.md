@@ -1,6 +1,10 @@
 # frontend/ 来源与约束
 
-本目录是 **RuoYi-Vue-Plus 配套前端 `plus-ui` 5.X** 的原样副本，与 `platform/`（后端底座）配套使用。
+本目录是 **RuoYi-Vue-Plus 配套前端 `plus-ui` 5.X** 的框架副本，与 `platform/`（后端底座）配套使用。
+
+> **不再"原样"**：2026-11-01 按用户指令把 `ruoyi` 统一改为 `aoyou`（组件/工具类/样式/文案），
+> 并重写了 `README.md`。改动逐条登记在下方「已登记改动」表。保留未改的只有三类：
+> `LICENSE`、源码内 `Copyright (c) 2019 ruoyi` 声明、指向上游的 URL。
 
 ## 来源
 
@@ -43,6 +47,12 @@
 | 文件 | 改动 | 理由 |
 |---|---|---|
 | `.gitignore` | 注释掉 `package-lock.json` 的忽略规则 | 上游不锁依赖版本，无法复现构建；本项目要求 `package-lock.json` 入库 |
+| `src/utils/ruoyi.ts` → `src/utils/aoyou.ts` | 文件改名 + 所有 `@/utils/ruoyi` 引用同步 | 品牌统一（2026-11-01） |
+| `src/assets/styles/ruoyi.scss` → `src/assets/styles/aoyou.scss` | 同上 | 同上 |
+| `src/components/RuoYiDoc`、`src/components/RuoYiGit` → `AoyouDoc`、`AoyouGit` | 目录改名 + 全局组件注册名与 kebab 用法同步（`ruo-yi-doc` → `aoyou-doc`） | 同上 |
+| 其余 `src/` 下的 `RuoYi`/`ruoyi` 文案与标识 | 改为 `Aoyou`/`aoyou` | 同上 |
+| `README.md` | 用本项目的短说明替换上游产品介绍 | 避免上游营销文案被当成本项目说明；上游链接仍保留在文末 |
+| `.env.*` | **未改**：`VITE_APP_TITLE` 等仍为上游默认值，需按部署替换 | 属配置取值，走可写接缝 |
 
 ## 已知问题（导入时核验）
 
@@ -52,7 +62,7 @@
    导致依赖版本不可复现。本项目处置：改由本仓根 `.gitignore` 控制，`package-lock.json` **必须入库**。
 3. **`.env.*` 内含 RSA 公私钥对与 `client_id`**，均为上游公开默认值。它们用于接口传输加密（前后端成对），
    **不是身份凭据**，但仍禁止在真实环境沿用；上线前必须重新生成并改为环境注入（红线 R3）。
-4. 未做前端构建验证之外的运行时验证（未与后端联调）。
+4. 运行时联调已验证（见 `docs/evidence/frontend-verify.md`）：32 个页面 + 真实登录链路；写操作、上传、流程审批未覆盖。
 
 ## 升级流程
 

@@ -1,6 +1,6 @@
 # P0-5 证据：DDD 四层原型 + ArchUnit 门禁
 
-日期：2026-10-31
+日期：2026-10-31（2026-11-01 改名后复跑，见 §3）
 关联：`docs/adr/001-scaffold-selection.md` §6 P0-5、宪章 II
 
 ## 1. 交付物
@@ -24,19 +24,24 @@
 | 4 | `..interfaces..` 不依赖 `..infrastructure..` | 依赖方向 |
 | 5 | `..infrastructure..` 不依赖 `..interfaces..` | 依赖方向 |
 
-扫描范围只限 `org.dromara.business`；`platform/` 豁免（ADR-001 D2）。
+扫描范围只限 `com.aoyou.business`；`platform/` 豁免（ADR-001 D2）。
 
 ## 3. 绿：合规结构通过
 
 ```
 mvn -f business/pom.xml clean test
 
-[INFO] Running org.dromara.business.arch.LayerArchitectureTest
+[INFO] Running com.aoyou.business.arch.LayerArchitectureTest
 [INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.800 s
 [INFO] BUILD SUCCESS
 ```
 
 7 个测试 = 1 个“业务代码合规” + 1 个“合规夹具合规” + 5 个“违规夹具被抓”。
+
+> **2026-11-01 改名后复跑**：包前缀 `org.dromara` → `com.aoyou`（测试类现为 `com.aoyou.business.arch.LayerArchitectureTest`，
+> 夹具包为 `com.aoyou.fixtures.*`），`mvn -f business/pom.xml test` 结果：
+> `Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.616 s` / `BUILD SUCCESS`。
+> 扫描范围同步改为 `com.aoyou.business`，规则文本未变。
 
 ## 4. 红：违规真的会让门禁失败
 
@@ -55,7 +60,7 @@ mvn -f business/pom.xml clean test
 
 ### 4.2 业务代码级（一次性反向验证）
 
-在 `org.dromara.business.archetype.domain` 临时加入一个依赖 `..archetype.infrastructure..` 的类，
+在 `com.aoyou.business.archetype.domain` 临时加入一个依赖 `..archetype.infrastructure..` 的类，
 确认 `businessModulesRespectLayering` 变红：
 
 ```

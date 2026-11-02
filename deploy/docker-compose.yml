@@ -14,7 +14,7 @@ services:
     environment:
       TZ: Asia/Shanghai
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-      MYSQL_DATABASE: ry-vue
+      MYSQL_DATABASE: aoyou
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_general_ci
@@ -47,13 +47,13 @@ services:
       - |
         set -e
         if mysql --default-character-set=utf8mb4 -hmysql -uroot -N -e \
-             "select 1 from information_schema.tables where table_schema='ry-vue' and table_name='sys_user'" | grep -q 1; then
+             "select 1 from information_schema.tables where table_schema='aoyou' and table_name='sys_user'" | grep -q 1; then
           echo "数据库已初始化，跳过"
           exit 0
         fi
         for f in $$(ls /sql/V*.sql | sort -V); do
           echo "=> $$f"
-          mysql --default-character-set=utf8mb4 -hmysql -uroot ry-vue < "$$f"
+          mysql --default-character-set=utf8mb4 -hmysql -uroot aoyou < "$$f"
         done
         echo "初始化完成"
     depends_on:
@@ -66,13 +66,13 @@ services:
     container_name: awp-redis
     environment:
       TZ: Asia/Shanghai
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-ruoyi123}", "--appendonly", "yes"]
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-aoyou123}", "--appendonly", "yes"]
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-ruoyi123}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-aoyou123}", "ping"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -89,12 +89,12 @@ services:
       TZ: Asia/Shanghai
       # 必填，无默认值；缺失则启动失败（红线 R3）
       SA_TOKEN_JWT_SECRET: ${SA_TOKEN_JWT_SECRET:?请先 export SA_TOKEN_JWT_SECRET}
-      SPRING_DATASOURCE_DYNAMIC_DATASOURCE_MASTER_URL: "jdbc:mysql://mysql:3306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true"
+      SPRING_DATASOURCE_DYNAMIC_DATASOURCE_MASTER_URL: "jdbc:mysql://mysql:3306/aoyou?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true"
       SPRING_DATASOURCE_DYNAMIC_DATASOURCE_MASTER_USERNAME: root
       SPRING_DATASOURCE_DYNAMIC_DATASOURCE_MASTER_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
-      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-ruoyi123}
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-aoyou123}
     ports:
       - "8080:8080"
     # SnailJob 调度中心本次不部署，关掉客户端避免反复重连
