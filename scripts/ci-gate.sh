@@ -49,6 +49,18 @@ else
     if ! grep -qE "^(spec_hash|assertion_map):" "$t" || grep -q "UNMAPPED" "$t"; then
       echo "FAIL: $t 缺 spec_hash/assertion_map 或存在 UNMAPPED 断言"; FAIL=1; continue
     fi
+    # 开发期豁免（CLAR-003）：尚未编写评测集时，允许提交实现进度，
+    # 但 trace 不得宣称完成——必须 test_evidence 为空且 review_verdict 为 pending。
+    # 一旦 specs/evals/<id>/cases.yaml 出现，立即回到严格校验（必须全绿）。
+    cases="$ROOT/specs/evals/$id/cases.yaml"
+    if [ ! -f "$cases" ]; then
+      if grep -qE "^test_evidence:[[:space:]]*(null)?[[:space:]]*$" "$t" \
+        && grep -qE "^review_verdict:[[:space:]]*[\"']?pending" "$t"; then
+        echo "PASS(开发期): $t 无评测集，test_evidence 为空 / review_verdict=pending"
+        continue
+      fi
+      echo "FAIL: $t 无评测集却声称完成（要求 test_evidence 为空且 review_verdict: pending）"; FAIL=1; continue
+    fi
     passed=$(awk '/^test_evidence:/{f=1} f && /^  passed:/{print $2; exit}' "$t")
     total=$(awk '/^test_evidence:/{f=1} f && /^  total:/{print $2; exit}' "$t")
     if [ -z "${passed:-}" ] || [ -z "${total:-}" ] || [ "$total" -le 0 ] || [ "$passed" -ne "$total" ]; then

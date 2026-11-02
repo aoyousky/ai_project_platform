@@ -1,0 +1,53 @@
+# 溯源记录 REQ-20261101-001（前端框架替换 / Vben）
+# 状态：开发期（CLAR-003），尚未宣称完成；评测集未建立前不得写 test_evidence 数字。
+generation_id: gen-20261102-191800
+requirement_id: REQ-20261101-001
+spec_version: "1.1"
+spec_hash: 73ab85451acf
+constraint_version: 77e727639c28
+allowlist_hash: 4d2d2e9f97f7
+model: deepseek-v4-flash
+prompt_version: claudemd-v1
+generated_at: 2026-11-02T19:18:00+08:00
+
+speckit:
+  feature_dir: specs/001-vben-frontend-replacement
+  plan_hash: c653badff8e9
+  tasks_hash: 23bc0ba61d76
+
+clarification_refs: [CLAR-001, CLAR-002, CLAR-003]
+reviewer: pending
+review_verdict: pending
+
+# git diff --name-only main...HEAD（frontend/ 为 362 个 plus-ui 文件删除，
+# 及随后 Vben v5.7.0 整仓导入，明细见 frontend/PROVENANCE.md）
+diff_scope:
+  - clarifications/CLAR-001.md
+  - clarifications/CLAR-002.md
+  - clarifications/CLAR-003.md
+  - docs/AI-DELIVERY-REDLINES.md
+  - docs/adr/002-frontend-vben-adapter.md
+  - docs/evidence/vben-p1-spike.md
+  - specs/constraints/allowlist.md
+  - specs/001-vben-frontend-replacement/spec.md
+  - specs/001-vben-frontend-replacement/plan.md
+  - specs/001-vben-frontend-replacement/research.md
+  - specs/001-vben-frontend-replacement/data-model.md
+  - specs/001-vben-frontend-replacement/quickstart.md
+  - specs/001-vben-frontend-replacement/tasks.md
+  - specs/001-vben-frontend-replacement/contracts/backend-api-consumed.md
+  - specs/001-vben-frontend-replacement/checklists/requirements.md
+  - specs/SPEC-001-vben-frontend-replacement.md
+  - scripts/ci-gate.sh
+  - scripts/trace-schema.md
+  - trace/REQ-20261101-001.yaml
+  - frontend/
+
+# 实现期：断言 → 实现位置的映射在对应实现完成后逐条补入。
+# DoD 要求交付前覆盖全部 P0（A-01 ~ A-08），缺失即视为未完成。
+assertion_map: {}
+
+# 未执行评测集（specs/evals/REQ-20261101-001/ 尚未建立），按 CLAR-003 留空。
+test_evidence:
+
+history: []
