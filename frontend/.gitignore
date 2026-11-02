@@ -59,3 +59,8 @@ vite.config.ts.*
 skills-lock.json
 .atomcode
 datalog
+
+# E2E 产物（quickstart 证据，不入库）
+tests/e2e/report
+tests/e2e/.artifacts
+test-results

@@ -10,8 +10,6 @@ packages:
   - packages/business/*
   - apps/*
   - scripts/*
-  - docs
-  - playground
 
 publicHoistPattern:
   - lefthook
@@ -91,6 +89,7 @@ catalog:
   '@vite-pwa/vitepress': ^1.1.0
   '@vitejs/plugin-vue': ^6.0.7
   '@vitejs/plugin-vue-jsx': ^5.1.5
+  '@vitest/coverage-v8': ^4.1.7
   '@vue/shared': ^3.5.34
   '@vue/test-utils': ^2.4.10
   '@vueuse/core': ^14.3.0

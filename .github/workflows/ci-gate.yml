@@ -52,14 +52,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # frontend/ 是 pnpm workspace（Vben monorepo），唯一锁文件为 pnpm-lock.yaml（R8）。
+      # 版本与 frontend/package.json 的 packageManager 字段保持一致。
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.4
+          package_json_file: frontend/package.json
+
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          node-version: "22.18.0"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: 安装依赖（锁定版本）
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: 生产构建
-        run: npm run build:prod
+        run: pnpm -F @vben/web-antdv-next build
