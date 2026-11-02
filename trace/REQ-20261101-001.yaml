@@ -41,6 +41,9 @@ diff_scope:
   - scripts/ci-gate.sh
   - scripts/trace-schema.md
   - trace/REQ-20261101-001.yaml
+  - .github/workflows/ci-gate.yml
+  - deploy/prepare.sh
+  - deploy/Dockerfile.frontend
   - frontend/
 
 # 实现期：断言 → 实现位置的映射在对应实现完成后逐条补入。
@@ -50,4 +53,17 @@ assertion_map: {}
 # 未执行评测集（specs/evals/REQ-20261101-001/ 尚未建立），按 CLAR-003 留空。
 test_evidence:
 
-history: []
+history:
+  - at: 2026-11-02T19:35:00+08:00
+    event: Phase 1（T001–T005）完成
+    commit: 8ce5410
+    note: >-
+      Vben v5.7.0 以 git subtree（--squash）落入 frontend/（源 tag 与 commit 见
+      frontend/PROVENANCE.md）；裁剪 6 个 app + playground + docs；pnpm-lock.yaml 入库，
+      仓库内无 package-lock.json；CI frontend job 与 deploy/prepare.sh 切 pnpm；
+      vitest/playwright 入口就绪。
+      以下为工程自检，不是评测证据；test_evidence 仍为空（CLAR-003）。
+    local_checks:
+      - pnpm test:unit → 35/35 文件、309/309 用例通过（上游既有用例，非本需求断言）
+      - pnpm -F @vben/web-antdv-next typecheck → 通过
+      - pnpm -F @vben/web-antdv-next build → 通过（17.57s，dist.zip 1.24MB）
