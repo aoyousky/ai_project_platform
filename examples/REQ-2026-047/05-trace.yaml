@@ -1,0 +1,62 @@
+# 溯源记录｜REQ-2026-047
+# 生成方式：/trace 命令。本示例处于「规格就绪、待实现」阶段：
+# 评测集尚未建立（specs/evals/REQ-2026-047/cases.yaml 不存在），
+# 按开发期豁免（CLAR-003）：test_evidence 必须为空、review_verdict 必须为 pending。
+# 一旦评测集出现，本文件必须回填全绿结果，否则门禁 3 直接 FAIL。
+
+requirement: REQ-2026-047
+title: 优惠券批量发放任务创建（P-01）
+
+spec_version: "1.0"
+spec_hash: 34b3480a1590
+constraint_version: constraints-v3
+feature_dir: specs/002-coupon-batch-issue
+
+generated_by:
+  model: claude-sonnet-4.6
+  prompt_version: spec-packet-cmd-v3
+  run_id: 2026-11-04T19:40-local
+
+review:
+  reviewed_by: 待分配
+  review_notes: 等待架构评审（刘栋）与业务签字（陈立）完成后升为 approved
+
+# 以下两个字段为门禁 3「开发期豁免」的机器校验位，必须顶格、不得缩进
+review_verdict: pending
+
+# 评测集未建立（specs/evals/REQ-2026-047/cases.yaml 不存在），
+# 因此 test_evidence 必须为空；一旦评测集出现，必须回填全绿结果
+test_evidence: null
+
+assertion_map:
+  A-01: { file: 待实现, note: 预估接口 POST /api/v1/coupon-campaigns/estimate }
+  A-02: { file: 待实现, note: 空人群拦截 }
+  A-03: { file: 待实现, note: 库存不足拦截 + shortfall 字段 }
+  A-04: { file: 待实现, note: 免审额度判定 → PENDING_APPROVAL }
+  A-05: { file: 待实现, note: Idempotency-Key 幂等 }
+  A-06: { file: 待实现, note: 创建+扣减同事务 }
+  A-07: { file: 待实现, note: 券过期校验 }
+  A-08: { file: 待实现, note: 权限校验 }
+  A-09: { file: 待实现, note: 任务名重名校验 }
+
+boundary_map:
+  E-01: 待实现
+  E-02: 待实现
+  E-03: 待实现
+  E-04: 待实现
+  E-05: 待实现
+  E-06: 待实现
+  E-07: 待实现
+  E-08: 待实现
+  E-09: 待实现
+  E-10: 待实现
+  E-11: 待实现
+  E-12: 待实现
+
+clarifications: []                 # 本需求未触发 STOP 澄清；如触发需关联 clarifications/CLAR-xxx.md
+
+artifacts:
+  scenario_sheet: examples/REQ-2026-047/01-场景切片.md
+  prompt: examples/REQ-2026-047/02-提示词.md
+  prototype: examples/REQ-2026-047/03-P01-原型.html
+  spec: examples/REQ-2026-047/04-SPEC.md
