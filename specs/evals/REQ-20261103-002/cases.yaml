@@ -1,0 +1,332 @@
+spec_version: "1.2"
+# REQ-20261103-002 评测用例。
+# 占位符由 scripts/evals/prepare.sh 注入的环境变量替换（见同目录 README.md）：
+#   ${EVAL_TOKEN}            管理员令牌（*:*:*）
+#   ${EVAL_NOACCESS_TOKEN}   无 system:user:list 的令牌
+#   ${EVAL_DEPT_ID}          预置部门 D
+#   ${EVAL_USER_ID}          预置用户 spec002_user
+#   ${EVAL_DELETE_USER_ID}   预置可删除用户 spec002_delete
+#   ${EVAL_ROLE_ID}          预置角色 R
+#   ${EVAL_RUN_ID}           本次运行唯一后缀
+# 令牌不写入本文件；由执行夹具在内存中注入 Authorization / clientid。
+cases:
+  - id: TC-A01
+    assertion: A-01
+    auth: admin
+    input:
+      method: GET
+      path: /system/user/list
+      query:
+        pageNum: 1
+        pageSize: 10
+        deptId: ${EVAL_DEPT_ID}
+    expect:
+      status: 200
+      code: 200
+      total_min: 1
+      rows_contains:
+        userName: spec002_user
+
+  - id: TC-A02
+    assertion: A-02
+    auth: admin
+    input:
+      method: POST
+      path: /system/user
+      body:
+        userName: spec002_created_${EVAL_RUN_ID}
+        nickName: Spec002 Created
+        deptId: ${EVAL_DEPT_ID}
+        password: Abc12345
+        roleIds: ["${EVAL_ROLE_ID}"]
+        postIds: []
+    expect:
+      status: 200
+      code: 200
+    verify:
+      - method: GET
+        path: /system/user/list
+        query:
+          userName: spec002_created_${EVAL_RUN_ID}
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            nickName: Spec002 Created
+
+  # CLAR-006 已裁决（v1.1）：提交原 userName（只读、不可改）与新 nickName，不提交 password。
+  - id: TC-A03
+    assertion: A-03
+    auth: admin
+    input:
+      method: PUT
+      path: /system/user
+      body:
+        userId: ${EVAL_USER_ID}
+        userName: spec002_user
+        nickName: Spec002 User Edited
+    expect:
+      status: 200
+      code: 200
+    verify:
+      - method: GET
+        path: /system/user/${EVAL_USER_ID}
+        expect:
+          status: 200
+          code: 200
+          json:
+            data:
+              user:
+                userName: spec002_user
+                nickName: Spec002 User Edited
+
+  - id: TC-A04
+    assertion: A-04
+    auth: admin
+    input:
+      method: DELETE
+      path: /system/user/${EVAL_DELETE_USER_ID}
+    expect:
+      status: 200
+      code: 200
+    verify:
+      - method: GET
+        path: /system/user/list
+        query:
+          userName: spec002_delete
+        expect:
+          status: 200
+          code: 200
+          total: 0
+          rows_empty: true
+
+  - id: TC-A05-DELETE
+    assertion: A-05
+    auth: admin
+    input:
+      method: DELETE
+      path: /system/user/1
+    expect:
+      status: 200
+      code_not: 200
+      msg_nonempty: true
+
+  - id: TC-A05-CHANGE-STATUS
+    assertion: A-05
+    auth: admin
+    input:
+      method: PUT
+      path: /system/user/changeStatus
+      body:
+        userId: 1
+        status: "1"
+    expect:
+      status: 200
+      code_not: 200
+      msg_nonempty: true
+
+  - id: TC-A05-RESET-PWD
+    assertion: A-05
+    auth: admin
+    input:
+      method: PUT
+      path: /system/user/resetPwd
+      body:
+        userId: 1
+        password: Abc12345
+    expect:
+      status: 200
+      code_not: 200
+      msg_nonempty: true
+
+  # CLAR-005 已裁决（v1.1）：A-05 只覆盖删除/启停/重置密码；authRole 的 no-op 事实见 TC-E22。
+
+  - id: TC-A05-STATE
+    assertion: A-05
+    auth: admin
+    input:
+      method: GET
+      path: /system/user/1
+    expect:
+      status: 200
+      code: 200
+      json:
+        data:
+          user:
+            userId: 1
+            userName: admin
+            status: "0"
+
+  # CLAR-007 已裁决（v1.1）：A-06 只断言分配成功；空 roleIds 的 no-op 事实见 TC-E21。
+  - id: TC-A06-GRANT
+    assertion: A-06
+    auth: admin
+    input:
+      method: PUT
+      path: /system/user/authRole
+      query:
+        userId: ${EVAL_USER_ID}
+        roleIds: ${EVAL_ROLE_ID}
+    expect:
+      status: 200
+      code: 200
+    verify:
+      - method: GET
+        path: /system/user/authRole/${EVAL_USER_ID}
+        expect:
+          status: 200
+          code: 200
+          roles_flag_true: ${EVAL_ROLE_ID}
+      # E-21 事实（空 roleIds 为 no-op）随 A-06 一并验证：执行器只解析 A-xx，不单独引用 E-xx。
+      - method: PUT
+        path: /system/user/authRole
+        query:
+          userId: ${EVAL_USER_ID}
+          roleIds: ""
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/user/authRole/${EVAL_USER_ID}
+        expect:
+          status: 200
+          code: 200
+          roles_flag_true: ${EVAL_ROLE_ID}
+      # E-22 事实（userId=1 的 authRole 请求为 no-op）在同一端点验证，不单独引用 E-xx。
+      - method: PUT
+        path: /system/user/authRole
+        query:
+          userId: 1
+          roleIds: ""
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/user/authRole/1
+        expect:
+          status: 200
+          code: 200
+          json:
+            data:
+              user:
+                userId: 1
+
+  - id: TC-A07-NO-TOKEN
+    assertion: A-07
+    auth: none
+    input:
+      method: GET
+      path: /system/user/list
+    expect:
+      unauthorized: true
+
+  - id: TC-A07-NO-PERMISSION
+    assertion: A-07
+    auth: limited
+    input:
+      method: GET
+      path: /system/user/list
+    expect:
+      status: 200
+      code: 403
+      msg: 没有访问权限，请联系管理员授权
+
+  - id: TC-A07-WILDCARD
+    assertion: A-07
+    auth: admin
+    input:
+      method: GET
+      path: /system/user/list
+      query:
+        pageNum: 1
+        pageSize: 1
+    expect:
+      status: 200
+      code: 200
+
+  - id: TC-A08
+    assertion: A-08
+    auth: admin
+    input:
+      method: GET
+      path: /system/user/deptTree
+    expect:
+      status: 200
+      code: 200
+      data_array_min: 1
+      data_contains:
+        id: ${EVAL_DEPT_ID}
+        parentId: 0
+        label: Spec002 部门
+
+  - id: TC-A09
+    assertion: A-09
+    auth: admin
+    input:
+      method: PUT
+      path: /system/user/changeStatus
+      body:
+        userId: ${EVAL_USER_ID}
+        status: "1"
+    expect:
+      status: 200
+      code: 200
+    verify:
+      - method: GET
+        path: /system/user/${EVAL_USER_ID}
+        expect:
+          status: 200
+          code: 200
+          json:
+            data:
+              user:
+                status: "1"
+      - method: PUT
+        path: /system/user/changeStatus
+        body:
+          userId: ${EVAL_USER_ID}
+          status: "0"
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/user/${EVAL_USER_ID}
+        expect:
+          status: 200
+          code: 200
+          json:
+            data:
+              user:
+                status: "0"
+
+  - id: TC-A10
+    assertion: A-10
+    auth: admin
+    input:
+      method: GET
+      path: /system/dict/data/type/sys_normal_disable
+    expect:
+      status: 200
+      code: 200
+      data_array_min: 1
+      data_contains:
+        dictLabel: 正常
+        dictValue: "0"
+      dict_values_contain: ["0", "1"]
+
+  - id: TC-A11
+    assertion: A-11
+    auth: admin
+    input:
+      method: POST
+      path: /system/user/export
+      query:
+        userName: spec002_user
+    expect:
+      status: 200
+      body_nonempty: true
+      content_type_in:
+        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+        - application/octet-stream
+      json_error_allowed: true

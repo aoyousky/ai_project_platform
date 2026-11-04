@@ -1,0 +1,129 @@
+generation_id: gen-20261104-121821
+requirement_id: REQ-20261103-002
+spec_version: "1.2"
+spec_hash: a3879cecf8bb
+constraint_version: 77e727639c28
+allowlist_hash: 4d2d2e9f97f7
+model: deepseek-v4-flash
+prompt_version: claudemd-v1
+generated_at: 2026-11-04T04:18:21Z
+
+speckit:
+  feature_dir: specs/002-system-management-core
+  plan_hash: 095be11bdf1e
+  tasks_hash: a52a44998976
+
+clarification_refs: [CLAR-005, CLAR-006, CLAR-007]
+reviewer: aoyousky（2026-11-04 对话确认“确认通过”）
+review_verdict: pass
+
+diff_scope:
+  # tracked modifications
+  - frontend/apps/web-antdv-next/src/api/request.test.ts
+  - frontend/apps/web-antdv-next/src/api/request.ts
+  - frontend/apps/web-antdv-next/src/bootstrap.ts
+  - frontend/apps/web-antdv-next/src/views/_core/authentication/login.vue
+  - frontend/tests/e2e/helpers.ts
+  - frontend/vitest.config.ts
+  - scripts/ci-gate.sh
+  # new files
+  - clarifications/CLAR-004.md
+  - clarifications/CLAR-005.md
+  - clarifications/CLAR-006.md
+  - clarifications/CLAR-007.md
+  - frontend/apps/web-antdv-next/src/api/system/common.ts
+  - frontend/apps/web-antdv-next/src/api/system/common.test.ts
+  - frontend/apps/web-antdv-next/src/api/system/user/index.ts
+  - frontend/apps/web-antdv-next/src/api/system/user/index.test.ts
+  - frontend/apps/web-antdv-next/src/api/system/user/types.ts
+  - frontend/apps/web-antdv-next/src/composables/use-dict.ts
+  - frontend/apps/web-antdv-next/src/composables/use-dict.test.ts
+  - frontend/apps/web-antdv-next/src/directives/access.ts
+  - frontend/apps/web-antdv-next/src/directives/access.test.ts
+  - frontend/apps/web-antdv-next/src/utils/system/id.ts
+  - frontend/apps/web-antdv-next/src/utils/system/id.test.ts
+  - frontend/apps/web-antdv-next/src/utils/system/query.ts
+  - frontend/apps/web-antdv-next/src/utils/system/query.test.ts
+  - frontend/apps/web-antdv-next/src/utils/system/tree.ts
+  - frontend/apps/web-antdv-next/src/utils/system/tree.test.ts
+  - frontend/apps/web-antdv-next/src/views/_core/authentication/captcha-field.vue
+  - frontend/apps/web-antdv-next/src/views/_core/authentication/login-model.ts
+  - frontend/apps/web-antdv-next/src/views/_core/authentication/login-schema.ts
+  - frontend/apps/web-antdv-next/src/views/_core/authentication/login.test.ts
+  - frontend/apps/web-antdv-next/src/views/system/user/index.vue
+  - frontend/apps/web-antdv-next/src/views/system/user/index.test.ts
+  - frontend/apps/web-antdv-next/src/views/system/user/user-form-schema.ts
+  - frontend/apps/web-antdv-next/src/views/system/user/user-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/system/user/authRole.vue
+  - frontend/apps/web-antdv-next/src/views/system/user/components/user-form.vue
+  - frontend/apps/web-antdv-next/src/views/system/user/components/reset-password-modal.vue
+  - frontend/apps/web-antdv-next/src/views/system/user/components/user-import-modal.vue
+  - frontend/tests/e2e/login.spec.ts
+  - frontend/tests/e2e/session.spec.ts
+  - frontend/tests/e2e/system-user.spec.ts
+  - scripts/evals/seed_spec002.sh
+  - scripts/evals/http_probe.mjs
+  - scripts/evals/run_eval.py
+  # spec / eval artifacts（Spec Packet 升版 v1.1，经 PM 裁决后写入）
+  - specs/SPEC-002-system-management-core.md
+  - specs/002-system-management-core/spec.md
+  - specs/002-system-management-core/plan.md
+  - specs/002-system-management-core/tasks.md
+  - specs/002-system-management-core/data-model.md
+  - specs/002-system-management-core/research.md
+  - specs/002-system-management-core/quickstart.md
+  - specs/002-system-management-core/contracts/backend-api-consumed.md
+  - specs/002-system-management-core/checklists/requirements.md
+  - specs/evals/REQ-20261103-002/cases.yaml
+  - specs/evals/REQ-20261103-002/README.md
+  - trace/REQ-20261103-002.yaml
+
+assertion_map:
+  A-01: frontend/apps/web-antdv-next/src/api/system/user/index.ts#L31
+  A-02: frontend/apps/web-antdv-next/src/api/system/user/index.ts#L79
+  A-03: frontend/apps/web-antdv-next/src/views/system/user/user-page-logic.ts#L113
+  A-04: frontend/apps/web-antdv-next/src/api/system/user/index.ts#L89
+  A-05: frontend/apps/web-antdv-next/src/views/system/user/index.vue#L356
+  A-06: frontend/apps/web-antdv-next/src/api/system/user/index.ts#L113
+  A-07: frontend/apps/web-antdv-next/src/directives/access.ts#L17
+  A-08: frontend/apps/web-antdv-next/src/api/system/user/index.ts#L123
+  A-09: frontend/apps/web-antdv-next/src/views/system/user/user-page-logic.ts#L141
+  A-10: frontend/apps/web-antdv-next/src/api/system/common.ts#L56
+  A-11: frontend/apps/web-antdv-next/src/api/system/user/index.ts#L40
+  # P1 边界：E-10 页码越界回退
+  E-10: frontend/apps/web-antdv-next/src/views/system/user/user-page-logic.ts#L169
+
+test_evidence:
+  executed_at: 2026-11-04T04:18:21Z
+  base_url: http://localhost:8080
+  runner: scripts/ci-gate.sh 门禁 5 → scripts/evals/run_eval.py（等价注入夹具，见 specs/evals/REQ-20261103-002/README.md）
+  total: 16
+  passed: 16
+  report: specs/evals/reports/REQ-20261103-002-20261104-121821.json
+  p0_coverage: 11/11 有用例；11/11 通过
+
+history:
+  - generation_id: gen-20261104-115945
+    spec_version: "1.1"
+    test_evidence:
+      executed_at: 2026-11-04T03:59:45Z
+      total: 16
+      passed: 16
+      report: specs/evals/reports/REQ-20261103-002-20261104-115945.json
+      note: Spec v1.1 最终证据；v1.2 仅调整性能口径与门禁执行方式，断言未变
+  - generation_id: gen-20261104-113408
+    spec_version: "1.1"
+    test_evidence:
+      executed_at: 2026-11-04T03:34:08Z
+      total: 16
+      passed: 16
+      report: specs/evals/reports/REQ-20261103-002-20261104-113408.json
+      note: Spec v1.1 升版后的首轮全绿；此后补充 E-10 页码回退实现，最终证据见顶层 test_evidence
+  - generation_id: gen-20261103-105500
+    spec_version: "1.0"
+    test_evidence:
+      executed_at: 2026-11-03T10:47:57Z
+      total: 16
+      passed: 14
+      report: specs/evals/reports/REQ-20261103-002-20261103-184757.json
+      note: A-03 / A-06 待 CLAR-006 / CLAR-007 裁决，评测集冻结项未纳入结论
