@@ -36,10 +36,17 @@ export default defineConfig({
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: './coverage',
       // 宪章 VIII 的 70% 在本次前端的映射对象（research R6）：
-      // 适配层是本次唯一的业务逻辑集中地；框架层 packages/** 不计入。
-      // 首批移植页面（apps/web-antdv-next/src/views/**）的阈值在 T051 补齐。
-      include: ['apps/web-antdv-next/src/api/core/**'],
-      exclude: ['**/*.{test,spec}.{ts,tsx}'],
+      // 适配层与系统管理业务逻辑是本次的覆盖对象；框架层 packages/** 不计入。
+      include: [
+        'apps/web-antdv-next/src/api/core/**',
+        'apps/web-antdv-next/src/api/system/**',
+        'apps/web-antdv-next/src/composables/**',
+        'apps/web-antdv-next/src/directives/**',
+        'apps/web-antdv-next/src/utils/system/**',
+        'apps/web-antdv-next/src/views/system/**',
+      ],
+      // `.vue` 只做装配，纯逻辑在 `*-logic.ts` / `*-schema.ts` 中单测覆盖
+      exclude: ['**/*.{test,spec}.{ts,tsx}', '**/*.vue'],
       thresholds: {
         branches: 70,
         functions: 70,

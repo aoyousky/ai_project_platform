@@ -50,6 +50,7 @@
     "test:unit": "vitest run --dom",
     "test:coverage": "vitest run --dom --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:full": "pnpm build && playwright test",
     "update:deps": "npx taze -r -w",
     "version": "pnpm exec changeset version && pnpm install --no-frozen-lockfile",
     "catalog": "pnpx codemod pnpm/catalog"

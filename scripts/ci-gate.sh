@@ -84,10 +84,35 @@ done
 
 echo "== 门禁 5/5：评测集 =="
 if command -v python >/dev/null 2>&1; then
-  if python "$ROOT/specs/evals/run.py" --ci --root "$ROOT"; then
-    echo "PASS: 评测集"
+  # 等价夹具优先（2026-11-04 裁决，SPEC-002 v1.2）：
+  # specs/evals/run.py 不支持认证头与 ${EVAL_*} 占位替换，认证用例直接执行会得到 401。
+  # 存在 scripts/evals/run_eval.py 时改用它执行 specs/evals/ 下全部需求目录。
+  FIXTURE="$ROOT/scripts/evals/run_eval.py"
+  if [ -f "$FIXTURE" ]; then
+    echo "使用等价夹具（认证注入）：scripts/evals/run_eval.py"
+    # 夹具可重复执行（seed_*.sh 都是先清后插），门禁自动预置以保证可重复运行；
+    # 无 docker 的环境跳过（EVAL_SKIP_SEED=1 亦可显式跳过）。
+    if [ "${EVAL_SKIP_SEED:-0}" != "1" ] && command -v docker >/dev/null 2>&1; then
+      for seed in "$ROOT"/scripts/evals/seed_*.sh; do
+        [ -f "$seed" ] || continue
+        if bash "$seed" >/dev/null 2>&1; then
+          echo "已预置夹具: $(basename "$seed")"
+        else
+          echo "WARN: $(basename "$seed") 预置失败，用例可能因夹具缺失而失败"
+        fi
+      done
+    fi
+    if python "$FIXTURE" --report "$ROOT/specs/evals/reports"; then
+      echo "PASS: 评测集（全部需求目录，等价夹具）"
+    else
+      echo "FAIL: 评测集未通过（请检查上述失败用例并确认夹具已 seed）"; FAIL=1
+    fi
   else
-    echo "FAIL: 评测集未通过"; FAIL=1
+    if python "$ROOT/specs/evals/run.py" --ci --root "$ROOT"; then
+      echo "PASS: 评测集"
+    else
+      echo "FAIL: 评测集未通过"; FAIL=1
+    fi
   fi
 else
   echo "FAIL: 未找到 python，无法执行评测集"; FAIL=1
