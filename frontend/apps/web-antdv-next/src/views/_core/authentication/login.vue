@@ -1,98 +1,53 @@
 <script lang="ts" setup>
 import type { VbenFormSchema } from '@vben/common-ui';
-import type { BasicOption } from '@vben/types';
 
-import { computed, markRaw } from 'vue';
+import { computed, markRaw, onMounted, ref } from 'vue';
 
-import { AuthenticationLogin, SliderCaptcha, z } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import { AuthenticationLogin } from '@vben/common-ui';
 
+import { getCodeImageApi } from '#/api';
 import { useAuthStore } from '#/store';
+
+import CaptchaField from './captcha-field.vue';
+import { useLoginModel } from './login-model';
+import { buildLoginSchema } from './login-schema';
 
 defineOptions({ name: 'Login' });
 
 const authStore = useAuthStore();
+const loginRef = ref<InstanceType<typeof AuthenticationLogin>>();
 
-const MOCK_USER_OPTIONS: BasicOption[] = [
-  {
-    label: 'Super',
-    value: 'vben',
-  },
-  {
-    label: 'Admin',
-    value: 'admin',
-  },
-  {
-    label: 'User',
-    value: 'jack',
-  },
-];
-
-const formSchema = computed((): VbenFormSchema[] => {
-  return [
-    {
-      component: 'VbenSelect',
-      componentProps: {
-        options: MOCK_USER_OPTIONS,
-        placeholder: $t('authentication.selectAccount'),
-      },
-      fieldName: 'selectAccount',
-      label: $t('authentication.selectAccount'),
-      rules: z
-        .string()
-        .min(1, { message: $t('authentication.selectAccount') })
-        .optional()
-        .default('vben'),
-    },
-    {
-      component: 'VbenInput',
-      componentProps: {
-        placeholder: $t('authentication.usernameTip'),
-      },
-      dependencies: {
-        trigger(values, form) {
-          if (values.selectAccount) {
-            const findUser = MOCK_USER_OPTIONS.find(
-              (item) => item.value === values.selectAccount,
-            );
-            if (findUser) {
-              form.setValues({
-                password: '123456',
-                username: findUser.value,
-              });
-            }
-          }
-        },
-        triggerFields: ['selectAccount'],
-      },
-      fieldName: 'username',
-      label: $t('authentication.username'),
-      rules: z.string().min(1, { message: $t('authentication.usernameTip') }),
-    },
-    {
-      component: 'VbenInputPassword',
-      componentProps: {
-        placeholder: $t('authentication.password'),
-      },
-      fieldName: 'password',
-      label: $t('authentication.password'),
-      rules: z.string().min(1, { message: $t('authentication.passwordTip') }),
-    },
-    {
-      component: markRaw(SliderCaptcha),
-      fieldName: 'captcha',
-      rules: z.boolean().refine((value) => value, {
-        message: $t('authentication.verifyRequiredTip'),
-      }),
-    },
-  ];
+const { captcha, refreshCaptcha, submit, submitting } = useLoginModel({
+  fetchCaptcha: getCodeImageApi,
+  login: (params) => authStore.authLogin(params),
 });
+
+const formSchema = computed((): VbenFormSchema[] =>
+  buildLoginSchema(captcha, markRaw(CaptchaField), refreshCaptcha),
+);
+
+onMounted(refreshCaptcha);
+
+async function handleSubmit(values: Record<string, any>) {
+  try {
+    await submit(values);
+  } catch {
+    // 错误文案由 request 层按后端 msg 提示；这里只清空一次性验证码
+    loginRef.value?.getFormApi?.().setFieldValue('code', '');
+  }
+}
 </script>
 
 <template>
   <AuthenticationLogin
+    ref="loginRef"
     :form-schema="formSchema"
-    :loading="authStore.loginLoading"
-    @submit="authStore.authLogin"
+    :loading="authStore.loginLoading || submitting"
+    :show-code-login="false"
+    :show-forget-password="false"
+    :show-qrcode-login="false"
+    :show-register="false"
+    :show-third-party-login="false"
+    @submit="handleSubmit"
   />
 </template>

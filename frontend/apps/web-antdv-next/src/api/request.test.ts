@@ -203,5 +203,7 @@ describe('request（RuoYi 响应封装适配）', () => {
 
     expect(captured.headers['clientid']).toBe('client-id-from-env');
     expect(captured.headers.Authorization).toBe('Bearer token-123');
+    // 后端 I18nLocaleResolver 只认 `zh_CN`；`zh-CN` 会抛 ArrayIndexOutOfBounds（实测）
+    expect(captured.headers['Content-Language']).toMatch(/^[a-z]{2}_[A-Z]{2}$/);
   });
 });

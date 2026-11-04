@@ -37,6 +37,46 @@ const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 const BUSINESS_UNAUTHORIZED = 401;
 /** RuoYi 成功码 */
 const SUCCESS_CODE = 200;
+/** 日志里必须脱敏的查询参数（SPEC §5：不得记录令牌、密码或完整手机号） */
+const REDACTED_QUERY_KEYS = new Set([
+  'accessToken',
+  'code',
+  'password',
+  'phonenumber',
+  'token',
+  'uuid',
+]);
+
+function redactUrl(url?: string): string {
+  if (!url) {
+    return '';
+  }
+  try {
+    const parsed = new URL(url, 'http://local');
+    for (const key of REDACTED_QUERY_KEYS) {
+      if (parsed.searchParams.has(key)) {
+        parsed.searchParams.set(key, '***');
+      }
+    }
+    return `${parsed.pathname}${parsed.search}`;
+  } catch {
+    return url;
+  }
+}
+
+/** SPEC §5：接口失败日志含 timestamp / level / url / message / code，且不得含敏感字段 */
+function logApiFailure(error: any, msg: string): void {
+  const response = error?.response;
+  console.error(
+    JSON.stringify({
+      code: response?.data?.code ?? response?.status,
+      level: 'error',
+      message: msg,
+      timestamp: new Date().toISOString(),
+      url: redactUrl(response?.config?.url ?? error?.config?.url),
+    }),
+  );
+}
 
 /**
  * 响应体 → 调用方拿到的数据。
@@ -118,9 +158,13 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
 
       headers.Authorization = formatToken(accessStore.accessToken);
       headers['Accept-Language'] = preferences.app.locale;
-      // 后端 RuoYi 的国际化读取 Content-Language（plus-ui 既有行为）
-      headers['Content-Language'] = preferences.app.locale;
-      headers['clientid'] = import.meta.env.VITE_APP_CLIENT_ID;
+      // 后端 I18nLocaleResolver 按 `_` 拆分 Content-Language（`zh_CN`），
+      // 直接传 BCP-47 `zh-CN` 会在拆下标 [1] 时抛 ArrayIndexOutOfBounds（实测）。
+      headers['Content-Language'] = preferences.app.locale.replaceAll(
+        '-',
+        '_',
+      );
+      headers.clientid = import.meta.env.VITE_APP_CLIENT_ID;
 
       // 传输加密：仅 POST/PUT 且调用方显式声明 isEncrypt（plus-ui 约定）。
       // 默认开启，只有显式 VITE_APP_ENCRYPT=false 才关闭（后端也须同步关闭）。
@@ -210,6 +254,7 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
         return Promise.reject(error);
       }
       const msg = resolveErrorMessage(error);
+      logApiFailure(error, msg);
       if (msg) {
         message.error(msg);
       }

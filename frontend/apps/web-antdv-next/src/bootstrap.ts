@@ -14,6 +14,7 @@ import { $t, setupI18n } from '#/locales';
 import { initComponentAdapter } from './adapter/component';
 import { initSetupVbenForm } from './adapter/form';
 import App from './app.vue';
+import { registerAccessDirective as registerRuoYiAccessDirective } from './directives/access';
 import { router } from './router';
 
 async function bootstrap(namespace: string) {
@@ -46,8 +47,9 @@ async function bootstrap(namespace: string) {
   // 配置 pinia-tore
   await initStores(app, { namespace });
 
-  // 安装权限指令
+  // 安装权限指令：先注册上游实现，再用支持 RuoYi `*:*:*` 通配符的实现覆盖
   registerAccessDirective(app);
+  registerRuoYiAccessDirective(app);
 
   // 初始化 tippy
   const { initTippy } = await import('@vben/common-ui/es/tippy');
