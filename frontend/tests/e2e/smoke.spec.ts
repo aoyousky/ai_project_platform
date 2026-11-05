@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { isBackendUp, loginWithCaptcha } from './helpers';
+import { APP_ENTRY_TIMEOUT, isBackendUp, loginWithCaptcha } from './helpers';
 
 /**
  * T009 冒烟：未登录访问根路径落到登录页；登录后落到 `/index`（FR-015、A-01）。
@@ -24,6 +24,6 @@ test.describe('冒烟', () => {
   test('登录成功后落到 /index', async ({ page }) => {
     await loginWithCaptcha(page);
 
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
   });
 });

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { isBackendUp, loginWithCaptcha } from './helpers';
+import { APP_ENTRY_TIMEOUT, isBackendUp, loginWithCaptcha } from './helpers';
 
 const ACCESS_STORE_KEY = 'vben-web-antdv-next-access';
 
@@ -26,13 +26,13 @@ test.describe('会话', () => {
     page,
   }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
 
     // 用户菜单快捷键 Alt+Q 打开登出确认框
     await page.keyboard.press('Alt+Q');
     await page.getByRole('button', { name: /确\s*认/ }).click();
 
-    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: APP_ENTRY_TIMEOUT });
     expect(await readStoredAccessToken(page)).toBeFalsy();
 
     await page.goBack();
@@ -52,7 +52,7 @@ test.describe('会话', () => {
     page,
   }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
 
     let pageErrors = 0;
     page.on('pageerror', () => {
@@ -69,7 +69,7 @@ test.describe('会话', () => {
 
     await page.reload({ waitUntil: 'domcontentloaded' });
 
-    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: APP_ENTRY_TIMEOUT });
     expect(await readStoredAccessToken(page)).toBeFalsy();
     expect(pageErrors).toBe(0);
   });

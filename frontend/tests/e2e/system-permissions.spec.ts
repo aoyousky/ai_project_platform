@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 import {
+  APP_ENTRY_TIMEOUT,
   fixedActionRow,
   gotoAppPath,
   isBackendUp,
@@ -36,10 +37,10 @@ function collectMutations(page: Page): string[] {
 
 async function cancelConfirm(page: Page) {
   const confirm = page.locator('.ant-modal-confirm');
-  await expect(confirm).toBeVisible({ timeout: 10_000 });
+  await expect(confirm).toBeVisible({ timeout: 30_000 });
   // 页面里还有“批量取消授权/取消授权”按钮，必须限定在确认弹窗内且锚定全文
   await confirm.getByRole('button', { name: /^取\s*消$/ }).click();
-  await expect(confirm).toBeHidden({ timeout: 10_000 });
+  await expect(confirm).toBeHidden({ timeout: 30_000 });
 }
 
 test.describe('系统管理 - 权限与二次确认', () => {
@@ -50,7 +51,7 @@ test.describe('系统管理 - 权限与二次确认', () => {
   test('只读账号不渲染新增/删除按钮（A-17）', async ({ page }) => {
     await loginWithCaptcha(page, READONLY_USER, READONLY_PASSWORD);
     await expect(page.getByPlaceholder('请输入用户名')).toBeHidden({
-      timeout: 20_000,
+      timeout: APP_ENTRY_TIMEOUT,
     });
 
     const pages = [
@@ -64,11 +65,11 @@ test.describe('系统管理 - 权限与二次确认', () => {
       await gotoAppPath(page, item.path);
       // 页面能渲染并加载出数据，排除“路由不可达所以没有按钮”的假阳性
       await expect(page.getByPlaceholder(item.placeholder).last()).toBeVisible({
-        timeout: 20_000,
+        timeout: APP_ENTRY_TIMEOUT,
       });
       await expect(
         page.locator('.vxe-table--main-wrapper .vxe-body--row').first(),
-      ).toBeVisible({ timeout: 20_000 });
+      ).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
       await expect(
         page.getByRole('button', { name: '新增', exact: true }),
       ).toHaveCount(0);
@@ -82,7 +83,7 @@ test.describe('系统管理 - 权限与二次确认', () => {
     page,
   }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     const mutations = collectMutations(page);
 
     // 角色：行内删除
@@ -105,11 +106,11 @@ test.describe('系统管理 - 权限与二次确认', () => {
     await gotoAppPath(page, '/system/menu');
     await expect(
       page.getByPlaceholder('请输入菜单名称').last(),
-    ).toBeVisible({ timeout: 20_000 });
+    ).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     const menuRow = page
       .locator('.vxe-table--main-wrapper .vxe-body--row')
       .filter({ hasText: 'Spec003 目录' });
-    await expect(menuRow).toBeVisible({ timeout: 20_000 });
+    await expect(menuRow).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     actions = await fixedActionRow(page, 'Spec003 目录');
     await actions.getByRole('button', { name: /级联删除/ }).click();
     await cancelConfirm(page);
@@ -119,7 +120,7 @@ test.describe('系统管理 - 权限与二次确认', () => {
     await gotoAppPath(page, '/system/dept');
     await expect(
       page.getByPlaceholder('请输入部门名称').last(),
-    ).toBeVisible({ timeout: 20_000 });
+    ).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     const deptRow = page
       .locator('.vxe-table--main-wrapper .vxe-body--row')
       .filter({ hasText: 'Spec003 空部门' });
@@ -149,7 +150,7 @@ test.describe('系统管理 - 权限与二次确认', () => {
     const authRow = page
       .locator('.vxe-table--main-wrapper .vxe-body--row')
       .filter({ hasText: 'spec003_user' });
-    await expect(authRow).toBeVisible({ timeout: 20_000 });
+    await expect(authRow).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     actions = await fixedActionRow(page, 'spec003_user');
     await actions.getByRole('button', { name: /取消授权/ }).click();
     await cancelConfirm(page);
@@ -162,7 +163,7 @@ test.describe('系统管理 - 权限与二次确认', () => {
 
   test('启停先二次确认，取消后不发状态变更请求（A-17）', async ({ page }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     const mutations = collectMutations(page);
 
     // 角色启停

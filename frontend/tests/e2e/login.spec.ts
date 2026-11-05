@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import {
+  APP_ENTRY_TIMEOUT,
   isBackendUp,
   loginWithCaptcha,
   readCaptchaCode,
@@ -33,6 +34,24 @@ test.describe('登录', () => {
     await page.getByPlaceholder('密码').fill('admin123');
     await page.getByPlaceholder('验证码').fill(wrongCode);
 
+    // antdv 的 message 提示有固定存活时间，慢宿主上可能在断言开始轮询前就已消失，
+    // 直接 `getByText(...).toBeVisible()` 会与提示的生命周期赛跑。点击前挂
+    // MutationObserver 记录新渲染的文本，断言“后端 msg 确实展示过”。
+    await page.evaluate(() => {
+      const host = window as unknown as { __messages?: string[] };
+      host.__messages = [];
+      new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            const text = node.textContent?.trim();
+            if (text) {
+              host.__messages?.push(text);
+            }
+          }
+        }
+      }).observe(document.body, { childList: true, subtree: true });
+    });
+
     const responsePromise = page.waitForResponse((response) =>
       response.url().includes('/auth/login'),
     );
@@ -44,7 +63,16 @@ test.describe('登录', () => {
     expect(typeof body.msg).toBe('string');
     expect(body.msg.length).toBeGreaterThan(0);
 
-    await expect(page.getByText(body.msg)).toBeVisible();
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const host = window as unknown as { __messages?: string[] };
+            return (host.__messages ?? []).join('\n');
+          }),
+        { timeout: APP_ENTRY_TIMEOUT },
+      )
+      .toContain(body.msg);
     await expect(page).toHaveURL(/\/auth\/login/);
     await expect(page.getByPlaceholder('请输入用户名')).toHaveValue('admin');
     await expect
@@ -71,7 +99,7 @@ test.describe('登录', () => {
   test('登录成功后落到 /index（A-01）', async ({ page }) => {
     await loginWithCaptcha(page);
 
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
   });
 
   test('连续点击 3 次只发出 1 个登录请求（E-14）', async ({ page }) => {
@@ -96,7 +124,7 @@ test.describe('登录', () => {
       button?.click();
     });
 
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     expect(loginRequests).toBe(1);
   });
 

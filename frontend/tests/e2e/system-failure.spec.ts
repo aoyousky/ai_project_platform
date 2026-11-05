@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 import {
+  APP_ENTRY_TIMEOUT,
   confirmDialog,
   gotoAppPath,
   isBackendUp,
@@ -54,7 +55,7 @@ test.describe('系统管理 - 失败态', () => {
   }) => {
     await page.addInitScript(TOAST_RECORDER);
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
 
     const cases = [
       { endpoint: '**/system/role/list*', msg: '模拟角色列表失败', path: '/system/role' },
@@ -74,12 +75,12 @@ test.describe('系统管理 - 失败态', () => {
       await gotoAppPath(page, item.path);
 
       // 错误提示：后端 msg 原文
-      await expect.poll(() => toasts(page), { timeout: 15_000 }).toContain(
+      await expect.poll(() => toasts(page), { timeout: APP_ENTRY_TIMEOUT }).toContain(
         item.msg,
       );
       // 不出现无限加载
       await expect(page.locator('.vxe-loading.is--visible')).toHaveCount(0, {
-        timeout: 15_000,
+        timeout: APP_ENTRY_TIMEOUT,
       });
 
       await page.unroute(item.endpoint);
@@ -89,7 +90,7 @@ test.describe('系统管理 - 失败态', () => {
   test('状态开关失败后回滚为原状态（A-19）', async ({ page }) => {
     await page.addInitScript(TOAST_RECORDER);
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/role');
     await searchGrid(page, {
       endpoint: '/system/role/list',
@@ -120,13 +121,13 @@ test.describe('系统管理 - 失败态', () => {
     await confirmDialog(page);
     await changed;
 
-    await expect.poll(() => toasts(page), { timeout: 15_000 }).toContain(
+    await expect.poll(() => toasts(page), { timeout: APP_ENTRY_TIMEOUT }).toContain(
       '模拟启停失败',
     );
     // 回滚：开关恢复为原状态，且列表未停留在错误态
     await expect(statusSwitch).toHaveAttribute('aria-checked', 'true');
     await expect(page.locator('.vxe-loading.is--visible')).toHaveCount(0, {
-      timeout: 15_000,
+      timeout: APP_ENTRY_TIMEOUT,
     });
 
     await page.unroute('**/system/role/changeStatus*');

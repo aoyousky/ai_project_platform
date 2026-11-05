@@ -14,7 +14,10 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests/e2e',
   outputDir: './tests/e2e/.artifacts',
-  timeout: 120_000,
+  // 单用例预算 240s：每个用例都要整页加载并登录，登录还要 `docker exec redis-cli`
+  // 取验证码明文（宿主 Docker Desktop 冷/慢时单次 3–5s）。120s 在慢宿主上会让
+  // 需要多次登录的用例（A-17、A-16）在“等响应”处超时，与断言本身无关。
+  timeout: 240_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -34,7 +37,9 @@ export default defineConfig({
   },
   use: {
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:5666',
-    trace: 'retain-on-failure',
+    // 失败时保留 trace；关掉 screencast 截帧（DOM 快照 + 网络仍在）。慢宿主上
+    // 逐帧截图会显著加重录制开销，反而制造等待抖动；失败截图由 screenshot 单独负责。
+    trace: { mode: 'retain-on-failure', screenshots: false },
     screenshot: 'only-on-failure',
     video: 'off',
     locale: 'zh-CN',

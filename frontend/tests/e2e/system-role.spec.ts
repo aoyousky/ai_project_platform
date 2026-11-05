@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import {
+  APP_ENTRY_TIMEOUT,
   confirmDialog,
   fixedActionRow,
   gotoAppPath,
@@ -21,10 +22,10 @@ test.describe('系统管理 - 角色', () => {
 
   test('新增 → 筛选 → 修改 → 菜单授权回显 → 启停 → 删除', async ({ page }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/role');
     await expect(page.getByRole('button', { name: '新增' })).toBeVisible({
-      timeout: 20_000,
+      timeout: APP_ENTRY_TIMEOUT,
     });
 
     const suffix = Date.now();
@@ -34,7 +35,7 @@ test.describe('系统管理 - 角色', () => {
     // 新增
     await page.getByRole('button', { name: '新增' }).click();
     const createDialog = page.getByRole('dialog', { name: '新增角色' });
-    await expect(createDialog).toBeVisible({ timeout: 15_000 });
+    await expect(createDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await createDialog.getByPlaceholder('请输入角色名称').fill(roleName);
     await createDialog.getByPlaceholder('请输入权限字符').fill(roleKey);
 
@@ -46,7 +47,7 @@ test.describe('系统管理 - 角色', () => {
     await page.getByRole('button', { name: /确\s*认/ }).click();
     const createdResponse = await created;
     expect(createdResponse.status()).toBe(200);
-    await expect(createDialog).toBeHidden({ timeout: 15_000 });
+    await expect(createDialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
 
     // 筛选
     await searchGrid(page, {
@@ -60,7 +61,7 @@ test.describe('系统管理 - 角色', () => {
     // 修改 + 菜单授权
     await actions.getByRole('button', { name: /修\s*改/ }).click();
     const editDialog = page.getByRole('dialog', { name: '修改角色' });
-    await expect(editDialog).toBeVisible({ timeout: 15_000 });
+    await expect(editDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await editDialog
       .getByPlaceholder('请输入角色名称')
       .fill(`${roleName}_改`);
@@ -74,7 +75,7 @@ test.describe('系统管理 - 角色', () => {
     await page.getByRole('button', { name: /确\s*认/ }).click();
     const updatedResponse = await updated;
     expect(updatedResponse.status()).toBe(200);
-    await expect(editDialog).toBeHidden({ timeout: 15_000 });
+    await expect(editDialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
 
     // 重新打开确认菜单勾选已回显（A-03）
     await searchGrid(page, {
@@ -87,7 +88,7 @@ test.describe('系统管理 - 角色', () => {
     await actions.getByRole('button', { name: /修\s*改/ }).click();
     await expect(
       page.getByRole('dialog', { name: '修改角色' }),
-    ).toBeVisible({ timeout: 15_000 });
+    ).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await expect(
       page
         .getByRole('dialog', { name: '修改角色' })
@@ -124,21 +125,21 @@ test.describe('系统管理 - 角色', () => {
       page
         .locator('.vxe-table--main-wrapper .vxe-body--row')
         .filter({ hasText: `${roleName}_改` }),
-    ).toHaveCount(0, { timeout: 15_000 });
+    ).toHaveCount(0, { timeout: APP_ENTRY_TIMEOUT });
   });
 
   test('roleId=1 不显示修改/数据权限/分配用户/删除入口（A-06）', async ({
     page,
   }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/role');
 
     const adminRow = page
       .locator('.vxe-table--main-wrapper .vxe-body--row')
       .filter({ hasText: '超级管理员' })
       .first();
-    await expect(adminRow).toBeVisible({ timeout: 20_000 });
+    await expect(adminRow).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
 
     const adminActions = await fixedActionRow(page, '超级管理员');
     await expect(

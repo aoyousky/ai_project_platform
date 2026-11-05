@@ -3,6 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 import {
+  APP_ENTRY_TIMEOUT,
   confirmDialog,
   fixedActionRow,
   gotoAppPath,
@@ -47,7 +48,7 @@ async function collectVirtualTitles(
  */
 async function searchDept(page: Page, deptName: string) {
   await expect(page.locator('.vxe-loading.is--visible')).toHaveCount(0, {
-    timeout: 15_000,
+    timeout: APP_ENTRY_TIMEOUT,
   });
   await page.getByPlaceholder('请输入部门名称').last().fill(deptName);
   const loaded = page.waitForResponse((response) => {
@@ -63,7 +64,7 @@ async function searchDept(page: Page, deptName: string) {
   await page.getByRole('button', { name: /搜\s*索/ }).click();
   await loaded;
   await expect(page.locator('.vxe-loading.is--visible')).toHaveCount(0, {
-    timeout: 15_000,
+    timeout: APP_ENTRY_TIMEOUT,
   });
 }
 
@@ -75,11 +76,11 @@ test.describe('系统管理 - 部门', () => {
 
   test('部门页/用户选择器/角色数据权限树一致（A-15）', async ({ page }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/dept');
 
     const rows = page.locator('.vxe-table--main-wrapper .vxe-body--row');
-    await expect(rows.first()).toBeVisible({ timeout: 20_000 });
+    await expect(rows.first()).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     const readNames = async () => {
       const texts = await rows.allInnerTexts();
       return texts
@@ -111,7 +112,7 @@ test.describe('系统管理 - 部门', () => {
     await gotoAppPath(page, '/system/user');
     await page.getByRole('button', { name: '新增', exact: true }).first().click();
     const userDialog = page.getByRole('dialog', { name: '新增用户' });
-    await expect(userDialog).toBeVisible({ timeout: 15_000 });
+    await expect(userDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await userDialog.getByRole('combobox', { name: '归属部门' }).click();
     const userTitles = await collectVirtualTitles(
       page,
@@ -127,14 +128,14 @@ test.describe('系统管理 - 部门', () => {
     } catch {
       await userDialog.getByRole('button', { name: /取\s*消/ }).click();
     }
-    await expect(userDialog).toBeHidden({ timeout: 15_000 });
+    await expect(userDialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
 
     // 角色数据权限树
     await gotoAppPath(page, '/system/role');
     const roleRow = await fixedActionRow(page, 'test1');
     await roleRow.getByRole('button', { name: /数据权限/ }).click();
     const drawer = page.getByRole('dialog').last();
-    await expect(drawer).toBeVisible({ timeout: 15_000 });
+    await expect(drawer).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await drawer.getByText('自定义数据权限').click();
     await drawer.getByRole('button', { name: '展开' }).click();
     const roleTexts = await drawer.locator('.ant-tree-title').allInnerTexts();
@@ -149,11 +150,11 @@ test.describe('系统管理 - 部门', () => {
     page,
   }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/dept');
     await expect(
       page.getByRole('button', { name: '新增', exact: true }),
-    ).toBeVisible({ timeout: 20_000 });
+    ).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
 
     const suffix = Date.now();
     const parentName = `e2e_dept_${suffix}`;
@@ -162,7 +163,7 @@ test.describe('系统管理 - 部门', () => {
     // 新增一级部门
     await page.getByRole('button', { name: '新增', exact: true }).click();
     const createDialog = page.getByRole('dialog', { name: '新增部门' });
-    await expect(createDialog).toBeVisible({ timeout: 15_000 });
+    await expect(createDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await createDialog.getByPlaceholder('请输入部门名称').fill(parentName);
     // 后端 insertDept 依赖父部门记录，parentId=0 会抛异常；
     // 用例挂在既有“研发部门”下（SPEC-003 A-11 也只要求“在父部门下新增”）
@@ -183,14 +184,14 @@ test.describe('系统管理 - 部门', () => {
     await page.getByRole('button', { name: /确\s*认/ }).click();
     const parentCreatedResponse = await parentCreated;
     expect(parentCreatedResponse.status()).toBe(200);
-    await expect(createDialog).toBeHidden({ timeout: 15_000 });
+    await expect(createDialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
 
     // 新增下级
     await searchDept(page, parentName);
     let actions = await fixedActionRow(page, parentName);
     await actions.getByRole('button', { name: /新增下级/ }).click();
     const childDialog = page.getByRole('dialog', { name: '新增部门' });
-    await expect(childDialog).toBeVisible({ timeout: 15_000 });
+    await expect(childDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await childDialog.getByPlaceholder('请输入部门名称').fill(childName);
     const childCreated = page.waitForResponse(
       (response) =>
@@ -200,7 +201,7 @@ test.describe('系统管理 - 部门', () => {
     await page.getByRole('button', { name: /确\s*认/ }).click();
     const childCreatedResponse = await childCreated;
     expect(childCreatedResponse.status()).toBe(200);
-    await expect(childDialog).toBeHidden({ timeout: 15_000 });
+    await expect(childDialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
 
     // 重置筛选，拿到完整树
     const reloaded = page.waitForResponse((response) => {
@@ -212,14 +213,14 @@ test.describe('系统管理 - 部门', () => {
     await page.getByRole('button', { name: /重\s*置/ }).click();
     await reloaded;
     await expect(page.locator('.vxe-loading.is--visible')).toHaveCount(0, {
-      timeout: 15_000,
+      timeout: APP_ENTRY_TIMEOUT,
     });
 
     // 修改子部门名称与负责人
     actions = await fixedActionRow(page, childName);
     await actions.getByRole('button', { name: /修\s*改/ }).click();
     const editDialog = page.getByRole('dialog', { name: '修改部门' });
-    await expect(editDialog).toBeVisible({ timeout: 15_000 });
+    await expect(editDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     const renamed = `${childName}_改`;
     await editDialog.getByPlaceholder('请输入部门名称').fill(renamed);
     await editDialog.getByPlaceholder('请输入负责人用户 ID').fill('1');
@@ -231,7 +232,7 @@ test.describe('系统管理 - 部门', () => {
     await page.getByRole('button', { name: /确\s*认/ }).click();
     const updatedResponse = await updated;
     expect(updatedResponse.status()).toBe(200);
-    await expect(editDialog).toBeHidden({ timeout: 15_000 });
+    await expect(editDialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
 
     // 删除含下级的父部门 → 601
     actions = await fixedActionRow(page, parentName);
@@ -247,7 +248,7 @@ test.describe('系统管理 - 部门', () => {
     expect(rejectedBody.code).toBe(601);
     await page.getByRole('button', { name: /取\s*消/ }).click();
     await expect(page.locator('.ant-modal-confirm')).toBeHidden({
-      timeout: 10_000,
+      timeout: 30_000,
     });
 
     // 删除叶子子部门 → 200
@@ -265,7 +266,7 @@ test.describe('系统管理 - 部门', () => {
       page
         .locator('.vxe-table--main-wrapper .vxe-body--row')
         .filter({ hasText: renamed }),
-    ).toHaveCount(0, { timeout: 15_000 });
+    ).toHaveCount(0, { timeout: APP_ENTRY_TIMEOUT });
 
     // 删除父部门 → 200
     actions = await fixedActionRow(page, parentName);
@@ -282,6 +283,6 @@ test.describe('系统管理 - 部门', () => {
       page
         .locator('.vxe-table--main-wrapper .vxe-body--row')
         .filter({ hasText: parentName }),
-    ).toHaveCount(0, { timeout: 15_000 });
+    ).toHaveCount(0, { timeout: APP_ENTRY_TIMEOUT });
   });
 });

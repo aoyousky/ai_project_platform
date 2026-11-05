@@ -32,7 +32,10 @@ HIDDEN_MENU_ID=900003000000000017   # spec003_hidden（visible='1'，A-18）
 SQL=$(cat <<SQL
 SET @pwd := (SELECT password FROM sys_user WHERE user_id = 1);
 
-DELETE FROM sys_user_role WHERE user_id IN (${USER_ID}, ${MENU_ADMIN_USER_ID}, ${READONLY_USER_ID}, ${ROUTER_USER_ID});
+-- 按 user 与 role 双向清理：用例被强杀时 E2E 会留下任意 e2e_* 账号与 spec003_role
+-- 的绑定，只按 user_id 清会漏掉这些残留，导致 A-05（P0）cancelAll 后 total≠0。
+DELETE FROM sys_user_role WHERE user_id IN (${USER_ID}, ${MENU_ADMIN_USER_ID}, ${READONLY_USER_ID}, ${ROUTER_USER_ID})
+  OR role_id IN (${ROLE_ID}, ${ASSIGNED_ROLE_ID}, ${MENU_ADMIN_ROLE_ID}, ${READONLY_ROLE_ID});
 DELETE FROM sys_user_post WHERE user_id IN (${USER_ID}, ${MENU_ADMIN_USER_ID});
 DELETE FROM sys_user WHERE user_id IN (${USER_ID}, ${MENU_ADMIN_USER_ID}, ${READONLY_USER_ID}, ${ROUTER_USER_ID});
 DELETE FROM sys_role_menu WHERE role_id IN (${ROLE_ID}, ${ASSIGNED_ROLE_ID}, ${MENU_ADMIN_ROLE_ID}, ${READONLY_ROLE_ID});
@@ -98,9 +101,8 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
   (${ROLE_ID}, ${DIR_MENU_ID}),
   (${ROLE_ID}, ${SUB_MENU_ID}),
   (${ROLE_ID}, ${HIDDEN_MENU_ID});
--- A-18 账号暂不绑定 spec003_role：A-05（P0）要求该角色 cancelAll 后 allocatedList.total=0，
--- 预置绑定会让它恒 ≥1。A-18 因 CLAR-009 待裁决而冻结，裁决后在此恢复绑定，
--- 或在 A-05 用例中先清空该角色用户。
+-- A-18 账号不预置绑定（CLAR-009 裁决 3A）：A-05（P0）要求该角色 cancelAll 后
+-- allocatedList.total=0，预置绑定会让它恒 ≥1。TC-A18 与 E2E 自行「绑定 → 断言 → 解绑」。
 INSERT INTO sys_user (user_id, tenant_id, dept_id, user_name, nick_name, user_type, email, phonenumber, sex, password, status, del_flag, create_by, create_time)
 VALUES (${ROUTER_USER_ID}, '000000', ${DEPT_ID}, 'spec003_router', 'Spec003 Router', 'sys_user', '', '', '2', @pwd, '0', '0', 1, NOW());
 

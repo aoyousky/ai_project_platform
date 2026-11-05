@@ -34,106 +34,123 @@ const {
 const tokens = {};
 const loginErrors = {};
 const CAPTURE_PLACEHOLDER = /\$\{([A-Z0-9_]+)\}/g;
-let browser;
+const browser = await chromium.launch({ headless: true });
 
-try {
-  browser = await chromium.launch({ headless: true });
-
-  const authKinds = [
-    ...new Set(cases.map((item) => item.auth ?? 'admin')),
-  ].filter((kind) => kind !== 'none');
-  for (const kind of authKinds) {
-    if (!needsToken(cases, kind)) {
-      continue;
-    }
-    if (directTokens[kind]) {
-      tokens[kind] = directTokens[kind];
-      continue;
-    }
-    try {
-      tokens[kind] = await login(
-        browser,
-        frontendUrl,
-        credentials[kind] ?? {},
-        redisContainer,
-        redisPassword,
-      );
-    } catch (error) {
-      loginErrors[kind] = error.message;
-    }
+/**
+ * 令牌**惰性获取**并在本次运行内复用。
+ *
+ * 不能预先登录全部账号：RuoYi-Vue-Plus 在角色授权变更（`authUser/selectAll`、`cancel`）
+ * 后会踢掉该账号的在线会话，预取的令牌随即失效（实测 HTTP 200 + `code=401`）。
+ * A-18 的步骤顺序是「管理员绑定 → 被授权账号断言」，因此令牌必须在使用时才获取。
+ */
+async function tokenFor(kind) {
+  if (kind === 'none') {
+    return undefined;
   }
-} finally {
-  await browser?.close();
+  if (tokens[kind]) {
+    return tokens[kind];
+  }
+  if (directTokens[kind]) {
+    tokens[kind] = directTokens[kind];
+    return tokens[kind];
+  }
+  try {
+    tokens[kind] = await login(
+      browser,
+      frontendUrl,
+      credentials[kind] ?? {},
+      redisContainer,
+      redisPassword,
+    );
+  } catch (error) {
+    loginErrors[kind] = error.message;
+  }
+  return tokens[kind];
 }
 
 const results = [];
-for (const testCase of cases) {
-  const errors = [];
-  const authKind = testCase.auth ?? 'admin';
-  const steps = [
-    { ...testCase.input, expect: testCase.expect },
-    ...(testCase.verify ?? []),
-  ];
-  let latency = null;
+try {
+  for (const testCase of cases) {
+    const errors = [];
+    const authKind = testCase.auth ?? 'admin';
+    const steps = [
+      { ...testCase.input, expect: testCase.expect },
+      ...(testCase.verify ?? []),
+    ];
+    let latency = null;
 
-  if (authKind !== 'none' && !tokens[authKind]) {
+    // 用例级令牌先取一次：拿不到时整条用例直接判失败，错误信息与单步一致
+    if (authKind !== 'none' && !(await tokenFor(authKind))) {
+      results.push({
+        id: testCase.id,
+        assertion: testCase.assertion,
+        passed: false,
+        errors: [
+          `无法获取 ${authKind} 令牌: ${loginErrors[authKind] ?? '未知原因'}`,
+        ],
+        latency_ms: null,
+      });
+      continue;
+    }
+
+    // 每条用例独立捕获变量，避免跨用例串值
+    const captures = {};
+    for (const [index, rawStep] of steps.entries()) {
+      // `{ wait: 5500 }`：等到后端 @RepeatSubmit 窗口（默认 5s）过去再发下一次相同请求
+      if (rawStep.wait) {
+        await new Promise((resolve) => setTimeout(resolve, rawStep.wait));
+        continue;
+      }
+      try {
+        const step = resolveCaptures(rawStep, captures);
+        const authKindForStep = stepAuth(testCase, step);
+        const token = await tokenFor(authKindForStep);
+        if (authKindForStep !== 'none' && !token) {
+          errors.push(
+            `step${index}: 无法获取 ${authKindForStep} 令牌: ${loginErrors[authKindForStep] ?? '未知原因'}`,
+          );
+          continue;
+        }
+        const response = await send(step, token);
+        if (index === 0) {
+          latency = Math.round(response.latency);
+        }
+        if (step.capture) {
+          for (const [name, path] of Object.entries(step.capture)) {
+            const value = getPath(response.json, path);
+            if (value === undefined) {
+              errors.push(`step${index}: capture ${name} 路径 ${path} 不存在`);
+            } else {
+              captures[name] = value;
+            }
+          }
+        }
+        errors.push(
+          ...evaluate(response, step.expect ?? {}).map(
+            (error) => `step${index}: ${error}`,
+          ),
+        );
+      } catch (error) {
+        errors.push(`step${index}: 请求失败 ${error.message}`);
+      }
+    }
+
     results.push({
       id: testCase.id,
       assertion: testCase.assertion,
-      passed: false,
-      errors: [`无法获取 ${authKind} 令牌: ${loginErrors[authKind] ?? '未知原因'}`],
-      latency_ms: null,
+      passed: errors.length === 0,
+      errors,
+      latency_ms: latency,
     });
-    continue;
   }
-
-  // 每条用例独立捕获变量，避免跨用例串值
-  const captures = {};
-  for (const [index, rawStep] of steps.entries()) {
-    // `{ wait: 5500 }`：等到后端 @RepeatSubmit 窗口（默认 5s）过去再发下一次相同请求
-    if (rawStep.wait) {
-      await new Promise((resolve) => setTimeout(resolve, rawStep.wait));
-      continue;
-    }
-    try {
-      const step = resolveCaptures(rawStep, captures);
-      const response = await send(step, tokens[testCase.auth ?? 'admin']);
-      if (index === 0) {
-        latency = Math.round(response.latency);
-      }
-      if (step.capture) {
-        for (const [name, path] of Object.entries(step.capture)) {
-          const value = getPath(response.json, path);
-          if (value === undefined) {
-            errors.push(`step${index}: capture ${name} 路径 ${path} 不存在`);
-          } else {
-            captures[name] = value;
-          }
-        }
-      }
-      errors.push(
-        ...evaluate(response, step.expect ?? {}).map(
-          (error) => `step${index}: ${error}`,
-        ),
-      );
-    } catch (error) {
-      errors.push(`step${index}: 请求失败 ${error.message}`);
-    }
-  }
-
-  results.push({
-    id: testCase.id,
-    assertion: testCase.assertion,
-    passed: errors.length === 0,
-    errors,
-    latency_ms: latency,
-  });
+} finally {
+  await browser.close();
 }
 
 process.stdout.write(JSON.stringify({ cases: results }));
 
-function needsToken(caseList, kind) {
-  return caseList.some((item) => (item.auth ?? 'admin') === kind);
+function stepAuth(testCase, step) {
+  return step.auth ?? testCase.auth ?? 'admin';
 }
 
 /** 用本用例已捕获的值替换 `${NAME}`；未捕获的占位符原样保留（交给断言报错） */

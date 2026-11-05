@@ -4,6 +4,7 @@ import { expect, test } from '@playwright/test';
 
 import {
   actionRowFor,
+  APP_ENTRY_TIMEOUT,
   fixedActionRow,
   gotoAppPath,
   isBackendUp,
@@ -17,7 +18,7 @@ import {
  */
 async function searchUser(page: Page, userName: string) {
   await expect(page.locator('.vxe-loading.is--visible')).toHaveCount(0, {
-    timeout: 15_000,
+    timeout: APP_ENTRY_TIMEOUT,
   });
   await page.getByPlaceholder('请输入用户名称').last().fill(userName);
   const loaded = page.waitForResponse((response) => {
@@ -33,7 +34,7 @@ async function searchUser(page: Page, userName: string) {
   await page.getByRole('button', { name: /搜\s*索/ }).click();
   await loaded;
   await expect(page.locator('.vxe-loading.is--visible')).toHaveCount(0, {
-    timeout: 15_000,
+    timeout: APP_ENTRY_TIMEOUT,
   });
 }
 
@@ -55,10 +56,10 @@ test.describe('系统管理 - 用户', () => {
     page,
   }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/user');
     await expect(page.getByRole('button', { name: '新增' })).toBeVisible({
-      timeout: 20_000,
+      timeout: APP_ENTRY_TIMEOUT,
     });
 
     const suffix = Date.now();
@@ -68,7 +69,7 @@ test.describe('系统管理 - 用户', () => {
     // 新增
     await page.getByRole('button', { name: '新增' }).click();
     const createDialog = page.getByRole('dialog', { name: '新增用户' });
-    await expect(createDialog).toBeVisible({ timeout: 15_000 });
+    await expect(createDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await createDialog.getByPlaceholder('请输入用户名称').fill(userName);
     await createDialog.getByPlaceholder('请输入用户昵称').fill(nickName);
     await createDialog.getByPlaceholder('请输入用户密码').fill('E2e@123456');
@@ -90,13 +91,13 @@ test.describe('系统管理 - 用户', () => {
 
     const row = page
       .locator('.vxe-table--main-wrapper .vxe-body--row', { hasText: userName });
-    await expect(row).toBeVisible({ timeout: 15_000 });
+    await expect(row).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     const actions = await fixedActionRow(page, userName);
 
     // 编辑昵称
     await actions.getByRole('button', { name: /修\s*改/ }).click();
     const editDialog = page.getByRole('dialog', { name: '修改用户' });
-    await expect(editDialog).toBeVisible({ timeout: 15_000 });
+    await expect(editDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await editDialog.getByPlaceholder('请输入用户昵称').fill(`${nickName} 改`);
     const updated = page.waitForResponse(
       (response) =>
@@ -110,10 +111,13 @@ test.describe('系统管理 - 用户', () => {
     // 分配角色（至少选择一个非内置角色）
     await actions.getByRole('button', { name: /分配角色/ }).click();
     await expect(page).toHaveURL(/\/system\/user-auth\/role\//);
-    const firstRole = page.locator('input[type="checkbox"]').first();
-    if (await firstRole.isVisible()) {
-      await firstRole.check();
-    }
+    // 角色列表里可能有停用角色（后端 status='1' → 复选框 disabled），
+    // 且列表异步加载；取第一个可勾选的角色，等它渲染出来。
+    const firstRole = page
+      .locator('input[type="checkbox"]:not([disabled])')
+      .first();
+    await expect(firstRole).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
+    await firstRole.check();
     const authorized = page.waitForResponse(
       (response) =>
         response.url().includes('/system/user/authRole') &&
@@ -126,15 +130,15 @@ test.describe('系统管理 - 用户', () => {
     // 回到用户页（授权页提交后也会跳转，先等页面挂载稳定再操作）
     await gotoAppPath(page, '/system/user');
     await expect(page.getByRole('button', { name: '新增' })).toBeVisible({
-      timeout: 20_000,
+      timeout: APP_ENTRY_TIMEOUT,
     });
     await searchUser(page, userName);
-    await expect(row).toBeVisible({ timeout: 15_000 });
+    await expect(row).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
 
     // 重置密码（请求必须带 isEncrypt 头）
     await actions.getByRole('button', { name: /重置密码/ }).click();
     const resetDialog = page.getByRole('dialog', { name: '重置密码' });
-    await expect(resetDialog).toBeVisible({ timeout: 15_000 });
+    await expect(resetDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await resetDialog.getByPlaceholder('请输入新密码').fill('E2e@654321');
     const reset = page.waitForRequest(
       (request) =>
@@ -167,20 +171,20 @@ test.describe('系统管理 - 用户', () => {
     await row.locator('.vxe-cell--checkbox .vxe-checkbox--icon').first().click();
     await page.getByRole('button', { name: /删\s*除/ }).first().click();
     await page.getByRole('button', { name: /确\s*定/ }).click();
-    await expect(row).toHaveCount(0, { timeout: 15_000 });
+    await expect(row).toHaveCount(0, { timeout: APP_ENTRY_TIMEOUT });
   });
 
   test('userId=1 不显示修改/删除/重置密码/分配角色入口（A-05）', async ({
     page,
   }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/user');
 
     const adminRow = page
       .locator('.vxe-table--main-wrapper .vxe-body--row', { hasText: 'admin' })
       .first();
-    await expect(adminRow).toBeVisible({ timeout: 20_000 });
+    await expect(adminRow).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
 
     // 搜索框为空时列表可能还有 spec003_menu_admin 等含 admin 的账号，
     // 取第一行（userId=1 的 admin 在未过滤列表中排在最前）再映射到操作列。
@@ -201,11 +205,11 @@ test.describe('系统管理 - 用户', () => {
 
   test('重复用户名失败提示且弹窗保留输入（E-03）', async ({ page }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/user');
     await page.getByRole('button', { name: '新增' }).click();
     const dialog = page.getByRole('dialog', { name: '新增用户' });
-    await expect(dialog).toBeVisible({ timeout: 15_000 });
+    await expect(dialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
 
     await dialog.getByPlaceholder('请输入用户名称').fill('admin');
     await dialog.getByPlaceholder('请输入用户昵称').fill('重复用户');
@@ -265,7 +269,7 @@ test.describe('系统管理 - 用户', () => {
       process.env.E2E_LIMITED_USER ?? 'spec002_limited',
       process.env.E2E_LIMITED_PASSWORD ?? 'admin123',
     );
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/user');
 
     await expect(page.getByRole('button', { name: '新增' })).toHaveCount(0);

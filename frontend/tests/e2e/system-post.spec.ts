@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import {
+  APP_ENTRY_TIMEOUT,
   confirmDialog,
   fixedActionRow,
   gotoAppPath,
@@ -22,11 +23,11 @@ test.describe('系统管理 - 岗位', () => {
 
   test('新增 → 筛选 → 修改 → 启停 → 导出 → 删除', async ({ page }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/post');
     await expect(
       page.getByRole('button', { name: '新增', exact: true }),
-    ).toBeVisible({ timeout: 20_000 });
+    ).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
 
     const suffix = Date.now();
     const postCode = `e2e_post_${suffix}`;
@@ -35,7 +36,7 @@ test.describe('系统管理 - 岗位', () => {
     // 新增（选择所属部门；岗位必须挂在部门下）
     await page.getByRole('button', { name: '新增', exact: true }).click();
     const createDialog = page.getByRole('dialog', { name: '新增岗位' });
-    await expect(createDialog).toBeVisible({ timeout: 15_000 });
+    await expect(createDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await createDialog.getByRole('combobox', { name: /所属部门/ }).click();
     await page
       .locator('.ant-select-dropdown')
@@ -52,7 +53,7 @@ test.describe('系统管理 - 岗位', () => {
     await page.getByRole('button', { name: /确\s*认/ }).click();
     const createdResponse = await created;
     expect(createdResponse.status()).toBe(200);
-    await expect(createDialog).toBeHidden({ timeout: 15_000 });
+    await expect(createDialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
 
     // 筛选
     await searchGrid(page, {
@@ -66,7 +67,7 @@ test.describe('系统管理 - 岗位', () => {
     let actions = await fixedActionRow(page, postName);
     await actions.getByRole('button', { name: /修\s*改/ }).click();
     const editDialog = page.getByRole('dialog', { name: '修改岗位' });
-    await expect(editDialog).toBeVisible({ timeout: 15_000 });
+    await expect(editDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     const renamed = `${postName}_改`;
     await editDialog.getByPlaceholder('请输入岗位名称').fill(renamed);
     const updated = page.waitForResponse(
@@ -77,7 +78,7 @@ test.describe('系统管理 - 岗位', () => {
     await page.getByRole('button', { name: /确\s*认/ }).click();
     const updatedResponse = await updated;
     expect(updatedResponse.status()).toBe(200);
-    await expect(editDialog).toBeHidden({ timeout: 15_000 });
+    await expect(editDialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
 
     // 启停：岗位无独立状态端点，提交 PUT /system/post
     const mainRow = page
@@ -115,18 +116,18 @@ test.describe('系统管理 - 岗位', () => {
       page
         .locator('.vxe-table--main-wrapper .vxe-body--row')
         .filter({ hasText: renamed }),
-    ).toHaveCount(0, { timeout: 15_000 });
+    ).toHaveCount(0, { timeout: APP_ENTRY_TIMEOUT });
   });
 
   test('用户表单只列未停用岗位，保存后详情 postIds 一致（A-16）', async ({
     page,
   }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/post');
     await expect(
       page.getByRole('button', { name: '新增', exact: true }),
-    ).toBeVisible({ timeout: 20_000 });
+    ).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
 
     const suffix = Date.now();
     const enabledName = `e2e岗位启用_${suffix}`;
@@ -135,7 +136,7 @@ test.describe('系统管理 - 岗位', () => {
     const createPost = async (postCode: string, postName: string) => {
       await page.getByRole('button', { name: '新增', exact: true }).click();
       const dialog = page.getByRole('dialog', { name: '新增岗位' });
-      await expect(dialog).toBeVisible({ timeout: 15_000 });
+      await expect(dialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
       await dialog.getByRole('combobox', { name: /所属部门/ }).click();
       await page
         .locator('.ant-select-dropdown')
@@ -152,7 +153,7 @@ test.describe('系统管理 - 岗位', () => {
       await page.getByRole('button', { name: /确\s*认/ }).click();
       const createdResponse = await created;
       expect(createdResponse.status()).toBe(200);
-      await expect(dialog).toBeHidden({ timeout: 15_000 });
+      await expect(dialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
     };
 
     await createPost(`e2e_post_on_${suffix}`, enabledName);
@@ -207,7 +208,7 @@ test.describe('系统管理 - 岗位', () => {
     await gotoAppPath(page, '/system/user');
     await page.getByRole('button', { name: '新增', exact: true }).first().click();
     const userDialog = page.getByRole('dialog', { name: '新增用户' });
-    await expect(userDialog).toBeVisible({ timeout: 15_000 });
+    await expect(userDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
 
     await userDialog.getByRole('combobox', { name: '岗位' }).click();
     const postDropdown = page.locator('.ant-select-dropdown:visible').last();
@@ -253,7 +254,7 @@ test.describe('系统管理 - 岗位', () => {
     await page.getByRole('button', { name: /确\s*认/ }).click();
     const createdResponse = await created;
     expect(createdResponse.status()).toBe(200);
-    await expect(userDialog).toBeHidden({ timeout: 15_000 });
+    await expect(userDialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
 
     // 用户详情 postIds 与所选一致
     await searchGrid(page, {
@@ -289,7 +290,7 @@ test.describe('系统管理 - 岗位', () => {
       page
         .locator('.vxe-table--main-wrapper .vxe-body--row')
         .filter({ hasText: userName }),
-    ).toHaveCount(0, { timeout: 15_000 });
+    ).toHaveCount(0, { timeout: APP_ENTRY_TIMEOUT });
 
     await gotoAppPath(page, '/system/post');
     for (const name of [enabledName, disabledName]) {
@@ -306,7 +307,7 @@ test.describe('系统管理 - 岗位', () => {
         page
           .locator('.vxe-table--main-wrapper .vxe-body--row')
           .filter({ hasText: name }),
-      ).toHaveCount(0, { timeout: 15_000 });
+      ).toHaveCount(0, { timeout: APP_ENTRY_TIMEOUT });
     }
   });
 });

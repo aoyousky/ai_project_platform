@@ -1,6 +1,7 @@
 # REQ-20261104-003 评测说明
 
-对应 Spec Packet：`specs/SPEC-003-role-menu-dept-post.md`（version **1.2**，v1.2 仅回填 front-matter `pm`，断言未变）。
+对应 Spec Packet：`specs/SPEC-003-role-menu-dept-post.md`（version **1.3**，v1.3 按 CLAR-009 裁决
+修正 A-18 的接口路径与 `visible` 语义，并新增用例 `TC-A18`）。
 
 ## 准备
 
@@ -20,7 +21,14 @@
    仅菜单权限码角色（`...010`）、用户 `spec003_user`（`...011`）与 `spec003_menu_admin`
    （`...012`）、岗位 `spec003_post_ref`（`...013`）、菜单目录/子菜单/按钮（`...014`~`...016`）、
    隐藏菜单 `spec003_hidden`（`...017`，`visible='1'`）、只读账号 `spec003_readonly`（`...021`）
-   与绑定 `spec003_role` 的 `spec003_router`（`...022`）。
+   与路由账号 `spec003_router`（`...022`）。
+
+   `spec003_router` **不预置绑定** `spec003_role`（CLAR-009 裁决 3A）：A-05（P0）要求该角色
+   `cancelAll` 后 `allocatedList.total=0`，预置绑定会让它恒 ≥1。`TC-A18` 与
+   `frontend/tests/e2e/system-router.spec.ts` 在用例内自行「`selectAll` 绑定 → 断言 → `cancel` 解绑」。
+
+   同一用例还会重新授予角色三个菜单：`TC-A03` 保存角色时只保留目录+子菜单，会覆盖掉
+   隐藏菜单的授权，故 A-18 自行补齐 Given，不依赖用例执行顺序。
 3. `seed_*.sh` 都是“先清后插”，可重复执行；`scripts/ci-gate.sh` 门禁 5 会自动调用它们
    （`EVAL_SKIP_SEED=1` 可跳过）。
 
@@ -38,8 +46,9 @@ python scripts/evals/run_eval.py --report specs/evals/reports
 ```
 
 全部需求合并为**一次探针调用**：探针按 `auth` 类型各登录一次（`admin` / `limited` /
-`menuAdmin`），再复用同一组令牌跑完所有用例。不要按需求目录分多次调用——`/auth/code`
-有 10 次/60s/IP 限流，重复登录会拿不到验证码。
+`menuAdmin` / `router`），再复用同一组令牌跑完所有用例。`auth` 既可写在用例级，也可写在
+单条 `verify` 步骤上（`TC-A18` 用 `admin` 绑定、`router` 断言、`admin` 解绑）。不要按需求
+目录分多次调用——`/auth/code` 有 10 次/60s/IP 限流，重复登录会拿不到验证码。
 
 令牌只在内存中使用：登录响应体取出 `access_token` 后直接注入 `Authorization` /
 `clientid`，不写文件、不写日志、不出现在报告里。
@@ -51,10 +60,7 @@ python scripts/evals/run_eval.py --report specs/evals/reports
 | A-03 | 保存时 `menuCheckStrictly` 用 `false`（父子联动）；`true`（父子不联动）时后端会从 `checkedKeys` 剔除已分配菜单的父节点 | `clarifications/CLAR-008.md`（Spec 升版 v1.1） |
 | A-05 | `authUser` 链路上同一请求参数 5s 内重复提交会被 `@RepeatSubmit` 拦截，用例用 `{ wait: 5500 }` 跨过窗口 | 用例内注释 |
 | A-09 | 非 superadmin/租户管理员调用菜单接口 → HTTP 200 + `code=403` + `msg='没有访问权限，请联系管理员授权'` | SPEC-003 A-09 |
-
-> **待裁决（不在本评测集内）**：A-18「`visible='1'` 的菜单不出现」与平台实际行为冲突
-> （平台返回该菜单并置 `hidden: true`），已提 `clarifications/CLAR-009.md`。
-> 裁决前 A-18 不实现、不在评测集中声明通过。
+| A-18 | 接口为 `GET /system/menu/getRouters`（`/getRouters` 实测 404）；`visible='1'` 的菜单**返回但置 `hidden: true`**，不进侧边栏；夹具不预置绑定，用例自行绑定/解绑 | `clarifications/CLAR-009.md`（裁决 1A/2A/3A，Spec 升版 v1.3） |
 
 ## 环境变量
 
@@ -66,5 +72,6 @@ python scripts/evals/run_eval.py --report specs/evals/reports
 | `EVAL_ADMIN_USER` / `EVAL_ADMIN_PASSWORD` | `admin` / `admin123` | 管理员 |
 | `EVAL_LIMITED_USER` / `EVAL_LIMITED_PASSWORD` | `spec002_limited` / `admin123` | 无权限账号 |
 | `EVAL_SPEC003_MENU_ADMIN_USER` / `_PASSWORD` | `spec003_menu_admin` / `admin123` | 仅菜单权限码账号 |
+| `EVAL_SPEC003_ROUTER_USER` / `_PASSWORD` / `_TOKEN` | `spec003_router` / `admin123` / 空 | A-18 路由账号；提供 `_TOKEN` 后跳过登录 |
 | `EVAL_SPEC003_*_ID` / `_NAME` | 见 `scripts/evals/run_eval.py` 的 `build_env` | 夹具 ID/名称，与 `seed_spec003.sh` 保持一致 |
 | `EVAL_REDIS_CONTAINER` / `EVAL_REDIS_PASSWORD` | `awp-redis` / `aoyou123` | 读取一次性图形验证码明文 |

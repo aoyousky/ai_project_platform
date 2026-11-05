@@ -1,7 +1,7 @@
 ---
 id: REQ-20261104-003
 title: 系统管理核心（角色/菜单/部门/岗位）
-version: 1.2
+version: 1.3
 risk_level: L2
 channel: ai_forced_review
 pm: aoyousky（2026-11-02 CLAR-004 裁决人）
@@ -60,7 +60,7 @@ speckit_feature: specs/002-system-management-core
 | A-15 | P1 | 部门页、用户部门选择器、角色数据权限树打开 | 筛选部门名称并展开/折叠节点 | 三处树的层级与节点集合一致；筛选后匹配节点的必要父节点保留；折叠/展开不改变筛选结果 |
 | A-16 | P1 | 用户新增/编辑页打开 | 打开岗位选择器 | 只列出未停用且当前账号可分配的岗位；保存后用户详情 `postIds` 与所选一致 |
 | A-17 | P1 | 无 `system:role:add` / `system:menu:add` / `system:dept:add` / `system:post:add` 权限码的账号登录 | 进入对应页面并尝试删除操作 | 新增/删除按钮不渲染；删除、级联删除、停用、移除授权均先出现二次确认，确认后才发起请求 |
-| A-18 | P1 | 角色 `spec003_role` 已授予目录 `spec003_dir` 与子菜单 `spec003_menu`；子菜单 `visible='0'` | 使用绑定该角色的账号调用 `GET /getRouters` | `code=200`；返回路由中包含子菜单对应路由；未授权的菜单不出现；`visible='1'` 的菜单不出现 |
+| A-18 | P1 | 角色 `spec003_role` 已授予目录 `spec003_dir`、子菜单 `spec003_menu`（`visible='0'`）与隐藏菜单 `spec003_hidden`（`visible='1'`）；账号 `spec003_router` 在断言期间绑定该角色 | 使用该账号令牌调用 `GET /system/menu/getRouters` | `code=200`；`data` 中存在 `spec003_menu` 对应路由且 `hidden=false`；未授权的菜单（如 `system`）不出现；`spec003_hidden` 以 `hidden=true` 返回，不渲染为侧边栏可见入口 |
 | A-19 | P1 | 列表请求可控地失败（后端不可达或返回非 200 code） | 打开角色/菜单/部门/岗位页 | 页面展示错误提示或空状态，不出现无限加载；状态开关失败后回滚为原状态 |
 
 > P0 断言 12 条，未超过模板上限；P1 断言只做组件/E2E 验证，不进入 P0 门禁。
@@ -275,6 +275,7 @@ speckit_feature: specs/002-system-management-core
 | 1.0 | 初版：由 `specs/002-system-management-core/spec.md` US2–US5 与 `data-model.md`、`contracts/backend-api-consumed.md` 断言化生成；承接 `REQ-20261103-002` §7 的后续范围 | 2026-11-04 | 业务：aoyousky（“确认，同意执行后续任务”）；架构：aoyousky（L2） |
 | 1.1 | 按 `clarifications/CLAR-008.md` 裁决修正 A-03：`menuCheckStrictly` 由 `true` 改为 `false`（父子联动）。平台在 `menuCheckStrictly=true`（父子不联动）时会从 `checkedKeys` 剔除已分配菜单的父节点，与“两个 ID 均回显”的 Then 互斥；`false` 与 plus-ui 默认及 `menuCheckStrictly` 契约行“`null` 等价 `false`”一致。同步修正 §8 首条正例 | 2026-11-04 | 业务：aoyousky（对话裁决“A”）；架构：aoyousky（L2） |
 | 1.2 | 元数据回填：front-matter `pm` 由占位「待指派（CLAR-004 裁决人）」改为 `aoyousky`（依据 `clarifications/CLAR-004.md` 的 PM 裁决记录）。断言、数据契约、Non-goals 均未改动 | 2026-11-05 | PM：aoyousky（CLAR-004 裁决人，历史记录回填） |
+| 1.3 | 按 `clarifications/CLAR-009.md` 裁决修正 A-18：接口路径由 `/getRouters` 更正为 `/system/menu/getRouters`；`visible='1'` 的期望由“不出现”改为“以 `hidden=true` 返回且不渲染为可见入口”（平台 `buildMenus` 语义，`platform/` 零改动）；夹具改为断言期间绑定 `spec003_router`，避免与 A-05 的 `allocatedList.total=0` 冲突 | 2026-11-05 | 业务：aoyousky（对话裁决“1A 2A 3A”）；架构：aoyousky（L2） |
 
 > 签字记录：用户于 2026-11-04 在对话中确认“以上方案确认，同意执行后续任务”，即对本 Packet
 > 的断言、数据契约、Non-goals 与后端事实完成业务与架构（L2）签字，据此进入实现。
@@ -299,7 +300,7 @@ speckit_feature: specs/002-system-management-core
 | FR-020 菜单筛选与树形展示 | A-07、E-14 | 已映射 |
 | FR-021 菜单类型与字段 | A-08、A-14 | 已映射 |
 | FR-022 菜单编辑/删除/级联删除 | A-08、E-10～E-12 | 已映射 |
-| FR-023 菜单属性生效 | A-18 | 已映射（P1 E2E + `/getRouters`） |
+| FR-023 菜单属性生效 | A-18 | 已映射（P1 E2E + `GET /system/menu/getRouters`） |
 | FR-024 部门筛选与树形展示 | A-10、A-15 | 已映射 |
 | FR-025 部门新增/编辑/删除/字段 | A-11、E-15～E-21 | 已映射 |
 | FR-026 部门循环防护与删除拒绝 | A-10、A-11、E-17～E-20 | 已映射 |

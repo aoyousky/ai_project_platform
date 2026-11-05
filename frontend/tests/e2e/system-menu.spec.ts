@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import {
+  APP_ENTRY_TIMEOUT,
   confirmDialog,
   fixedActionRow,
   gotoAppPath,
@@ -23,10 +24,10 @@ test.describe('系统管理 - 菜单', () => {
     page,
   }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/menu');
     await expect(page.getByRole('button', { name: '新增', exact: true })).toBeVisible({
-      timeout: 20_000,
+      timeout: APP_ENTRY_TIMEOUT,
     });
 
     const suffix = Date.now();
@@ -36,7 +37,7 @@ test.describe('系统管理 - 菜单', () => {
     // 新增目录
     await page.getByRole('button', { name: '新增', exact: true }).click();
     const createDialog = page.getByRole('dialog', { name: '新增菜单' });
-    await expect(createDialog).toBeVisible({ timeout: 15_000 });
+    await expect(createDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await createDialog.getByPlaceholder('请输入菜单名称').fill(parentName);
     await createDialog
       .getByPlaceholder('请输入路由地址，如 user')
@@ -49,7 +50,7 @@ test.describe('系统管理 - 菜单', () => {
     await page.getByRole('button', { name: /确\s*认/ }).click();
     const parentCreatedResponse = await parentCreated;
     expect(parentCreatedResponse.status()).toBe(200);
-    await expect(createDialog).toBeHidden({ timeout: 15_000 });
+    await expect(createDialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
 
     // 筛选目录并新增下级菜单
     await searchGrid(page, {
@@ -61,7 +62,7 @@ test.describe('系统管理 - 菜单', () => {
     let actions = await fixedActionRow(page, parentName);
     await actions.getByRole('button', { name: /新增下级/ }).click();
     const childDialog = page.getByRole('dialog', { name: '新增菜单' });
-    await expect(childDialog).toBeVisible({ timeout: 15_000 });
+    await expect(childDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
     await childDialog.getByText('菜单', { exact: true }).click();
     await childDialog.getByPlaceholder('请输入菜单名称').fill(childName);
     await childDialog
@@ -78,7 +79,7 @@ test.describe('系统管理 - 菜单', () => {
     await page.getByRole('button', { name: /确\s*认/ }).click();
     const childCreatedResponse = await childCreated;
     expect(childCreatedResponse.status()).toBe(200);
-    await expect(childDialog).toBeHidden({ timeout: 15_000 });
+    await expect(childDialog).toBeHidden({ timeout: APP_ENTRY_TIMEOUT });
 
     // 重置筛选，拿到完整树后执行删除
     const reloaded = page.waitForResponse((response) => {
@@ -94,7 +95,7 @@ test.describe('系统管理 - 菜单', () => {
     await page.getByRole('button', { name: /重\s*置/ }).click();
     await reloaded;
     await expect(page.locator('.vxe-loading.is--visible')).toHaveCount(0, {
-      timeout: 15_000,
+      timeout: APP_ENTRY_TIMEOUT,
     });
 
     actions = await fixedActionRow(page, parentName);
@@ -113,7 +114,7 @@ test.describe('系统管理 - 菜单', () => {
     // 失败时确认弹窗保持打开，先关闭再执行级联删除
     await page.getByRole('button', { name: /取\s*消/ }).click();
     await expect(page.locator('.ant-modal-confirm')).toBeHidden({
-      timeout: 10_000,
+      timeout: 30_000,
     });
 
     // 级联删除必须提交父节点及全部后代 ID（E-12）
@@ -138,16 +139,16 @@ test.describe('系统管理 - 菜单', () => {
       page
         .locator('.vxe-table--main-wrapper .vxe-body--row')
         .filter({ hasText: parentName }),
-    ).toHaveCount(0, { timeout: 15_000 });
+    ).toHaveCount(0, { timeout: APP_ENTRY_TIMEOUT });
   });
 
   test('菜单类型切换控制字段显隐（A-14）', async ({ page }) => {
     await loginWithCaptcha(page);
-    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/menu');
     await page.getByRole('button', { name: '新增', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: '新增菜单' });
-    await expect(dialog).toBeVisible({ timeout: 15_000 });
+    await expect(dialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
 
     const routePath = dialog.getByPlaceholder('请输入路由地址，如 user');
     const componentPath = dialog.getByPlaceholder(

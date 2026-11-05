@@ -10,6 +10,15 @@ const REDIS_CONTAINER = process.env.E2E_REDIS_CONTAINER ?? 'awp-redis';
 const REDIS_PASSWORD = process.env.E2E_REDIS_PASSWORD ?? 'aoyou123';
 
 /**
+ * 登录成功后进入应用（`/index`）的等待预算。
+ *
+ * 登录成功后前端还要拉取用户信息与菜单才会跳转；宿主 Docker/浏览器变慢时
+ * 这段会超过 15s（实测 15s 时仍停在“加载菜单中…”）。用统一预算，
+ * 避免把环境慢误判成登录失败；真实的登录失败依旧会超时失败。
+ */
+export const APP_ENTRY_TIMEOUT = 60_000;
+
+/**
  * 后端是否可达。E2E 依赖 quickstart §1 的本地 Docker 栈；
  * 未起栈时用例应 skip，而不是误报失败。
  */
@@ -44,7 +53,13 @@ export function readCaptchaCode(uuid: string): string {
     ],
     { encoding: 'utf8' },
   ).trim();
-  return raw.replaceAll('"', '');
+  const code = raw.replaceAll('"', '');
+  if (!code) {
+    // 空串说明该 uuid 在 Redis 中不存在（已过期或被上一次提交消费）。
+    // 直接返回会让表单校验拦下请求，表现为“停在登录页”而看不出原因。
+    throw new Error(`验证码 uuid=${uuid} 在 Redis 中没有对应明文（已过期或被消费）`);
+  }
+  return code;
 }
 
 /**
@@ -127,8 +142,18 @@ export async function waitForCaptchaUuid(page: Page): Promise<string> {
     }
   }
 
-  // 给可能的重复挂载请求留出落地时间，取最后一个成功的响应
-  await page.waitForTimeout(400);
+  // 给可能的重复挂载请求留出落地时间：等到取码响应在 1.5s 内不再新增，再取最后一个
+  // 成功响应。慢宿主上重挂载的响应可能晚于 400ms 落地，填旧 uuid 的码而后端按新
+  // uuid 校验，会得到“验证码错误”（表现为登录后停在登录页）。
+  let stableSince = Date.now();
+  let lastLength = codes.length;
+  while (Date.now() - stableSince < 1500) {
+    await page.waitForTimeout(200);
+    if (codes.length !== lastLength) {
+      lastLength = codes.length;
+      stableSince = Date.now();
+    }
+  }
   const last = codes.findLast((item) => item.code === 200 && item.uuid);
   if (!last) {
     throw new Error('登录页未请求 /auth/code，拿不到验证码 uuid');
@@ -139,18 +164,54 @@ export async function waitForCaptchaUuid(page: Page): Promise<string> {
 /**
  * 用真实后端账号登录：等待登录页自己请求 `/auth/code`，取 uuid 后从 Redis 取码。
  * 对应 US1（T023–T025）实现后的登录页；未实现前该用例应失败（T009 RED）。
+ *
+ * 慢宿主上取码与提交之间页面可能重挂载（表单被重置），或取到的 uuid 已过期/
+ * 被消费，表现为“点了登录却停在登录页”。这里自检并整体重试一次；重试会重新
+ * 导航取码，仍然受 `/auth/code` 限流排队约束。真实登录失败（非验证码问题）
+ * 直接抛错，不掩盖。
  */
 export async function loginWithCaptcha(
   page: Page,
   username = 'admin',
   password = 'admin123',
+  attempts = 2,
 ): Promise<void> {
-  const uuid = await waitForCaptchaUuid(page);
+  const captchaInput = page.getByPlaceholder('验证码');
+  let lastError: unknown;
 
-  await page.getByPlaceholder('请输入用户名').fill(username);
-  await page.getByPlaceholder('密码').fill(password);
-  await page.getByPlaceholder('验证码').fill(readCaptchaCode(uuid));
-  await page.locator('button[aria-label="login"]').click();
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      const uuid = await waitForCaptchaUuid(page);
+      const code = readCaptchaCode(uuid);
+
+      await page.getByPlaceholder('请输入用户名').fill(username);
+      await page.getByPlaceholder('密码').fill(password);
+      await captchaInput.fill(code);
+      if ((await captchaInput.inputValue()) !== code) {
+        throw new Error('验证码输入在提交前被页面重置');
+      }
+
+      const responded = page.waitForResponse(
+        (response) =>
+          response.url().includes('/auth/login') &&
+          response.request().method() === 'POST',
+        { timeout: 30_000 },
+      );
+      await page.locator('button[aria-label="login"]').click();
+      const response = await responded;
+      const body = await response.json();
+      if (body?.code !== 200) {
+        throw new Error(`登录被拒绝：${JSON.stringify(body)}`);
+      }
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('登录失败：未知原因');
 }
 
 /**
@@ -166,6 +227,22 @@ export async function gotoAppPath(page: Page, path: string): Promise<void> {
     ? `${url.origin}/#${path}`
     : `${url.origin}${path}`;
   await page.goto(target);
+  await waitForAppReady(page);
+}
+
+/**
+ * 等启动屏（“加载菜单中…”）消失。
+ *
+ * `gotoAppPath` 是整页加载：路由守卫要重新拉取用户信息与菜单，慢宿主上这段
+ * 会明显超过 15–20s，后续断言若落在启动期就会误报“元素不存在”。先给启动屏
+ * 一个出现窗口（快速启动时窗口内它已消失），再等它消失。
+ */
+export async function waitForAppReady(page: Page): Promise<void> {
+  const bootScreen = page.getByText('加载菜单中').first();
+  await bootScreen
+    .waitFor({ state: 'visible', timeout: 3000 })
+    .catch(() => {});
+  await bootScreen.waitFor({ state: 'hidden', timeout: APP_ENTRY_TIMEOUT });
 }
 
 /**

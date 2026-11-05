@@ -2,7 +2,7 @@
 
 - REQ: REQ-20261104-003
 - TRIGGER: A-18（`/getRouters` 返回与 `visible` 字段语义）
-- STATUS: 待裁决
+- STATUS: 已回写 Spec
 - RAISED_BY: agent
 - DATE: 2026-11-05
 
@@ -52,4 +52,14 @@ SPEC-003 v1.1 A-18（`specs/SPEC-003-role-menu-dept-post.md:63`）的 Then 要�
 
 ## PM 裁决
 
-<待裁决>
+**1A + 2A + 3A**（用户 2026-11-05 对话裁决，原文回复“1A 2A 3A”）：
+
+1. **1A**：`visible='1'` 的 Then 改为「以 `hidden=true` 返回，且不渲染为侧边栏可见入口」。
+2. **2A**：When 的接口路径更正为 `GET /system/menu/getRouters`。
+3. **3A**：夹具不预置绑定；A-18 用例自行「`selectAll` 绑定 → `getRouters` 断言 → `cancel` 解绑」。
+
+升版 Spec Packet 至 **v1.3**（A-18 的 Given/When/Then 与 §9 变更记录同步），
+`specs/evals/REQ-20261104-003/cases.yaml` 的 `spec_version` 升为 `1.3` 并新增 `TC-A18`。
+`platform/` 保持零改动。
+
+是否升版 Spec Packet：是，升版后版本号：1.3。

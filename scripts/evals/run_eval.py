@@ -22,6 +22,8 @@
   EVAL_ADMIN_USER / EVAL_ADMIN_PASSWORD         默认 admin / admin123
   EVAL_LIMITED_USER / EVAL_LIMITED_PASSWORD     默认 spec002_limited / admin123
   EVAL_SPEC003_MENU_ADMIN_USER / _PASSWORD      默认 spec003_menu_admin / admin123
+  EVAL_SPEC003_ROUTER_USER / _PASSWORD          默认 spec003_router / admin123（A-18）
+  EVAL_SPEC003_ROUTER_TOKEN                     可选；提供后跳过路由账号登录
 """
 from __future__ import annotations
 
@@ -103,6 +105,8 @@ def build_env() -> dict[str, str]:
     env.setdefault("EVAL_SPEC003_DIR_MENU_ID", "900003000000000014")
     env.setdefault("EVAL_SPEC003_SUB_MENU_ID", "900003000000000015")
     env.setdefault("EVAL_SPEC003_BUTTON_MENU_ID", "900003000000000016")
+    env.setdefault("EVAL_SPEC003_HIDDEN_MENU_ID", "900003000000000017")
+    env.setdefault("EVAL_SPEC003_ROUTER_USER_ID", "900003000000000022")
     env.setdefault("EVAL_SPEC003_ROLE_NAME", "Spec003 角色")
     env.setdefault("EVAL_SPEC003_DEPT_NAME", "Spec003 部门")
     env.setdefault("EVAL_SPEC003_MENU_NAME", "Spec003 目录")
@@ -166,11 +170,21 @@ def run_probe(cases: list[dict], env: dict[str, str]) -> list[dict] | None:
                     "EVAL_SPEC003_MENU_ADMIN_PASSWORD", "admin123"
                 ),
             },
+            # A-18：绑定 spec003_role 的普通账号，用于验证 getRouters 的路由过滤
+            "router": {
+                "username": env.get(
+                    "EVAL_SPEC003_ROUTER_USER", "spec003_router"
+                ),
+                "password": env.get(
+                    "EVAL_SPEC003_ROUTER_PASSWORD", "admin123"
+                ),
+            },
         },
         "directTokens": {
             "admin": env.get("EVAL_TOKEN"),
             "limited": env.get("EVAL_NOACCESS_TOKEN"),
             "menuAdmin": env.get("EVAL_SPEC003_MENU_ADMIN_TOKEN"),
+            "router": env.get("EVAL_SPEC003_ROUTER_TOKEN"),
         },
         "cases": substitute(cases, env),
     }
