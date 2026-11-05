@@ -1,10 +1,10 @@
 ---
 id: REQ-20261104-003
 title: 系统管理核心（角色/菜单/部门/岗位）
-version: 1.1
+version: 1.2
 risk_level: L2
 channel: ai_forced_review
-pm: 待指派（CLAR-004 裁决人）
+pm: aoyousky（2026-11-02 CLAR-004 裁决人）
 business_signoff: aoyousky（2026-11-04 对话确认“确认，同意执行后续任务”）
 arch_reviewer: aoyousky（2026-11-04 对话确认，L2）
 target_window: 2026-11-04 ~ 2026-11-18
@@ -274,6 +274,7 @@ speckit_feature: specs/002-system-management-core
 |---|---|---|---|
 | 1.0 | 初版：由 `specs/002-system-management-core/spec.md` US2–US5 与 `data-model.md`、`contracts/backend-api-consumed.md` 断言化生成；承接 `REQ-20261103-002` §7 的后续范围 | 2026-11-04 | 业务：aoyousky（“确认，同意执行后续任务”）；架构：aoyousky（L2） |
 | 1.1 | 按 `clarifications/CLAR-008.md` 裁决修正 A-03：`menuCheckStrictly` 由 `true` 改为 `false`（父子联动）。平台在 `menuCheckStrictly=true`（父子不联动）时会从 `checkedKeys` 剔除已分配菜单的父节点，与“两个 ID 均回显”的 Then 互斥；`false` 与 plus-ui 默认及 `menuCheckStrictly` 契约行“`null` 等价 `false`”一致。同步修正 §8 首条正例 | 2026-11-04 | 业务：aoyousky（对话裁决“A”）；架构：aoyousky（L2） |
+| 1.2 | 元数据回填：front-matter `pm` 由占位「待指派（CLAR-004 裁决人）」改为 `aoyousky`（依据 `clarifications/CLAR-004.md` 的 PM 裁决记录）。断言、数据契约、Non-goals 均未改动 | 2026-11-05 | PM：aoyousky（CLAR-004 裁决人，历史记录回填） |
 
 > 签字记录：用户于 2026-11-04 在对话中确认“以上方案确认，同意执行后续任务”，即对本 Packet
 > 的断言、数据契约、Non-goals 与后端事实完成业务与架构（L2）签字，据此进入实现。

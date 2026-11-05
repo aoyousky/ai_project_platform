@@ -4,9 +4,10 @@
 
 ## 准备
 
-1. 启动本地测试栈（`deploy/docker-compose.yml`）与前端开发服务器：
+1. 启动本地测试栈（`deploy/docker-compose.yml`）与前端登录页（E2E 同款生产预览）：
    - 后端 `http://localhost:8080`
-   - 前端 `http://localhost:5666`
+   - 前端 `http://localhost:5666`（`pnpm build && pnpm --filter @vben/web-antdv-next preview --port 5666`；
+     预览服务器在 `vite.config.ts` 里把 `/prod-api` 代理到 8080）
 2. 预置夹具（仅本地/CI 测试库，禁止指向生产库）。**每次执行评测前都要重跑**——
    A-04 会删除 `spec002_delete`，A-02 会新增随机用户名：
 

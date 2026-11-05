@@ -16,8 +16,17 @@
 4. 评测夹具（部分用例依赖）：
    ```bash
    bash scripts/evals/seed_spec002.sh   # spec002_limited（无权限账号）、spec002_* 用户
-   bash scripts/evals/seed_spec003.sh   # spec003_* 角色/菜单/部门/岗位（如需要）
+   bash scripts/evals/seed_spec003.sh   # spec003_* 角色/菜单/部门/岗位、spec003_readonly、spec003_router
    ```
+
+   `seed_spec003.sh` 预置的账号（密码均为 `admin123`，复用 `admin` 的密码哈希）：
+
+   | 账号 | 用途 |
+   |---|---|
+   | `spec003_user` | 绑定 `spec003_assigned` 角色与 `spec003_post_ref` 岗位（删除/停用保护用例） |
+   | `spec003_menu_admin` | 仅菜单权限码，用于 A-09 权限码控制 |
+   | `spec003_readonly` | 仅 role/menu/dept/post 的 list/query 权限码（A-17 写按钮不渲染）；其角色 `role_key` 为 `admin`，因为 `/system/menu/list` 额外要求 superadmin/admin 角色 |
+   | `spec003_router` | 绑定 `spec003_role`，用于 A-18 `getRouters` 路由过滤（**待 CLAR-009 裁决**） |
 
 ## 运行
 
@@ -62,5 +71,7 @@ pnpm test:e2e --ui            # 调试
 | `system-role.spec.ts` | SPEC-003 A-01~A-06、A-13、A-17 |
 | `system-menu.spec.ts` | SPEC-003 A-07~A-09、A-14、A-17 |
 | `system-dept.spec.ts` | SPEC-003 A-10、A-11、A-15、A-17 |
-| `system-post.spec.ts` | SPEC-003 A-12、A-17 |
+| `system-post.spec.ts` | SPEC-003 A-12、A-16、A-17 |
+| `system-permissions.spec.ts` | SPEC-003 A-17（只读账号无写按钮；删除/级联删除/取消授权/启停二次确认，取消后不发请求） |
+| `system-failure.spec.ts` | SPEC-003 A-19（列表失败不出无限加载；状态开关失败回滚） |
 | `system-user.spec.ts` | SPEC-002 A-05、A-07、A-12、A-14；SPEC-003 A-17 |

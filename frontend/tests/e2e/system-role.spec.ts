@@ -105,6 +105,8 @@ test.describe('系统管理 - 角色', () => {
         response.request().method() === 'PUT',
     );
     await mainRow.locator('.ant-switch').click();
+    // A-17：启停先二次确认
+    await confirmDialog(page);
     const toggledResponse = await toggled;
     expect(toggledResponse.status()).toBe(200);
 

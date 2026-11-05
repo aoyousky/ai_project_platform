@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 import { expect, test } from '@playwright/test';
 
@@ -9,6 +9,37 @@ import {
   isBackendUp,
   loginWithCaptcha,
 } from './helpers';
+
+/** 虚拟滚动的树/下拉：滚动页面并累计渲染出的标题 */
+async function collectVirtualTitles(
+  page: Page,
+  container: Locator,
+): Promise<string[]> {
+  const seen = new Set<string>();
+  const holder = container.locator('.ant-select-tree-list-holder').first();
+  const hasHolder = (await holder.count()) > 0;
+  for (let step = 0; step < 12; step += 1) {
+    for (const title of await container
+      .locator('.ant-select-tree-title, .ant-tree-title')
+      .allInnerTexts()) {
+      seen.add(title.trim());
+    }
+    if (!hasHolder) {
+      break;
+    }
+    const atBottom = await holder.evaluate(
+      (el) => el.scrollTop + el.clientHeight >= el.scrollHeight - 4,
+    );
+    if (atBottom) {
+      break;
+    }
+    await holder.evaluate((el) => {
+      el.scrollTop += el.clientHeight;
+    });
+    await page.waitForTimeout(150);
+  }
+  return [...seen];
+}
 
 /**
  * 部门页的名称筛选在前端完成（保留祖先链，A-15），
@@ -40,6 +71,78 @@ async function searchDept(page: Page, deptName: string) {
 test.describe('系统管理 - 部门', () => {
   test.beforeAll(async () => {
     test.skip(!(await isBackendUp()), '本地后端栈未启动');
+  });
+
+  test('部门页/用户选择器/角色数据权限树一致（A-15）', async ({ page }) => {
+    await loginWithCaptcha(page);
+    await expect(page).toHaveURL(/\/index/, { timeout: 15_000 });
+    await gotoAppPath(page, '/system/dept');
+
+    const rows = page.locator('.vxe-table--main-wrapper .vxe-body--row');
+    await expect(rows.first()).toBeVisible({ timeout: 20_000 });
+    const readNames = async () => {
+      const texts = await rows.allInnerTexts();
+      return texts
+        .map((text) => text.split('\n').map((s) => s.trim()).find(Boolean))
+        .filter((name): name is string => !!name);
+    };
+    // 基线数据的层级：XXX科技 → 深圳总公司 → {研发部门, …, 长沙分公司}
+    const baseline = ['XXX科技', '深圳总公司', '研发部门', '长沙分公司'] as const;
+    const allNames = await readNames();
+    for (const name of baseline) {
+      expect(allNames).toContain(name);
+    }
+
+    // 筛选保留匹配节点的祖先链
+    await searchDept(page, '研发部门');
+    await expect
+      .poll(readNames)
+      .toEqual(['XXX科技', '深圳总公司', '研发部门']);
+
+    // 折叠/展开不改变筛选结果
+    const parentRow = rows.filter({ hasText: '深圳总公司' });
+    await parentRow.locator('.vxe-cell--tree-btn').click();
+    await parentRow.locator('.vxe-cell--tree-btn').click();
+    await expect
+      .poll(readNames)
+      .toEqual(['XXX科技', '深圳总公司', '研发部门']);
+
+    // 用户新增：归属部门选择器
+    await gotoAppPath(page, '/system/user');
+    await page.getByRole('button', { name: '新增', exact: true }).first().click();
+    const userDialog = page.getByRole('dialog', { name: '新增用户' });
+    await expect(userDialog).toBeVisible({ timeout: 15_000 });
+    await userDialog.getByRole('combobox', { name: '归属部门' }).click();
+    const userTitles = await collectVirtualTitles(
+      page,
+      page.locator('.ant-select-dropdown:visible').last(),
+    );
+    for (const name of baseline) {
+      expect(userTitles).toContain(name);
+    }
+    // Escape 会先收起下拉；若弹窗（keyboard=true）随之关闭则无需再点取消
+    await page.keyboard.press('Escape');
+    try {
+      await userDialog.waitFor({ state: 'hidden', timeout: 2000 });
+    } catch {
+      await userDialog.getByRole('button', { name: /取\s*消/ }).click();
+    }
+    await expect(userDialog).toBeHidden({ timeout: 15_000 });
+
+    // 角色数据权限树
+    await gotoAppPath(page, '/system/role');
+    const roleRow = await fixedActionRow(page, 'test1');
+    await roleRow.getByRole('button', { name: /数据权限/ }).click();
+    const drawer = page.getByRole('dialog').last();
+    await expect(drawer).toBeVisible({ timeout: 15_000 });
+    await drawer.getByText('自定义数据权限').click();
+    await drawer.getByRole('button', { name: '展开' }).click();
+    const roleTexts = await drawer.locator('.ant-tree-title').allInnerTexts();
+    const roleTitles = roleTexts.map((title) => title.trim());
+    for (const name of baseline) {
+      expect(roleTitles).toContain(name);
+    }
+    await drawer.getByRole('button', { name: /取\s*消/ }).click();
   });
 
   test('新增一级/下级 → 修改 → 删除父部门被拒(601) → 删除子部门 → 删除父部门', async ({

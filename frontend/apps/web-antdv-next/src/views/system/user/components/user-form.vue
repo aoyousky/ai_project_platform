@@ -80,10 +80,19 @@ const [Modal, modalApi] = useVbenModal({
       schema: buildUserFormSchema({
         deptOptions: data.deptOptions,
         isEdit: data.mode === 'edit',
-        postOptions: (data.info.posts ?? []).map((post) => ({
-          label: post.postName,
-          value: String(post.postId),
-        })),
+        // A-16：只列未停用岗位；已分配的停用岗位仍保留，避免编辑时丢失原值
+        postOptions: (data.info.posts ?? [])
+          .filter(
+            (post) =>
+              post.status !== '1' ||
+              (data.info.postIds ?? []).some(
+                (id) => String(id) === String(post.postId),
+              ),
+          )
+          .map((post) => ({
+            label: post.postName,
+            value: String(post.postId),
+          })),
         roleOptions: (data.info.roles ?? []).map((role) => ({
           label: role.roleName,
           value: String(role.roleId),

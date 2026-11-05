@@ -1,135 +1,39 @@
-generation_id: gen-20261104-144145
+generation_id: gen-20261105-151200
 requirement_id: REQ-20261104-003
-spec_version: "1.1"
-spec_hash: dd75d654f872
+spec_version: "1.2"
+spec_hash: cb615b96a5fe
 constraint_version: 77e727639c28
 allowlist_hash: 4d2d2e9f97f7
 model: deepseek-v4.1-flash[1m]
 prompt_version: claudemd-v1
-generated_at: 2026-11-04T14:41:45Z
+generated_at: 2026-11-05T15:12:00+08:00
 
 speckit:
   feature_dir: specs/002-system-management-core
   plan_hash: 095be11bdf1e
   tasks_hash: a52a44998976
 
-clarification_refs: [CLAR-008]
+clarification_refs: [CLAR-008, CLAR-009]
 reviewer: aoyousky（2026-11-04 对话裁决 CLAR-008 选 A）
 review_verdict: pass
 
 diff_scope:
-  - clarifications/CLAR-004.md
-  - clarifications/CLAR-005.md
-  - clarifications/CLAR-006.md
-  - clarifications/CLAR-007.md
-  - clarifications/CLAR-008.md
-  - frontend/apps/web-antdv-next/src/api/request.test.ts
-  - frontend/apps/web-antdv-next/src/api/request.ts
-  - frontend/apps/web-antdv-next/src/api/system/common.test.ts
-  - frontend/apps/web-antdv-next/src/api/system/common.ts
-  - frontend/apps/web-antdv-next/src/api/system/dept/index.test.ts
-  - frontend/apps/web-antdv-next/src/api/system/dept/index.ts
-  - frontend/apps/web-antdv-next/src/api/system/dept/types.ts
-  - frontend/apps/web-antdv-next/src/api/system/menu/index.test.ts
-  - frontend/apps/web-antdv-next/src/api/system/menu/index.ts
-  - frontend/apps/web-antdv-next/src/api/system/menu/types.ts
-  - frontend/apps/web-antdv-next/src/api/system/post/index.test.ts
-  - frontend/apps/web-antdv-next/src/api/system/post/index.ts
-  - frontend/apps/web-antdv-next/src/api/system/post/types.ts
-  - frontend/apps/web-antdv-next/src/api/system/role/index.test.ts
-  - frontend/apps/web-antdv-next/src/api/system/role/index.ts
-  - frontend/apps/web-antdv-next/src/api/system/role/types.ts
-  - frontend/apps/web-antdv-next/src/api/system/user/index.test.ts
-  - frontend/apps/web-antdv-next/src/api/system/user/index.ts
-  - frontend/apps/web-antdv-next/src/api/system/user/types.ts
-  - frontend/apps/web-antdv-next/src/bootstrap.ts
-  - frontend/apps/web-antdv-next/src/composables/use-dict.test.ts
-  - frontend/apps/web-antdv-next/src/composables/use-dict.ts
-  - frontend/apps/web-antdv-next/src/directives/access.test.ts
-  - frontend/apps/web-antdv-next/src/directives/access.ts
-  - frontend/apps/web-antdv-next/src/utils/system/id.test.ts
-  - frontend/apps/web-antdv-next/src/utils/system/id.ts
-  - frontend/apps/web-antdv-next/src/utils/system/pagination.test.ts
-  - frontend/apps/web-antdv-next/src/utils/system/pagination.ts
-  - frontend/apps/web-antdv-next/src/utils/system/query.test.ts
-  - frontend/apps/web-antdv-next/src/utils/system/query.ts
-  - frontend/apps/web-antdv-next/src/utils/system/status.test.ts
-  - frontend/apps/web-antdv-next/src/utils/system/status.ts
-  - frontend/apps/web-antdv-next/src/utils/system/tree.test.ts
-  - frontend/apps/web-antdv-next/src/utils/system/tree.ts
-  - frontend/apps/web-antdv-next/src/views/_core/authentication/captcha-field.vue
-  - frontend/apps/web-antdv-next/src/views/_core/authentication/login-model.ts
-  - frontend/apps/web-antdv-next/src/views/_core/authentication/login-schema.ts
-  - frontend/apps/web-antdv-next/src/views/_core/authentication/login.test.ts
-  - frontend/apps/web-antdv-next/src/views/_core/authentication/login.vue
-  - frontend/apps/web-antdv-next/src/views/system/dept/components/dept-form.vue
-  - frontend/apps/web-antdv-next/src/views/system/dept/dept-form-schema.ts
-  - frontend/apps/web-antdv-next/src/views/system/dept/dept-page-logic.test.ts
-  - frontend/apps/web-antdv-next/src/views/system/dept/dept-page-logic.ts
-  - frontend/apps/web-antdv-next/src/views/system/dept/index.vue
-  - frontend/apps/web-antdv-next/src/views/system/menu/components/menu-form.vue
-  - frontend/apps/web-antdv-next/src/views/system/menu/index.vue
-  - frontend/apps/web-antdv-next/src/views/system/menu/menu-form-schema.ts
-  - frontend/apps/web-antdv-next/src/views/system/menu/menu-page-logic.test.ts
-  - frontend/apps/web-antdv-next/src/views/system/menu/menu-page-logic.ts
-  - frontend/apps/web-antdv-next/src/views/system/post/components/post-form.vue
+  - clarifications/CLAR-009.md
   - frontend/apps/web-antdv-next/src/views/system/post/index.vue
-  - frontend/apps/web-antdv-next/src/views/system/post/post-form-schema.ts
-  - frontend/apps/web-antdv-next/src/views/system/post/post-page-logic.test.ts
-  - frontend/apps/web-antdv-next/src/views/system/post/post-page-logic.ts
-  - frontend/apps/web-antdv-next/src/views/system/role/authUser.vue
-  - frontend/apps/web-antdv-next/src/views/system/role/components/data-scope-drawer.vue
-  - frontend/apps/web-antdv-next/src/views/system/role/components/menu-permission-tree.vue
-  - frontend/apps/web-antdv-next/src/views/system/role/components/role-form.vue
-  - frontend/apps/web-antdv-next/src/views/system/role/components/select-user-modal.vue
   - frontend/apps/web-antdv-next/src/views/system/role/index.vue
-  - frontend/apps/web-antdv-next/src/views/system/role/role-page-logic.test.ts
-  - frontend/apps/web-antdv-next/src/views/system/role/role-page-logic.ts
-  - frontend/apps/web-antdv-next/src/views/system/user/authRole.vue
-  - frontend/apps/web-antdv-next/src/views/system/user/components/reset-password-modal.vue
   - frontend/apps/web-antdv-next/src/views/system/user/components/user-form.vue
-  - frontend/apps/web-antdv-next/src/views/system/user/components/user-import-modal.vue
-  - frontend/apps/web-antdv-next/src/views/system/user/index.test.ts
   - frontend/apps/web-antdv-next/src/views/system/user/index.vue
-  - frontend/apps/web-antdv-next/src/views/system/user/user-form-schema.ts
-  - frontend/apps/web-antdv-next/src/views/system/user/user-page-logic.ts
-  - frontend/apps/web-antdv-next/vite.config.ts
-  - frontend/package.json
-  - frontend/playwright.config.ts
   - frontend/tests/e2e/README.md
-  - frontend/tests/e2e/helpers.ts
-  - frontend/tests/e2e/login.spec.ts
-  - frontend/tests/e2e/session.spec.ts
   - frontend/tests/e2e/system-dept.spec.ts
-  - frontend/tests/e2e/system-menu.spec.ts
+  - frontend/tests/e2e/system-failure.spec.ts
+  - frontend/tests/e2e/system-permissions.spec.ts
   - frontend/tests/e2e/system-post.spec.ts
   - frontend/tests/e2e/system-role.spec.ts
-  - frontend/tests/e2e/system-user.spec.ts
-  - frontend/vitest.config.ts
-  - scripts/ci-gate.sh
-  - scripts/evals/http_probe.mjs
-  - scripts/evals/run_eval.py
-  - scripts/evals/seed_spec002.sh
   - scripts/evals/seed_spec003.sh
-  - scripts/spec-audit.sh
-  - scripts/spec_audit.py
-  - specs/002-system-management-core/checklists/requirements.md
-  - specs/002-system-management-core/contracts/backend-api-consumed.md
-  - specs/002-system-management-core/data-model.md
-  - specs/002-system-management-core/plan.md
-  - specs/002-system-management-core/quickstart.md
-  - specs/002-system-management-core/research.md
-  - specs/002-system-management-core/spec.md
-  - specs/002-system-management-core/tasks.md
-  - specs/SPEC-002-system-management-core.md
   - specs/SPEC-003-role-menu-dept-post.md
-  - specs/_audit/README.md
-  - specs/_drafts/README.md
   - specs/evals/REQ-20261103-002/README.md
-  - specs/evals/REQ-20261103-002/cases.yaml
   - specs/evals/REQ-20261104-003/README.md
   - specs/evals/REQ-20261104-003/cases.yaml
-  - trace/REQ-20261103-002.yaml
   - trace/REQ-20261104-003.yaml
 
 assertion_map:
@@ -149,29 +53,33 @@ assertion_map:
   E-27: frontend/apps/web-antdv-next/src/utils/system/pagination.ts#L8
 
 test_evidence:
-  executed_at: 2026-11-04T13:19:40Z
+  executed_at: 2026-11-05T15:11:28+08:00
   base_url: http://localhost:8080
   runner: scripts/evals/run_eval.py（等价注入夹具；静态校验走 specs/evals/run.py --check）
   total: 12
   passed: 12
-  report: specs/evals/reports/REQ-20261104-003-20261104-211931.json
+  report: specs/evals/reports/REQ-20261104-003-20261105-151128.json
   p0_coverage: 12/12 有用例；12/12 通过
 
 unit_tests:
-  executed_at: 2026-11-04T13:03:14Z
-  runner: pnpm test:unit
+  executed_at: 2026-11-05T12:30:33+08:00
+  runner: npx vitest run --dom --pool=threads
   total: 477
   passed: 477
-  note: 59 个测试文件；`pnpm test:coverage` 行覆盖 87%、分支 77.2%（阈值 70%）
+  note: 59 个测试文件；默认 forks pool 在宿主休眠后出现 worker 超时（4 errors，测试本身 55 文件 459 用例全过），改用 threads pool 复跑全绿
 
 e2e:
-  executed_at: 2026-11-04T14:55:00Z
-  runner: npx playwright test tests/e2e（Edge，生产构建 + vite preview:5666）
-  total: 19
-  passed: 19
-  note: 覆盖 A-13 角色导出、A-14 菜单类型字段显隐、A-17 无权限账号；seed_spec002/003 已预置
+  executed_at: 2026-11-05T14:07:00+08:00
+  runner: npx playwright test（Edge，生产构建 + vite preview:5666）
+  total: 26
+  passed: 26
+  note: 新增 A-15 部门/用户/角色数据权限三处树一致、A-16 岗位选择器与 postIds、A-17 只读账号+二次确认、A-19 失败态与开关回滚；首轮 1.4h 运行因宿主休眠出现 Network Error，复跑 5.5m 全绿
+  red_green: 回退 role/index.vue、user-form.vue、user/index.vue 后同一组用例 2 failed / 2 passed（A-16 停在“停用岗位仍出现在下拉”，A-17 停在等待确认弹窗）；恢复实现并重建后 4 passed（1.0m）
 
 history:
   - generation_id: gen-20261104-131220
     spec_version: "1.1"
     note: 首版溯源；此后补齐 A-13/A-14 E2E、E2E 自动预置 preview 与无权限账号默认值，断言未变
+  - generation_id: gen-20261105-151200
+    spec_version: "1.2"
+    note: 元数据回填：front-matter pm 由占位改为 aoyousky（CLAR-004 裁决人），断言与契约未变；cases.yaml spec_version 同步 1.2。补齐 A-15/A-16/A-17/A-19 E2E；A-18 因 CLAR-009 待裁决未实现，`spec003_router` 暂不绑定 `spec003_role`（否则 A-05 的 cancelAll 后 total=0 不成立）

@@ -1,6 +1,6 @@
 # REQ-20261104-003 评测说明
 
-对应 Spec Packet：`specs/SPEC-003-role-menu-dept-post.md`（version **1.1**）。
+对应 Spec Packet：`specs/SPEC-003-role-menu-dept-post.md`（version **1.2**，v1.2 仅回填 front-matter `pm`，断言未变）。
 
 ## 准备
 
@@ -18,7 +18,9 @@
    写入：部门树 `Spec003 部门`（`900003000000000001`）及其子部门/含用户/含岗位/空部门
    （`...002`~`...005`）、角色 `Spec003 角色`（`...006`）、已分配角色（`...007`）、
    仅菜单权限码角色（`...010`）、用户 `spec003_user`（`...011`）与 `spec003_menu_admin`
-   （`...012`）、岗位 `spec003_post_ref`（`...013`）、菜单目录/子菜单/按钮（`...014`~`...016`）。
+   （`...012`）、岗位 `spec003_post_ref`（`...013`）、菜单目录/子菜单/按钮（`...014`~`...016`）、
+   隐藏菜单 `spec003_hidden`（`...017`，`visible='1'`）、只读账号 `spec003_readonly`（`...021`）
+   与绑定 `spec003_role` 的 `spec003_router`（`...022`）。
 3. `seed_*.sh` 都是“先清后插”，可重复执行；`scripts/ci-gate.sh` 门禁 5 会自动调用它们
    （`EVAL_SKIP_SEED=1` 可跳过）。
 
@@ -49,6 +51,10 @@ python scripts/evals/run_eval.py --report specs/evals/reports
 | A-03 | 保存时 `menuCheckStrictly` 用 `false`（父子联动）；`true`（父子不联动）时后端会从 `checkedKeys` 剔除已分配菜单的父节点 | `clarifications/CLAR-008.md`（Spec 升版 v1.1） |
 | A-05 | `authUser` 链路上同一请求参数 5s 内重复提交会被 `@RepeatSubmit` 拦截，用例用 `{ wait: 5500 }` 跨过窗口 | 用例内注释 |
 | A-09 | 非 superadmin/租户管理员调用菜单接口 → HTTP 200 + `code=403` + `msg='没有访问权限，请联系管理员授权'` | SPEC-003 A-09 |
+
+> **待裁决（不在本评测集内）**：A-18「`visible='1'` 的菜单不出现」与平台实际行为冲突
+> （平台返回该菜单并置 `hidden: true`），已提 `clarifications/CLAR-009.md`。
+> 裁决前 A-18 不实现、不在评测集中声明通过。
 
 ## 环境变量
 

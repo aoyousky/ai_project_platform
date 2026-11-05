@@ -24,18 +24,22 @@ POST_ID=900003000000000013          # spec003_post_ref（被用户引用）
 DIR_MENU_ID=900003000000000014      # spec003_dir
 SUB_MENU_ID=900003000000000015      # spec003_menu
 BUTTON_MENU_ID=900003000000000016   # spec003_button
+READONLY_ROLE_ID=900003000000000020 # spec003_readonly（仅 list/query 权限，E2E A-17 用）
+READONLY_USER_ID=900003000000000021 # spec003_readonly 账号
+ROUTER_USER_ID=900003000000000022   # spec003_router（绑定 spec003_role，E2E A-18 用）
+HIDDEN_MENU_ID=900003000000000017   # spec003_hidden（visible='1'，A-18）
 
 SQL=$(cat <<SQL
 SET @pwd := (SELECT password FROM sys_user WHERE user_id = 1);
 
-DELETE FROM sys_user_role WHERE user_id IN (${USER_ID}, ${MENU_ADMIN_USER_ID});
+DELETE FROM sys_user_role WHERE user_id IN (${USER_ID}, ${MENU_ADMIN_USER_ID}, ${READONLY_USER_ID}, ${ROUTER_USER_ID});
 DELETE FROM sys_user_post WHERE user_id IN (${USER_ID}, ${MENU_ADMIN_USER_ID});
-DELETE FROM sys_user WHERE user_id IN (${USER_ID}, ${MENU_ADMIN_USER_ID});
-DELETE FROM sys_role_menu WHERE role_id IN (${ROLE_ID}, ${ASSIGNED_ROLE_ID}, ${MENU_ADMIN_ROLE_ID});
+DELETE FROM sys_user WHERE user_id IN (${USER_ID}, ${MENU_ADMIN_USER_ID}, ${READONLY_USER_ID}, ${ROUTER_USER_ID});
+DELETE FROM sys_role_menu WHERE role_id IN (${ROLE_ID}, ${ASSIGNED_ROLE_ID}, ${MENU_ADMIN_ROLE_ID}, ${READONLY_ROLE_ID});
 DELETE FROM sys_role_dept WHERE role_id = ${ROLE_ID};
-DELETE FROM sys_role WHERE role_id IN (${ROLE_ID}, ${ASSIGNED_ROLE_ID}, ${MENU_ADMIN_ROLE_ID});
+DELETE FROM sys_role WHERE role_id IN (${ROLE_ID}, ${ASSIGNED_ROLE_ID}, ${MENU_ADMIN_ROLE_ID}, ${READONLY_ROLE_ID});
 DELETE FROM sys_post WHERE post_id = ${POST_ID};
-DELETE FROM sys_menu WHERE menu_id IN (${DIR_MENU_ID}, ${SUB_MENU_ID}, ${BUTTON_MENU_ID});
+DELETE FROM sys_menu WHERE menu_id IN (${DIR_MENU_ID}, ${SUB_MENU_ID}, ${BUTTON_MENU_ID}, ${HIDDEN_MENU_ID});
 DELETE FROM sys_dept WHERE dept_id IN (${CHILD_DEPT_ID}, ${USER_DEPT_ID}, ${POST_DEPT_ID}, ${EMPTY_DEPT_ID}, ${DEPT_ID});
 
 -- 部门树：根 + 子部门，另有含用户 / 含岗位 / 空部门
@@ -58,6 +62,26 @@ VALUES (${ASSIGNED_ROLE_ID}, '000000', 'Spec003 已分配角色', 'spec003_assig
 INSERT INTO sys_role (role_id, tenant_id, role_name, role_key, role_sort, data_scope, status, del_flag, create_by, create_time)
 VALUES (${MENU_ADMIN_ROLE_ID}, '000000', 'Spec003 菜单权限角色', 'spec003_menu_admin', 902, '1', '0', '0', 1, NOW());
 
+-- 只读角色（E2E A-17）：仅 list/query 权限码，用于验证写按钮不渲染。
+-- role_key 取 'admin'（租户管理员）是因为 /system/menu/list 额外要求
+-- superadmin/admin 角色（SysMenuController @SaCheckRole），普通角色无法打开菜单页；
+-- 权限码仍由 sys_role_menu 决定，故该账号没有 add/remove，写按钮应当不渲染。
+INSERT INTO sys_role (role_id, tenant_id, role_name, role_key, role_sort, data_scope, status, del_flag, create_by, create_time)
+VALUES (${READONLY_ROLE_ID}, '000000', 'Spec003 只读角色', 'admin', 903, '1', '0', '0', 1, NOW());
+INSERT INTO sys_role_menu (role_id, menu_id) VALUES
+  (${READONLY_ROLE_ID}, 1),     -- 系统管理
+  (${READONLY_ROLE_ID}, 101),   -- 角色管理
+  (${READONLY_ROLE_ID}, 102),   -- 菜单管理
+  (${READONLY_ROLE_ID}, 103),   -- 部门管理
+  (${READONLY_ROLE_ID}, 104),   -- 岗位管理
+  (${READONLY_ROLE_ID}, 1008),  -- 角色查询
+  (${READONLY_ROLE_ID}, 1013),  -- 菜单查询
+  (${READONLY_ROLE_ID}, 1017),  -- 部门查询
+  (${READONLY_ROLE_ID}, 1021);  -- 岗位查询
+INSERT INTO sys_user (user_id, tenant_id, dept_id, user_name, nick_name, user_type, email, phonenumber, sex, password, status, del_flag, create_by, create_time)
+VALUES (${READONLY_USER_ID}, '000000', ${DEPT_ID}, 'spec003_readonly', 'Spec003 ReadOnly', 'sys_user', '', '', '2', @pwd, '0', '0', 1, NOW());
+INSERT INTO sys_user_role (user_id, role_id) VALUES (${READONLY_USER_ID}, ${READONLY_ROLE_ID});
+
 -- 菜单：目录 + 子菜单 + 按钮（A-03 / A-18 前置）
 INSERT INTO sys_menu (menu_id, menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time)
 VALUES (${DIR_MENU_ID}, 'Spec003 目录', 0, 900, 'spec003', NULL, 1, 0, 'M', '0', '0', NULL, '#', 1, NOW());
@@ -65,6 +89,20 @@ INSERT INTO sys_menu (menu_id, menu_name, parent_id, order_num, path, component,
 VALUES (${SUB_MENU_ID}, 'Spec003 菜单', ${DIR_MENU_ID}, 1, 'menu', 'system/role/index', 1, 0, 'C', '0', '0', 'spec003:menu:list', '#', 1, NOW());
 INSERT INTO sys_menu (menu_id, menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time)
 VALUES (${BUTTON_MENU_ID}, 'Spec003 按钮', ${SUB_MENU_ID}, 1, '', NULL, 1, 0, 'F', '0', '0', 'spec003:menu:add', '#', 1, NOW());
+-- A-18：visible='1' 的菜单（隐藏路由），用于验证返回路由中的隐藏标记
+INSERT INTO sys_menu (menu_id, menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time)
+VALUES (${HIDDEN_MENU_ID}, 'Spec003 隐藏菜单', ${DIR_MENU_ID}, 2, 'spec003-hidden', 'system/dept/index', 1, 0, 'C', '1', '0', 'spec003:hidden:list', '#', 1, NOW());
+
+-- A-18：spec003_role 授予目录与两个子菜单
+INSERT INTO sys_role_menu (role_id, menu_id) VALUES
+  (${ROLE_ID}, ${DIR_MENU_ID}),
+  (${ROLE_ID}, ${SUB_MENU_ID}),
+  (${ROLE_ID}, ${HIDDEN_MENU_ID});
+-- A-18 账号暂不绑定 spec003_role：A-05（P0）要求该角色 cancelAll 后 allocatedList.total=0，
+-- 预置绑定会让它恒 ≥1。A-18 因 CLAR-009 待裁决而冻结，裁决后在此恢复绑定，
+-- 或在 A-05 用例中先清空该角色用户。
+INSERT INTO sys_user (user_id, tenant_id, dept_id, user_name, nick_name, user_type, email, phonenumber, sex, password, status, del_flag, create_by, create_time)
+VALUES (${ROUTER_USER_ID}, '000000', ${DEPT_ID}, 'spec003_router', 'Spec003 Router', 'sys_user', '', '', '2', @pwd, '0', '0', 1, NOW());
 
 -- 菜单权限角色只绑定系统菜单权限码（不含 superadmin / 租户管理员角色）
 INSERT INTO sys_role_menu (role_id, menu_id)
@@ -90,4 +128,4 @@ SQL
 docker exec -i -e MYSQL_PWD="${MYSQL_ROOT_PASSWORD}" "${MYSQL_CONTAINER}" \
   mysql --default-character-set=utf8mb4 -uroot "${MYSQL_DATABASE}" <<<"${SQL}"
 
-echo "seeded: dept=${DEPT_ID} role=${ROLE_ID} assigned=${ASSIGNED_ROLE_ID} user=${USER_ID} menuAdmin=${MENU_ADMIN_USER_ID} post=${POST_ID} menus=${DIR_MENU_ID},${SUB_MENU_ID},${BUTTON_MENU_ID}"
+echo "seeded: dept=${DEPT_ID} role=${ROLE_ID} assigned=${ASSIGNED_ROLE_ID} user=${USER_ID} menuAdmin=${MENU_ADMIN_USER_ID} readonly=${READONLY_USER_ID} router=${ROUTER_USER_ID} post=${POST_ID} menus=${DIR_MENU_ID},${SUB_MENU_ID},${BUTTON_MENU_ID},${HIDDEN_MENU_ID}"

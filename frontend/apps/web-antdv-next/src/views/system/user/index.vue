@@ -12,6 +12,7 @@ import { useUserStore } from '@vben/stores';
 import { Modal as AntModal, Button, message, Spin, Switch, Tree } from 'antdv-next';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { getPostListApi } from '#/api/system/post';
 import {
   changeUserStatusApi,
   deleteUserApi,
@@ -201,13 +202,17 @@ const [UserImportModalComp, userImportModalApi] = useVbenModal({
 });
 
 async function handleCreate() {
-  // 无 ID 预处理：加载可选的岗位与角色，不硬编码初始密码
-  const info = await getUserApi();
+  // 无 ID 预处理只回填角色：后端仅在带 userId 时才返回 posts，
+  // 故岗位另取 `status='0'` 的列表（接口自带数据权限，即“当前账号可分配”）
+  const [info, posts] = await Promise.all([
+    getUserApi(),
+    getPostListApi({ pageSize: 500, status: '0' }),
+  ]);
   userFormModalApi
     .setData({
       currentUserId: currentUserId.value,
       deptOptions: deptSelectOptions.value,
-      info,
+      info: { ...info, posts: posts.rows },
       mode: 'create',
     })
     .open();

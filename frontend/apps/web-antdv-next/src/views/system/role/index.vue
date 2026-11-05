@@ -207,19 +207,32 @@ function handleBatchDelete() {
   confirmDelete(rows.map((row) => row.roleId));
 }
 
-async function handleStatusChange(row: any, checked: boolean) {
+function handleStatusChange(row: any, checked: boolean) {
   if (!canModifyRole(row.roleId)) {
     return;
   }
+  const previousStatus = row.status;
   const nextStatus = checked ? '0' : '1';
-  await runStatusToggle({
-    apply: (status) => {
-      row.status = status;
-    },
-    commit: () => changeRoleStatusApi({ roleId: row.roleId, status: nextStatus }),
-    nextStatus,
-    previousStatus: row.status,
-    reload: () => gridApi.reload(),
+  const action = checked ? '启用' : '停用';
+  // A-17：停用/启用先二次确认，确认后才提交
+  AntModal.confirm({
+    cancelText: '取消',
+    content: `确认${action}角色「${row.roleName}」？`,
+    okText: '确定',
+    // 取消后重载：开关受控于 row.status，未变更时组件内部状态需由新数据覆盖
+    onCancel: () => gridApi.reload(),
+    onOk: () =>
+      runStatusToggle({
+        apply: (status) => {
+          row.status = status;
+        },
+        commit: () =>
+          changeRoleStatusApi({ roleId: row.roleId, status: nextStatus }),
+        nextStatus,
+        previousStatus,
+        reload: () => gridApi.reload(),
+      }),
+    title: `${action}确认`,
   });
 }
 
