@@ -97,9 +97,36 @@ test.describe('登录', () => {
   });
 
   test('登录成功后落到 /index（A-01）', async ({ page }) => {
+    let submittedAt = 0;
+    page.on('request', (request) => {
+      if (
+        request.url().includes('/auth/login') &&
+        request.method() === 'POST'
+      ) {
+        submittedAt = Date.now();
+      }
+    });
+
+    // loginWithCaptcha 内部只校验 code=200；A-01 还要求令牌非空，故在此单独取响应体。
+    const loginResponse = page.waitForResponse(
+      (response) =>
+        response.url().includes('/auth/login') &&
+        response.request().method() === 'POST',
+    );
     await loginWithCaptcha(page);
 
-    await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
+    const body = (await (await loginResponse).json()) as {
+      code?: number;
+      data?: { access_token?: string };
+    };
+    expect(body.code).toBe(200);
+    expect(typeof body.data?.access_token).toBe('string');
+    expect(body.data?.access_token?.length ?? 0).toBeGreaterThan(0);
+
+    // A-01 的 5s 是「提交后」口径；不能复用 APP_ENTRY_TIMEOUT（慢宿主 60s 预算）。
+    await expect(page).toHaveURL(/\/index/, { timeout: 5_000 });
+    expect(submittedAt).toBeGreaterThan(0);
+    expect(Date.now() - submittedAt).toBeLessThan(5_000);
   });
 
   test('连续点击 3 次只发出 1 个登录请求（E-14）', async ({ page }) => {

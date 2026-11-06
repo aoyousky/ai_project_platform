@@ -21,7 +21,9 @@ test.describe('系统管理 - 岗位', () => {
     test.skip(!(await isBackendUp()), '本地后端栈未启动');
   });
 
-  test('新增 → 筛选 → 修改 → 启停 → 导出 → 删除', async ({ page }) => {
+  test('新增 → 筛选 → 修改 → 启停 → 导出 → 勾选批量删除（A-07）', async ({
+    page,
+  }) => {
     await loginWithCaptcha(page);
     await expect(page).toHaveURL(/\/index/, { timeout: APP_ENTRY_TIMEOUT });
     await gotoAppPath(page, '/system/post');
@@ -64,7 +66,7 @@ test.describe('系统管理 - 岗位', () => {
     });
 
     // 修改名称
-    let actions = await fixedActionRow(page, postName);
+    const actions = await fixedActionRow(page, postName);
     await actions.getByRole('button', { name: /修\s*改/ }).click();
     const editDialog = page.getByRole('dialog', { name: '修改岗位' });
     await expect(editDialog).toBeVisible({ timeout: APP_ENTRY_TIMEOUT });
@@ -101,9 +103,15 @@ test.describe('系统管理 - 岗位', () => {
     const downloadEvent = await download;
     expect(downloadEvent.suggestedFilename()).toMatch(/\.xlsx$/);
 
-    // 删除
-    actions = await fixedActionRow(page, renamed);
-    await actions.getByRole('button', { name: /^删\s*除$/ }).click();
+    // 勾选并批量删除（SPEC-001 A-07）：勾选目标行 → 工具栏「删除」
+    const removableRow = page
+      .locator('.vxe-table--main-wrapper .vxe-body--row')
+      .filter({ hasText: renamed });
+    await removableRow
+      .locator('.vxe-cell--checkbox .vxe-checkbox--icon')
+      .first()
+      .click();
+    await page.getByRole('button', { name: '删除', exact: true }).first().click();
     const deleted = page.waitForResponse(
       (response) =>
         response.request().method() === 'DELETE' &&

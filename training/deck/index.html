@@ -424,6 +424,10 @@ body{
 .card .cb{font-size:calc(var(--sc) * 16px);line-height:1.68;color:var(--ink-2)}
 .card .idx{font-family:var(--font-n);font-size:calc(var(--sc)*14px);font-weight:700;color:var(--accent);letter-spacing:.1em}
 
+/* 人话注释条：给 PM 的通俗翻译 */
+.plain{display:flex;align-items:flex-start;gap:calc(var(--sc)*12px);background:var(--surface);border:1px dashed var(--line);border-radius:var(--radius-sm);padding:calc(var(--sc)*11px) calc(var(--sc)*18px);font-size:calc(var(--sc)*15px);line-height:1.6;color:var(--ink-2)}
+.plain b{color:var(--accent);font-weight:700;flex:none;letter-spacing:.08em}
+
 /* 指标块 */
 .metric{display:flex;flex-direction:column;gap:calc(var(--sc) * 6px)}
 .metric .n{
@@ -820,6 +824,7 @@ body.is-print .hud{display:none}
             </ul>
           </div>
         </div>
+        <div class="plain anim" style="margin-top:calc(var(--sc)*16px)"><b>人话</b>P95＝第 95 名的速度；错误码＝业务的事故编号；可判定＝机器能判对错。</div>
       </div>
       <div class="notes">【时间】4 分钟
 【讲什么】可判定 = 机器能判真假，不是人能理解。
@@ -855,12 +860,37 @@ body.is-print .hud{display:none}
             ACTION&nbsp;&nbsp;&nbsp;&nbsp;: 停止生成，等 PM 裁决
           </div>
           <p class="body anim" style="margin-top:calc(var(--sc)*22px)">禁止的一句是："基于默认假设继续实现。"</p>
+          <div class="plain anim" style="margin-top:calc(var(--sc)*16px)"><b>人话</b>这是 AI 递来的"我不确定，请裁决"纸条——它一猜就是事故，所以强制它当负责任的副驾。</div>
         </div>
       </div>
       <div class="notes">【时间】3 分钟
 【讲什么】这是 AI 交付和传统开发最大的行为差异：传统开发靠经验猜，AI 一猜就是事故。
 【怎么说】解释为什么必须固定格式：格式固定的好处是能被脚本抓出来，能统计"这个需求澄清了几次"，澄清次数就是规格质量的反向指标。
 【互动】问："你们愿意让 AI 停下来等，还是先做出来再说？"（多数人选后者，正好引出代价）</div>
+    </section>
+
+    <section class="slide" data-title="8 个核心词">
+      <div class="inner">
+        <div class="head tight">
+          <div class="kicker anim">Cheat Sheet</div>
+          <h2 class="h2 anim">这 8 个词，足够你和 AI 顺畅对话</h2>
+        </div>
+        <div class="g4 grow" style="align-content:center">
+          <div class="card flat anim"><div class="ct">断言</div><div class="cb">做完的标准，条条可判对错</div></div>
+          <div class="card flat anim"><div class="ct">边界</div><div class="cb">下雨、爆胎时系统怎么办</div></div>
+          <div class="card flat anim"><div class="ct">数据契约</div><div class="cb">字段交接说明书</div></div>
+          <div class="card flat anim"><div class="ct">Non-goals</div><div class="cb">写清"不做什么"</div></div>
+          <div class="card flat anim"><div class="ct">STOP</div><div class="cb">拿不准就停下问，不许猜</div></div>
+          <div class="card flat anim"><div class="ct">门禁</div><div class="cb">五道自动检查机，不放水</div></div>
+          <div class="card flat anim"><div class="ct">溯源</div><div class="cb">代码的出生证明</div></div>
+          <div class="card flat anim"><div class="ct">评测集</div><div class="cb">考题全对，才许合并</div></div>
+        </div>
+        <div class="foot"><span>工具名是 SE 的，这 8 个词是你的 · 详见《术语通俗手册》</span><span class="pg"></span></div>
+      </div>
+      <div class="notes">【时间】2 分钟
+【讲什么】本节收口：PM 不用记住任何工具名，这 8 个词就是你和 AI 之间全部的沟通语言。
+【怎么说】"Playwright、Sentinel、ArchUnit 是 SE 的工具，你不用记。这 8 个词你都能用人话说出来，这份 Spec 就合格了——手册在 training 目录，遇到生词随手翻。"
+【互动】合上讲义，随机点人用一句话复述其中 3 个词。</div>
     </section>
 
     <section class="slide" data-title="模块三 · 完整案例">
@@ -935,6 +965,7 @@ body.is-print .hud{display:none}
             <tr><td class="mono">E-11</td><td>人数以提交时快照为准，不用预估值</td><td>边界</td></tr>
           </tbody>
         </table>
+        <div class="plain anim" style="margin-top:calc(var(--sc)*12px)"><b>人话</b>幂等键＝每笔操作一个唯一号，点两次也只生效一次——发券没这条，2.6 万人多发一张。</div>
         <div class="foot"><span>P0 断言 5–12 条，超过就该拆需求</span><span class="pg"></span></div>
       </div>
       <div class="notes">【时间】4 分钟
@@ -959,6 +990,7 @@ body.is-print .hud{display:none}
             <tr class="hl"><td>5 评测集</td><td>全绿才允许合并</td><td class="num">FAIL</td></tr>
           </tbody>
         </table>
+        <div class="plain anim" style="margin-top:calc(var(--sc)*10px)"><b>人话</b>溯源＝代码的出生证明；评测集＝驾考科目二，压线就是压线。</div>
         <div class="foot"><span>FAIL 是预期结果：案例止于"可开工"，还没有代码与评测集</span><span class="pg"></span></div>
       </div>
       <div class="notes">【时间】3 分钟
@@ -1013,6 +1045,7 @@ body.is-print .hud{display:none}
             <div><div class="ct">scripts/ci-gate.sh</div><div class="cb">五道门禁，不靠自觉</div></div>
           </div>
         </div>
+        <div class="plain anim" style="margin-top:calc(var(--sc)*14px)"><b>人话</b>CLAUDE.md＝AI 的员工守则；斜杠命令＝点套餐；ci-gate.sh＝高速收费站。</div>
       </div>
       <div class="notes">【时间】3 分钟
 【讲什么】四层的区别是加载时机，不是内容分类。

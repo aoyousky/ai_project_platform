@@ -1,7 +1,7 @@
 ---
 id: REQ-20261101-001
 title: 前端框架替换（Vben 前端外壳）
-version: 1.1
+version: 1.2
 risk_level: L2
 channel: ai_forced_review
 pm: 产品负责人（CLAR-001 裁决人）
@@ -32,7 +32,7 @@ speckit_feature: specs/001-vben-frontend-replacement
 | A-01 | P0 | 后端可用，账号具备登录权限，验证码刚获取 | 以 AES 加密体调用 `POST /auth/login`（含 `uuid` + `code`） | 响应 `code = 200` 且 `data.access_token` 为非空字符串；前端在 5s 内跳到 `/index` |
 | A-02 | P0 | 验证码已过期或错误 | 提交登录 | 响应 `code ≠ 200` 且 `msg` 非空；页面停留 `/auth` 并显示该 `msg`；验证码图片 `src` 前后不同；用户名输入值不变 |
 | A-03 | P0 | `admin` 已登录，后端 `getRouters` 返回 48 节点 / 39 个叶子 | 打开首页 | 侧栏渲染的后端菜单节点数 = 后端非 `hidden` 节点数；路由单测断言 48 节点全部解析成功、`duplicate_names = 0`、`noRedirect_left = 0` |
-| A-04 | P0 | 账号 `permissions` 含 `*:*:*` | 打开 `/system/post` | DOM 中同时存在文案为"新增"与"批量删除"的按钮 |
+| A-04 | P0 | 账号 `permissions` 含 `*:*:*` | 打开 `/system/post` | DOM 中同时存在文案为"新增"与"删除"（工具栏批量删除）的按钮 |
 | A-05 | P0 | 普通账号 `permissions` 不含 `system:post:add` | 打开 `/system/post`，再直接访问未授权地址 `/system/menu` | 页面内不存在"新增"按钮；访问 `/system/menu` 落 403 或 404 页面（URL 匹配 `/(403\|404)` 或渲染 forbidden 组件），不渲染业务页面 |
 | A-06 | P0 | 后端 `/system/post/list` 返回 `{code:200, rows:[...], total:N}` | 打开 `/system/post` | 表格总数显示 = `N`；`pageSize = 10` 时渲染行数 = `min(N, 10)` |
 | A-07 | P0 | `admin` 已登录且具备岗位全权限 | 新增（岗位名称 + 编码 + 部门）→ 列表可见 → 修改名称 → 勾选并批量删除 | 四步响应均 `code = 200`；最终列表不含该岗位编码；分页 `total` 与操作前后差值一致 |
@@ -152,6 +152,7 @@ speckit_feature: specs/001-vben-frontend-replacement
 |---|---|---|---|
 | 1.0 | 初版，由 `specs/001-vben-frontend-replacement/spec.md` 断言化生成 | 2026-11-01 | 架构：张建魁（2026-11-01 指派） |
 | 1.1 | CLAR-002 第 1–5 项裁决回写：SC-001 移出断言（改手工验收，补登录往返 ≤2s）；SC-008 转上线回顾指标；图标定 lucide 映射不搬 SVG；富文本接受 tiptap + `ql-*` 兼容样式（新增 E-19） | 2026-11-01 | 架构：张建魁；业务：Tim Dong |
+| 1.2 | CLAR-010 回写：A-04 的 Then 文案由"批量删除"更正为"删除（工具栏批量删除）"，与 plus-ui 上游实现及当前五个系统页面一致；断言语义（新增+批量删除两类按钮均可见）不变 | 2026-11-06 | PM：aoyousky；架构追认：待张建魁确认（L2 升版） |
 
 ### FR → A-xx 映射
 

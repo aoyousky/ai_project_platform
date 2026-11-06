@@ -256,22 +256,38 @@ def _run_shell(spec: dict) -> tuple[list[str], float]:
     return errors, latency
 
 
-def _playwright_tests(spec: str, timeout: int) -> tuple[dict[str, list[str]], float]:
-    """运行一个 E2E spec，返回 {标题: [状态]}。"""
-    proc, latency = _exec(
-        [NPX, "playwright", "test", spec, "--reporter=json"], FRONTEND, timeout
-    )
+def _playwright_tests(
+    spec: str, grep: str, timeout: int
+) -> tuple[dict[str, list[str]], dict[str, str], float]:
+    """运行一个 E2E spec（可用 -g 只跑命中标题的用例）。
+
+    返回 ({标题: [状态]}, {标题: 失败信息}, 耗时)。只跑命中用例是为了省掉无关登录：
+    `/auth/code` 限流 10 次/60s/IP，整文件跑会把限流预算花在别的断言上。
+    """
+    cmd = [NPX, "playwright", "test", spec, "--reporter=json"]
+    if grep:
+        cmd += ["-g", grep]
+    proc, latency = _exec(cmd, FRONTEND, timeout)
     data = _first_json(proc.stdout) or {}
     titles: dict[str, list[str]] = {}
+    messages: dict[str, str] = {}
 
     def walk(node: dict) -> None:
         for item in node.get("specs") or []:
-            statuses = [
-                result.get("status")
-                for test in item.get("tests") or []
-                for result in test.get("results") or []
-            ]
-            titles[item.get("title") or "<untitled>"] = statuses
+            statuses: list[str] = []
+            details: list[str] = []
+            for test in item.get("tests") or []:
+                for result in test.get("results") or []:
+                    statuses.append(result.get("status"))
+                    message = (result.get("error") or {}).get("message") or ""
+                    for extra in result.get("errors") or []:
+                        message += "\n" + str((extra or {}).get("message") or "")
+                    if message.strip():
+                        details.append(message.strip()[:600])
+            title = item.get("title") or "<untitled>"
+            titles[title] = statuses
+            if details:
+                messages[title] = "\n".join(details)
         for child in node.get("suites") or []:
             walk(child)
 
@@ -281,7 +297,7 @@ def _playwright_tests(spec: str, timeout: int) -> tuple[dict[str, list[str]], fl
     if not titles:
         detail = (proc.stderr or proc.stdout or "").strip()[:400]
         titles[f"<未解析到用例> {detail}"] = ["failed"]
-    return titles, latency
+    return titles, messages, latency
 
 
 def _vitest_tests(case_file: str, timeout: int) -> tuple[dict[str, str], float]:
@@ -303,40 +319,48 @@ def _vitest_tests(case_file: str, timeout: int) -> tuple[dict[str, str], float]:
 def run_extra_checks(cases: list[dict]) -> dict[str, dict]:
     """执行用例里声明的 `e2e:` / `vitest:` / `shell:` 检查。
 
-    同一 spec / 单测文件只跑一次（复用 E2E 与单测资产，避免重复登录与重复构建）。
+    E2E 按 (spec, grep) 分组：同一组只跑一次，并用 `-g` 只执行命中标题的用例，
+    避免把 `/auth/code` 的限流预算花在无关用例上；单测按文件分组。
     """
     results: dict[str, dict] = {}
-    e2e_groups: dict[str, list[dict]] = {}
+    e2e_groups: dict[tuple[str, str], list[dict]] = {}
     vitest_groups: dict[str, list[dict]] = {}
 
     for case in cases:
-        cid = case.get("id")
+        cid = case.get("_key") or case.get("id")
         if case.get("shell"):
             errors, latency = _run_shell(case["shell"])
             results[cid] = {"errors": errors, "latency_ms": latency}
         if case.get("e2e"):
-            e2e_groups.setdefault(str(case["e2e"]["spec"]), []).append(case)
+            key = (str(case["e2e"]["spec"]), str(case["e2e"].get("grep", "")))
+            e2e_groups.setdefault(key, []).append(case)
         if case.get("vitest"):
             vitest_groups.setdefault(str(case["vitest"]["file"]), []).append(case)
 
-    for spec, group in e2e_groups.items():
-        titles, latency = _playwright_tests(spec, int(os.environ.get("EVAL_E2E_TIMEOUT", "1800")))
+    for (spec, grep), group in e2e_groups.items():
+        titles, messages, latency = _playwright_tests(
+            spec, grep, int(os.environ.get("EVAL_E2E_TIMEOUT", "1800"))
+        )
         for case in group:
-            grep = str(case["e2e"].get("grep", ""))
+            case_grep = str(case["e2e"].get("grep", ""))
             matched = {
                 title: statuses
                 for title, statuses in titles.items()
-                if grep and grep in title
+                if case_grep and case_grep in title
             }
             errors: list[str] = []
             if not matched:
                 errors.append(
-                    f"E2E {spec} 未找到标题包含“{grep}”的用例；已解析标题={sorted(titles)}"
+                    f"E2E {spec} 未找到标题包含“{case_grep}”的用例；已解析标题={sorted(titles)}"
                 )
             for title, statuses in matched.items():
                 if not statuses or any(status != "passed" for status in statuses):
-                    errors.append(f"E2E {title} 状态 {statuses}")
-            entry = results.setdefault(case["id"], {"errors": [], "latency_ms": 0})
+                    detail = messages.get(title)
+                    suffix = f"：{detail}" if detail else ""
+                    errors.append(f"E2E {title} 状态 {statuses}{suffix}")
+            entry = results.setdefault(
+                case.get("_key") or case["id"], {"errors": [], "latency_ms": 0}
+            )
             entry["errors"].extend(errors)
             entry["latency_ms"] += latency
 
@@ -353,7 +377,9 @@ def run_extra_checks(cases: list[dict]) -> dict[str, dict]:
             for title, status in matched.items():
                 if status != "passed":
                     errors.append(f"单测 {title} 状态 {status}")
-            entry = results.setdefault(case["id"], {"errors": [], "latency_ms": 0})
+            entry = results.setdefault(
+                case.get("_key") or case["id"], {"errors": [], "latency_ms": 0}
+            )
             entry["errors"].extend(errors)
             entry["latency_ms"] += latency
 
@@ -419,6 +445,10 @@ def main() -> int:
         doc, cases = load_requirement(req_dir, only)
         if not cases:
             continue
+        # case.id 只在需求内唯一（各需求都用 TC-A01 这类编号）；跨需求合并结果时
+        # 必须带上需求目录，否则同名用例的成败会互相覆盖/串值。
+        for case in cases:
+            case["_key"] = f"{req_dir.name}/{case.get('id')}"
         loaded.append((req_dir, doc, cases))
         all_cases.extend(cases)
 
@@ -431,26 +461,39 @@ def main() -> int:
         print(f"FAIL: 缺少环境变量 {', '.join(missing)}", file=sys.stderr)
         return 1
 
-    # shell 用例不经过 HTTP 探针；其余用例（含带 e2e/vitest 附加检查的）先跑 HTTP 面。
-    probe_cases = [case for case in all_cases if not case.get("shell")]
+    # shell 用例不经过 HTTP 探针；显式 `probe: false` 的用例只有 e2e/vitest 面。
+    probe_cases = [
+        case
+        for case in all_cases
+        if not case.get("shell") and case.get("probe", True) is not False
+    ]
     probe_results = run_probe(probe_cases, env) if probe_cases else []
     if probe_results is None:
         return 1
     extra_results = run_extra_checks(all_cases)
 
-    by_id = {item["id"]: item for item in probe_results}
+    # 探针按传入顺序逐条返回，用位置对齐（id 跨需求会重名）。
+    probe_keyed = {
+        case["_key"]: item
+        for case, item in zip(probe_cases, probe_results, strict=False)
+    }
     merged: list[dict] = []
     for case in all_cases:
         cid = case.get("id")
-        base = by_id.get(cid)
+        key = case["_key"]
+        base = probe_keyed.get(key)
         errors: list[str] = []
         latency = 0.0
-        if base is None and not case.get("shell"):
+        if (
+            base is None
+            and not case.get("shell")
+            and case.get("probe", True) is not False
+        ):
             errors.append("未取得 HTTP 结果")
         if base is not None:
             errors.extend(base.get("errors") or [])
             latency += float(base.get("latency_ms") or 0)
-        extra = extra_results.get(cid)
+        extra = extra_results.get(key)
         if extra:
             errors.extend(extra["errors"])
             latency += extra["latency_ms"]
