@@ -162,7 +162,10 @@ test.describe('登录', () => {
     // A-01 的 5s 是「提交后」口径；不能复用 APP_ENTRY_TIMEOUT（慢宿主 60s 预算）。
     await expect(page).toHaveURL(/\/index/, { timeout: 5_000 });
     expect(submittedAt).toBeGreaterThan(0);
-    expect(Date.now() - submittedAt).toBeLessThan(5_000);
+    const elapsedMs = Date.now() - submittedAt;
+    expect(elapsedMs, `提交登录到落到 /index 用时 ${elapsedMs}ms`).toBeLessThan(
+      5_000,
+    );
   });
 
   test('连续点击 3 次只发出 1 个登录请求（E-14）', async ({ page }) => {

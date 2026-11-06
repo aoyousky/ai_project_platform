@@ -6,8 +6,8 @@ spec_version: "1.2"
 spec_hash: 2946c1efca03
 constraint_version: 77e727639c28
 allowlist_hash: 4d2d2e9f97f7
-model: deepseek-v4-flash
-prompt_version: claudemd-v1
+model: deepseek-v4.1-flash
+prompt_version: claudemd-v2
 generated_at: 2026-11-02T19:18:00+08:00
 
 speckit:
@@ -16,7 +16,7 @@ speckit:
   tasks_hash: 23bc0ba61d76
 
 clarification_refs: [CLAR-001, CLAR-002, CLAR-003, CLAR-010]
-reviewer: aoyousky（2026-11-06 对话裁决 CLAR-010“B 升版 Spec”；同日复核 /review 12 项自检结论，含第 11 项“性能未实测”的标注）
+reviewer: aoyousky（2026-11-06 对话裁决 CLAR-010“B 升版 Spec”；同日 12:12 与 17:20 两次复核 /review 12 项自检结论，后者覆盖评测设施改动，含第 11 项性能证据与第 7 项重复率的标注）
 review_verdict: pass
 
 # git diff --name-only main...HEAD（frontend/ 为 362 个 plus-ui 文件删除，
@@ -45,7 +45,9 @@ diff_scope:
   - scripts/trace-schema.md
   - scripts/evals/run_eval.py
   - scripts/evals/tests/test_run_eval.py
+  - scripts/evals/http_probe.mjs
   - scripts/evals/seed_spec001.sh
+  - frontend/tests/e2e/helpers.ts
   - frontend/tests/e2e/spec001-assertions.spec.ts
   - frontend/tests/e2e/login.spec.ts
   - frontend/tests/e2e/system-post.spec.ts
@@ -59,9 +61,9 @@ diff_scope:
 # DoD 要求交付前覆盖全部 P0（A-01 ~ A-08）。
 assertion_map:
   # 登录页提交 → 加密登录 → 令牌落库并跳 /index；E2E 同断言 code=200 + access_token 非空 + 5s 内跳转
-  A-01: frontend/tests/e2e/login.spec.ts#L99
+  A-01: frontend/tests/e2e/login.spec.ts#L163
   # 验证码错误分支：原样展示后端 msg、刷新验证码、保留用户名
-  A-02: frontend/tests/e2e/login.spec.ts#L23
+  A-02: frontend/tests/e2e/login.spec.ts#L112
   # 后端 getRouters → Vben 路由；侧栏多重集匹配与 48 节点单测
   A-03: frontend/apps/web-antdv-next/src/api/core/menu.ts#L67
   # 岗位页工具栏「新增」与「删除（批量）」按钮 + v-access 权限码
@@ -76,15 +78,15 @@ assertion_map:
   A-08: specs/evals/REQ-20261101-001/cases.yaml#L186
 
 test_evidence:
-  executed_at: 2026-11-06T16:22:09+08:00
+  executed_at: 2026-11-06T22:25:34+08:00
   base_url: http://localhost:8080
   runner: >-
-    scripts/evals/run_eval.py --req REQ-20261101-001
+    scripts/ci-gate.sh 门禁 5 → scripts/evals/run_eval.py
     （HTTP 探针 + 复用 frontend/tests/e2e 的 Playwright 用例 + vitest 单测 + shell git diff；
-    夹具 scripts/evals/seed_spec001.sh）
+    夹具 scripts/evals/seed_spec001.sh，门禁自动预置）
   total: 8
   passed: 8
-  report: specs/evals/reports/REQ-20261101-001-20261106-162209.json
+  report: specs/evals/reports/REQ-20261101-001-20261106-222534.json
   p0_coverage: 8/8（A-01 ~ A-08 各 1 条用例，全部通过）
   cases:
     - TC-A01 A-01 PASS（login.spec.ts：code=200、access_token 非空、5s 内到 /index）
@@ -172,3 +174,22 @@ history:
       scripts/evals/tests/test_run_eval.py（RED：旧实现两个 TC-A01 合并为单键；GREEN：2/2 通过）。
       首跑另有 A-02 用例失败，系评测期间主机休眠约 4 小时导致 E2E 超时；单跑 20.8s 通过，
       复跑 8/8 通过，报告 specs/evals/reports/REQ-20261101-001-20261106-162209.json。
+  - at: 2026-11-06T17:15:59+08:00
+    event: 取码限流预算改为跨进程账本；门禁 5/5 复跑通过
+    note: >-
+      RED：16:44 全量跑 A-02 失败（验证码图片未刷新）。后端日志显示登录失败后自动刷新
+      的 /auth/code 请求被限流拒绝（该次无「限制令牌」日志，前一次已打印「剩余令牌 => 0」）。
+      根因：后端 /auth/code 10 次/60s/IP；评测器按 (spec, grep) 分组，每组是独立
+      `npx playwright test` 进程，进程内令牌预算无法跨进程生效，且 HTTP 探针未排队。
+      修复：helpers.ts 与 http_probe.mjs 共用 run_eval.py 生成的 JSON 账本
+      （E2E_CAPTCHA_LEDGER / EVAL_CAPTCHA_LEDGER），预算 7 → 5 次/60s；探针取码前排队；
+      isBackendUp 探活由 /auth/code 改为公开的 /auth/tenant/list，不再消耗取码预算。
+      GREEN：bash scripts/ci-gate.sh 5/5 门禁通过（EXIT=0）；REQ-001 8/8、
+      REQ-002 16/16、REQ-003 13/13；报告
+      specs/evals/reports/REQ-20261101-001-20261106-222534.json。
+      其间 17:23 启动的一轮门禁因主机休眠约 5 小时中断，仅 TC-A05 报
+      Playwright 240s 超时（案例耗时 17,774,917ms），其余 7 条仍通过；
+      22:21 唤醒后在最终工作树复跑，5/5 全绿，作为本条证据。
+      另记：一轮全量跑中 A-01 曾因提交→/index 超过 Spec 的 5s 阈值失败（案例耗时 53.4s，
+      主机同时运行其他进程）；同用例单独复跑 3 次均通过（墙钟 17.5s / 11.1s / 10.9s，
+      含页面加载），随后全量跑通过。5s 阈值来自 SPEC-001 A-01，未做任何放宽。

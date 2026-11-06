@@ -94,12 +94,12 @@ assertion_map:
   E-10: frontend/apps/web-antdv-next/src/views/system/user/user-page-logic.ts#L169
 
 test_evidence:
-  executed_at: 2026-11-04T04:18:21Z
+  executed_at: 2026-11-06T22:25:34+08:00
   base_url: http://localhost:8080
   runner: scripts/ci-gate.sh 门禁 5 → scripts/evals/run_eval.py（等价注入夹具，见 specs/evals/REQ-20261103-002/README.md）
   total: 16
   passed: 16
-  report: specs/evals/reports/REQ-20261103-002-20261104-121821.json
+  report: specs/evals/reports/REQ-20261103-002-20261106-222534.json
   p0_coverage: 11/11 有用例；11/11 通过
 
 history:
