@@ -31,8 +31,10 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -47,6 +49,9 @@ if hasattr(sys.stdout, "reconfigure"):
 REPO_ROOT = Path(__file__).resolve().parents[2]
 EVALS_DIR = REPO_ROOT / "specs" / "evals"
 PROBE = REPO_ROOT / "scripts" / "evals" / "http_probe.mjs"
+FRONTEND = REPO_ROOT / "frontend"
+# Windows 下 npx 是 .cmd，Python 的 CreateProcess 不解析 PATHEXT，需显式取全路径。
+NPX = shutil.which("npx") or shutil.which("npx.cmd") or "npx"
 PLACEHOLDER = re.compile(r"\$\{([A-Z0-9_]+)\}")
 
 # 各需求的澄清引用写入报告，便于回溯
@@ -203,6 +208,158 @@ def run_probe(cases: list[dict], env: dict[str, str]) -> list[dict] | None:
     return json.loads(completed.stdout.decode("utf-8"))["cases"]
 
 
+def _exec(
+    cmd: list[str], cwd: Path, timeout: int
+) -> tuple[subprocess.CompletedProcess, float]:
+    started = time.perf_counter()
+    proc = subprocess.run(
+        cmd,
+        cwd=str(cwd),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=timeout,
+    )
+    return proc, (time.perf_counter() - started) * 1000
+
+
+def _first_json(text: str | None) -> dict | None:
+    """从命令输出里取 JSON（报告器可能在 JSON 前后夹日志行）。"""
+    text = (text or "").strip()
+    if not text:
+        return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        start, end = text.find("{"), text.rfind("}")
+        if start >= 0 and end > start:
+            try:
+                return json.loads(text[start : end + 1])
+            except json.JSONDecodeError:
+                return None
+    return None
+
+
+def _run_shell(spec: dict) -> tuple[list[str], float]:
+    """执行 `shell:` 步骤：默认要求退出码 0 且 stdout 为空。"""
+    timeout = int(spec.get("timeout", 120))
+    proc, latency = _exec(["bash", "-lc", str(spec.get("cmd", ""))], REPO_ROOT, timeout)
+    errors: list[str] = []
+    stdout = (proc.stdout or "").strip()
+    if proc.returncode != 0:
+        errors.append(
+            f"退出码 {proc.returncode}: {(proc.stderr or '').strip()[:400]}"
+        )
+    if spec.get("expect_empty", True) and stdout:
+        errors.append(f"stdout 期望为空，实际: {stdout[:400]}")
+    return errors, latency
+
+
+def _playwright_tests(spec: str, timeout: int) -> tuple[dict[str, list[str]], float]:
+    """运行一个 E2E spec，返回 {标题: [状态]}。"""
+    proc, latency = _exec(
+        [NPX, "playwright", "test", spec, "--reporter=json"], FRONTEND, timeout
+    )
+    data = _first_json(proc.stdout) or {}
+    titles: dict[str, list[str]] = {}
+
+    def walk(node: dict) -> None:
+        for item in node.get("specs") or []:
+            statuses = [
+                result.get("status")
+                for test in item.get("tests") or []
+                for result in test.get("results") or []
+            ]
+            titles[item.get("title") or "<untitled>"] = statuses
+        for child in node.get("suites") or []:
+            walk(child)
+
+    for suite in data.get("suites") or []:
+        walk(suite)
+
+    if not titles:
+        detail = (proc.stderr or proc.stdout or "").strip()[:400]
+        titles[f"<未解析到用例> {detail}"] = ["failed"]
+    return titles, latency
+
+
+def _vitest_tests(case_file: str, timeout: int) -> tuple[dict[str, str], float]:
+    """运行一个单测文件，返回 {标题: 状态}。"""
+    proc, latency = _exec(
+        [NPX, "vitest", "run", case_file, "--reporter=json"], FRONTEND, timeout
+    )
+    data = _first_json(proc.stdout) or {}
+    titles: dict[str, str] = {}
+    for result in data.get("testResults") or []:
+        for assertion in result.get("assertionResults") or []:
+            titles[assertion.get("title") or "<untitled>"] = assertion.get("status")
+    if not titles:
+        detail = (proc.stderr or proc.stdout or "").strip()[:400]
+        titles[f"<未解析到用例> {detail}"] = "failed"
+    return titles, latency
+
+
+def run_extra_checks(cases: list[dict]) -> dict[str, dict]:
+    """执行用例里声明的 `e2e:` / `vitest:` / `shell:` 检查。
+
+    同一 spec / 单测文件只跑一次（复用 E2E 与单测资产，避免重复登录与重复构建）。
+    """
+    results: dict[str, dict] = {}
+    e2e_groups: dict[str, list[dict]] = {}
+    vitest_groups: dict[str, list[dict]] = {}
+
+    for case in cases:
+        cid = case.get("id")
+        if case.get("shell"):
+            errors, latency = _run_shell(case["shell"])
+            results[cid] = {"errors": errors, "latency_ms": latency}
+        if case.get("e2e"):
+            e2e_groups.setdefault(str(case["e2e"]["spec"]), []).append(case)
+        if case.get("vitest"):
+            vitest_groups.setdefault(str(case["vitest"]["file"]), []).append(case)
+
+    for spec, group in e2e_groups.items():
+        titles, latency = _playwright_tests(spec, int(os.environ.get("EVAL_E2E_TIMEOUT", "1800")))
+        for case in group:
+            grep = str(case["e2e"].get("grep", ""))
+            matched = {
+                title: statuses
+                for title, statuses in titles.items()
+                if grep and grep in title
+            }
+            errors: list[str] = []
+            if not matched:
+                errors.append(
+                    f"E2E {spec} 未找到标题包含“{grep}”的用例；已解析标题={sorted(titles)}"
+                )
+            for title, statuses in matched.items():
+                if not statuses or any(status != "passed" for status in statuses):
+                    errors.append(f"E2E {title} 状态 {statuses}")
+            entry = results.setdefault(case["id"], {"errors": [], "latency_ms": 0})
+            entry["errors"].extend(errors)
+            entry["latency_ms"] += latency
+
+    for case_file, group in vitest_groups.items():
+        titles, latency = _vitest_tests(case_file, int(os.environ.get("EVAL_UNIT_TIMEOUT", "600")))
+        for case in group:
+            grep = str(case["vitest"].get("grep", ""))
+            matched = {title: status for title, status in titles.items() if grep and grep in title}
+            errors = []
+            if not matched:
+                errors.append(
+                    f"单测 {case_file} 未找到标题包含“{grep}”的用例；已解析标题={sorted(titles)}"
+                )
+            for title, status in matched.items():
+                if status != "passed":
+                    errors.append(f"单测 {title} 状态 {status}")
+            entry = results.setdefault(case["id"], {"errors": [], "latency_ms": 0})
+            entry["errors"].extend(errors)
+            entry["latency_ms"] += latency
+
+    return results
+
+
 def write_report(
     req_dir: Path,
     doc: dict,
@@ -229,7 +386,11 @@ def write_report(
     json_path.write_text(
         json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    print(f"报告: {os.path.relpath(json_path, REPO_ROOT)}")
+    try:
+        shown = os.path.relpath(json_path, REPO_ROOT)
+    except ValueError:  # Windows 跨盘符无法取相对路径
+        shown = str(json_path)
+    print(f"报告: {shown}")
 
 
 def main() -> int:
@@ -270,14 +431,43 @@ def main() -> int:
         print(f"FAIL: 缺少环境变量 {', '.join(missing)}", file=sys.stderr)
         return 1
 
-    results = run_probe(all_cases, env)
-    if results is None:
+    # shell 用例不经过 HTTP 探针；其余用例（含带 e2e/vitest 附加检查的）先跑 HTTP 面。
+    probe_cases = [case for case in all_cases if not case.get("shell")]
+    probe_results = run_probe(probe_cases, env) if probe_cases else []
+    if probe_results is None:
         return 1
+    extra_results = run_extra_checks(all_cases)
+
+    by_id = {item["id"]: item for item in probe_results}
+    merged: list[dict] = []
+    for case in all_cases:
+        cid = case.get("id")
+        base = by_id.get(cid)
+        errors: list[str] = []
+        latency = 0.0
+        if base is None and not case.get("shell"):
+            errors.append("未取得 HTTP 结果")
+        if base is not None:
+            errors.extend(base.get("errors") or [])
+            latency += float(base.get("latency_ms") or 0)
+        extra = extra_results.get(cid)
+        if extra:
+            errors.extend(extra["errors"])
+            latency += extra["latency_ms"]
+        merged.append(
+            {
+                "id": cid,
+                "assertion": case.get("assertion"),
+                "passed": not errors,
+                "latency_ms": round(latency, 1),
+                "errors": errors,
+            }
+        )
 
     failures = 0
     offset = 0
     for req_dir, doc, cases in loaded:
-        chunk = results[offset : offset + len(cases)]
+        chunk = merged[offset : offset + len(cases)]
         offset += len(cases)
 
         print(f"== {req_dir.name} ==")
