@@ -54,9 +54,19 @@ else
     # 一旦 specs/evals/<id>/cases.yaml 出现，立即回到严格校验（必须全绿）。
     cases="$ROOT/specs/evals/$id/cases.yaml"
     if [ ! -f "$cases" ]; then
+      # 架构追认（2026-11-06，张建魁；CLAR-003 条件 2）：以 SPEC front-matter 的
+      # target_window 结束日为评测集建立期限，逾期不再放行。
+      deadline=$(sed -n 's/^target_window:.*~[[:space:]]*\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\).*/\1/p' "${f}" | head -1)
+      today=$(date +%F)
+      if [ -z "$deadline" ]; then
+        echo "FAIL: $f 缺 target_window 结束日，无法界定评测集期限（CLAR-003 追认条件 2）"; FAIL=1; continue
+      fi
+      if [[ "$today" > "$deadline" ]]; then
+        echo "FAIL: $t 逾期未建评测集（期限 $deadline，今日 $today，CLAR-003 追认条件 2）"; FAIL=1; continue
+      fi
       if grep -qE "^test_evidence:[[:space:]]*(null)?[[:space:]]*$" "$t" \
         && grep -qE "^review_verdict:[[:space:]]*[\"']?pending" "$t"; then
-        echo "PASS(开发期): $t 无评测集，test_evidence 为空 / review_verdict=pending"
+        echo "PASS(开发期): $t 无评测集，trace=pending；评测集须在 $deadline 前建立"
         continue
       fi
       echo "FAIL: $t 无评测集却声称完成（要求 test_evidence 为空且 review_verdict: pending）"; FAIL=1; continue

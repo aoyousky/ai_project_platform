@@ -2,7 +2,7 @@
 
 - REQ: REQ-20261101-001
 - TRIGGER: `scripts/ci-gate.sh` 门禁 3 ↔ `scripts/trace-schema.md` 规则 3
-- STATUS: 已裁决 / 已回写门禁（待架构追认）
+- STATUS: 已裁决 / 已回写门禁 / 已架构追认（2026-11-06）
 - RAISED_BY: agent
 - DATE: 2026-11-02
 
@@ -54,3 +54,22 @@
 
 **待架构追认**：本次修改的是门禁脚本本身，按 CLAUDE.md「与 Spec Kit 共存规则」第 1 条，
 需架构签字人（张建魁）确认该改动属于"开发期放行"而非"削弱门禁"。追认前本改动仅用于本分支推进。
+
+## 架构追认
+
+**架构追认（2026-11-06，张建魁）：有条件同意（条件见下三条）。**
+
+条件（逐条）：
+
+1. 新需求 Spec Packet 须在 tasks / 里程碑中声明评测集建立节点（人工评审项，门禁不自动校验）；
+2. 以该 Spec front-matter 的 `target_window` 结束日为限，逾期仍未建
+   `specs/evals/<id>/cases.yaml` 时，门禁 3 不再输出 `PASS(开发期)`，改判 **FAIL**；
+3. 已建立评测集的需求不受影响，仍走严格校验（`total > 0` 且 `passed == total`）。
+
+理由：豁免只解决"实现期无法提交"的门禁死锁，不改变 DoD 判定；加约束是为防止无评测集需求
+无限期以 pending 滞留。
+
+生效范围：仅门禁 3 的"无 `cases.yaml` + pending trace"分支；不涉及 DoD 判定。
+
+遗留：REQ-20261101-001 仍为 `pending`，需另行补建评测集后才能关闭（其 `target_window`
+结束日为 2026-11-28，逾期门禁将拦截）。
