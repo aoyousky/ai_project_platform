@@ -34,6 +34,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -158,6 +159,8 @@ def run_probe(cases: list[dict], env: dict[str, str]) -> list[dict] | None:
         "clientId": env.get("EVAL_CLIENT_ID", "e5cd7e4891bf95d1d19206ce24a7b32e"),
         "redisContainer": env.get("EVAL_REDIS_CONTAINER", "awp-redis"),
         "redisPassword": env.get("EVAL_REDIS_PASSWORD", "aoyou123"),
+        # `/auth/code` 限流账本：与 E2E 进程共享 7 次/60s 的预算（见下方 main）。
+        "captchaLedger": env.get("EVAL_CAPTCHA_LEDGER", ""),
         "credentials": {
             "admin": {
                 "username": env.get("EVAL_ADMIN_USER", "admin"),
@@ -439,6 +442,20 @@ def main() -> int:
     only = {item.strip() for item in args.only.split(",")} if args.only else None
     env = build_env()
 
+    # `/auth/code` 限流账本：探针与各 Playwright 进程都是独立进程，进程内节流
+    # 无法跨进程生效；用临时文件共享「5 次/60s」的预算（后端上限 10 次/60s/IP）。
+    ledger_path = Path(tempfile.gettempdir()) / f"awp-eval-captcha-{os.getpid()}.json"
+    ledger_path.write_text("[]", encoding="utf-8")
+    env["EVAL_CAPTCHA_LEDGER"] = str(ledger_path)
+    os.environ["E2E_CAPTCHA_LEDGER"] = str(ledger_path)
+
+    # E2E 产物按运行隔离：Playwright 启动时会清空 outputDir，并发评测若共用
+    # 固定目录会互删 trace（`browserContext.close: ENOENT ...recording1.trace`）。
+    # 成功时删除，失败时保留并把路径打出来，便于排查。
+    artifacts_dir = Path(tempfile.mkdtemp(prefix=f"awp-eval-artifacts-{os.getpid()}-"))
+    os.environ["E2E_OUTPUT_DIR"] = str(artifacts_dir / "artifacts")
+    os.environ["E2E_REPORT_DIR"] = str(artifacts_dir / "report")
+
     loaded: list[tuple[Path, dict, list[dict]]] = []
     all_cases: list[dict] = []
     for req_dir in discover_requirements(args.req):
@@ -459,6 +476,8 @@ def main() -> int:
     )
     if missing:
         print(f"FAIL: 缺少环境变量 {', '.join(missing)}", file=sys.stderr)
+        ledger_path.unlink(missing_ok=True)
+        shutil.rmtree(artifacts_dir, ignore_errors=True)
         return 1
 
     # shell 用例不经过 HTTP 探针；显式 `probe: false` 的用例只有 e2e/vitest 面。
@@ -469,8 +488,11 @@ def main() -> int:
     ]
     probe_results = run_probe(probe_cases, env) if probe_cases else []
     if probe_results is None:
+        ledger_path.unlink(missing_ok=True)
+        shutil.rmtree(artifacts_dir, ignore_errors=True)
         return 1
     extra_results = run_extra_checks(all_cases)
+    ledger_path.unlink(missing_ok=True)
 
     # 探针按传入顺序逐条返回，用位置对齐（id 跨需求会重名）。
     probe_keyed = {
@@ -526,6 +548,12 @@ def main() -> int:
         if passed != len(chunk):
             failures += 1
         print()
+
+    if failures:
+        # 失败时保留 trace / HTML 报告，便于定位；成功时清理临时目录。
+        print(f"E2E 产物保留: {artifacts_dir}")
+    else:
+        shutil.rmtree(artifacts_dir, ignore_errors=True)
 
     return 0 if failures == 0 else 1
 

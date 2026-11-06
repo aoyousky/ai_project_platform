@@ -12,6 +12,7 @@
  * 输出（stdout）：{ cases: [{ id, assertion, passed, errors, latency_ms }] }
  */
 import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 
 const require = createRequire(
@@ -28,6 +29,7 @@ const {
   redisPassword = 'aoyou123',
   credentials = {},
   directTokens = {},
+  captchaLedger = '',
   cases = [],
 } = input;
 
@@ -35,6 +37,53 @@ const tokens = {};
 const loginErrors = {};
 const CAPTURE_PLACEHOLDER = /\$\{([A-Z0-9_]+)\}/g;
 const browser = await chromium.launch({ headless: true });
+
+/**
+ * `/auth/code` 限流预算（后端 10 次/60s/IP）。
+ *
+ * 探针与 Playwright E2E 共用 run_eval.py 生成的账本文件（`captchaLedger`），
+ * 按 5 次/60s 排队，留余量给登录页自身的自动刷新。账本不存在时退化为
+ * 不限流——单独调试探针用，评测器每次执行都会新建一个空账本。
+ */
+const CAPTCHA_WINDOW_MS = 60_000;
+// 与 frontend/tests/e2e/helpers.ts 保持一致：5 次/60s，给页面自发刷新留余量。
+const CAPTCHA_BUDGET = 5;
+
+function readLedger() {
+  if (!captchaLedger) {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(readFileSync(captchaLedger, 'utf8'));
+    return Array.isArray(parsed)
+      ? parsed.filter((item) => typeof item === 'number')
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+async function paceCaptcha() {
+  if (!captchaLedger) {
+    return;
+  }
+  for (;;) {
+    const now = Date.now();
+    const log = readLedger().filter((at) => now - at <= CAPTCHA_WINDOW_MS);
+    if (log.length < CAPTCHA_BUDGET) {
+      log.push(now);
+      try {
+        writeFileSync(captchaLedger, JSON.stringify(log));
+      } catch {
+        // 记账失败只影响限流排队，不阻断登录
+      }
+      return;
+    }
+    await new Promise((resolve) =>
+      setTimeout(resolve, log[0] + CAPTCHA_WINDOW_MS - now + 500),
+    );
+  }
+}
 
 /**
  * 令牌**惰性获取**并在本次运行内复用。
@@ -219,10 +268,23 @@ async function login(
         .catch(() => {});
     });
 
-    await page.goto(frontendUrl, { waitUntil: 'domcontentloaded' });
-    await page.getByPlaceholder('请输入用户名').waitFor({ timeout: 30_000 });
+    // 取码前先排队；若挂载时的 `/auth/code` 仍被限流（图片不渲染），
+    // 等窗口重置后整页重试。
     const captchaImage = page.locator('img[alt="验证码"]');
-    await captchaImage.waitFor({ timeout: 15_000 });
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await paceCaptcha();
+      await page.goto(frontendUrl, { waitUntil: 'domcontentloaded' });
+      await page.getByPlaceholder('请输入用户名').waitFor({ timeout: 30_000 });
+      try {
+        await captchaImage.waitFor({ state: 'visible', timeout: 15_000 });
+        break;
+      } catch (error) {
+        if (attempt === 2) {
+          throw error;
+        }
+        await page.waitForTimeout(15_000);
+      }
+    }
     await page.waitForTimeout(300);
 
     let uuid = captchaUuids.at(-1);

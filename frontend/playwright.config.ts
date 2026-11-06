@@ -13,7 +13,11 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests/e2e',
-  outputDir: './tests/e2e/.artifacts',
+  // Playwright 启动时会清空 outputDir。同一工作区里并行跑两份评测（多个会话、
+  // 或评测器分组执行与手工调试重叠）时，固定目录会让双方互删 trace，表现为
+  // `browserContext.close: ENOENT ...recording1.trace`。评测器为每次运行注入
+  // 独立目录；手工运行时仍用默认目录。
+  outputDir: process.env.E2E_OUTPUT_DIR ?? './tests/e2e/.artifacts',
   // 单用例预算 240s：每个用例都要整页加载并登录，登录还要 `docker exec redis-cli`
   // 取验证码明文（宿主 Docker Desktop 冷/慢时单次 3–5s）。120s 在慢宿主上会让
   // 需要多次登录的用例（A-17、A-16）在“等响应”处超时，与断言本身无关。
@@ -25,13 +29,22 @@ export default defineConfig({
   workers: 1,
   reporter: [
     ['list'],
-    ['html', { outputFolder: './tests/e2e/report', open: 'never' }],
+    [
+      'html',
+      {
+        outputFolder: process.env.E2E_REPORT_DIR ?? './tests/e2e/report',
+        open: 'never',
+      },
+    ],
   ],
   // 自动拉起生产预览（需先 `pnpm build`）：避免每次手工起 server 或误跑 dev server。
-  // 已有服务在监听时复用（本地调试友好），CI 下不复用，保证跑的是本次构建产物。
+  // 本地调试复用已有服务；CI 由工作流统一起栈并显式设 E2E_REUSE_SERVER=1，
+  // 其余 CI 场景仍不复用，保证跑的是本次构建产物。
   webServer: {
     command: 'pnpm --filter @vben/web-antdv-next preview --port 5666',
-    reuseExistingServer: !process.env.CI,
+    // CI 由 .github/workflows/ci-gate.yml 统一起栈（评测探针与 E2E 共用同一个
+    // 5666 预览），此时必须复用已有服务，否则 Playwright 会再起一个并撞端口。
+    reuseExistingServer: process.env.E2E_REUSE_SERVER === '1' || !process.env.CI,
     timeout: 120_000,
     url: 'http://localhost:5666',
   },

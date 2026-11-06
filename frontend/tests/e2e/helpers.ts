@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 
 import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
 import process from 'node:process';
 
 import { expect } from '@playwright/test';
@@ -21,10 +22,14 @@ export const APP_ENTRY_TIMEOUT = 60_000;
 /**
  * 后端是否可达。E2E 依赖 quickstart §1 的本地 Docker 栈；
  * 未起栈时用例应 skip，而不是误报失败。
+ *
+ * 探活走 `/auth/tenant/list`（公开、不限流）而不是 `/auth/code`：后者是
+ * 10 次/60s/IP 的限流端点，每个 Playwright 进程的 beforeAll 探一次会白白吃掉
+ * 整套 E2E 的取码预算。
  */
 export async function isBackendUp(): Promise<boolean> {
   try {
-    const response = await fetch(`${BACKEND_URL}/auth/code`, {
+    const response = await fetch(`${BACKEND_URL}/auth/tenant/list`, {
       signal: AbortSignal.timeout(3000),
     });
     return response.ok;
@@ -89,26 +94,71 @@ function collectCaptchaCodes(page: Page) {
  * `/auth/code` 限流预算：后端 10 次/60s/IP（CaptchaController @RateLimiter）。
  * 整套 E2E 每个用例都要登录，连续跑会挤爆窗口，故按 7 次/60s 排队，
  * 留 3 次余量给“登录失败自动刷新 / 点击图片刷新”等页面自发请求。
- * workers=1 时模块状态在同一 worker 进程内跨用例共享。
+ *
+ * 评测器会为每次运行设置 `E2E_CAPTCHA_LEDGER`（一个 JSON 时间戳文件），
+ * 让多个 Playwright 进程与 HTTP 探针共享同一份预算——按 (spec, grep) 分组的
+ * 每组都是一次独立的 `npx playwright test`，进程内状态无法跨进程生效。
+ * 未设置该变量时（单独跑某条用例）退回进程内数组。
  */
 const CAPTCHA_WINDOW_MS = 60_000;
-const CAPTCHA_BUDGET = 7;
+// 5 次/60s：除了每个用例挂载取码，还有页面重挂载、登录失败自动刷新、
+// 登录重试等**不受账本控制**的请求。实测账本 7 次时，刷新请求恰好是窗口内第 11 次
+// 而被后端拒绝（A-02 因此失败）；压到 5 次后最坏情况 ≈ 5 + 3 次自发性请求 ≤ 10。
+const CAPTCHA_BUDGET = 5;
+const CAPTCHA_LEDGER = process.env.E2E_CAPTCHA_LEDGER;
 const captchaRequestLog: number[] = [];
 
+function readLedger(): number[] {
+  if (!CAPTCHA_LEDGER) {
+    return captchaRequestLog;
+  }
+  try {
+    const parsed: unknown = JSON.parse(readFileSync(CAPTCHA_LEDGER, 'utf8'));
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is number => typeof item === 'number')
+      : [];
+  } catch {
+    // 首次运行文件不存在：当作空账本
+    return [];
+  }
+}
+
+function writeLedger(entries: number[]): void {
+  if (!CAPTCHA_LEDGER) {
+    return;
+  }
+  try {
+    writeFileSync(CAPTCHA_LEDGER, JSON.stringify(entries));
+  } catch {
+    // 记账失败只影响限流排队，不应让用例失败
+  }
+}
+
+/**
+ * 为页面自发请求预留一个取码名额（如登录失败后自动刷新验证码）。
+ * 调用后账本占一个槽位，保证紧随其后的刷新不会被后端限流拒绝。
+ */
+export async function reserveCaptchaSlot(page: Page): Promise<void> {
+  await paceCaptcha(page);
+}
+
 async function paceCaptcha(page: Page): Promise<void> {
-  const now = Date.now();
-  while (
-    captchaRequestLog.length > 0 &&
-    now - captchaRequestLog[0]! > CAPTCHA_WINDOW_MS
-  ) {
-    captchaRequestLog.shift();
+  for (;;) {
+    const now = Date.now();
+    const log = readLedger().filter(
+      (at) => now - at <= CAPTCHA_WINDOW_MS,
+    );
+    if (log.length < CAPTCHA_BUDGET) {
+      log.push(now);
+      if (CAPTCHA_LEDGER) {
+        writeLedger(log);
+      } else {
+        captchaRequestLog.push(now);
+      }
+      return;
+    }
+    await page.waitForTimeout(log[0]! + CAPTCHA_WINDOW_MS - now + 500);
   }
-  if (captchaRequestLog.length >= CAPTCHA_BUDGET) {
-    const wait = captchaRequestLog[0]! + CAPTCHA_WINDOW_MS - now + 500;
-    await page.waitForTimeout(wait);
-    return paceCaptcha(page);
-  }
-  captchaRequestLog.push(now);
 }
 
 /**

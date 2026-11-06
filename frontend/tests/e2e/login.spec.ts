@@ -5,6 +5,7 @@ import {
   isBackendUp,
   loginWithCaptcha,
   readCaptchaCode,
+  reserveCaptchaSlot,
   waitForCaptchaUuid,
 } from './helpers';
 
@@ -23,6 +24,23 @@ test.describe('登录', () => {
   test('验证码错误：展示后端 msg、刷新验证码、保留用户名（A-02、E-01）', async ({
     page,
   }) => {
+    // 记录本页面的取码响应：A-02 断言「刷新」，失败时必须能看出是没请求、
+    // 请求被限流，还是请求成功但界面没更新。
+    const captchaEvents: string[] = [];
+    page.on('response', (response) => {
+      if (!new URL(response.url()).pathname.endsWith('/auth/code')) {
+        return;
+      }
+      void response
+        .json()
+        .then((body) => {
+          captchaEvents.push(
+            `code=${body?.code} img=${body?.data?.img ? 'yes' : 'no'}`,
+          );
+        })
+        .catch(() => captchaEvents.push('响应无法解析'));
+    });
+
     const uuid = await waitForCaptchaUuid(page);
     const realCode = readCaptchaCode(uuid).toLowerCase();
     const wrongCode = realCode === 'zzzz' ? 'yyyy' : 'zzzz';
@@ -55,6 +73,9 @@ test.describe('登录', () => {
     const responsePromise = page.waitForResponse((response) =>
       response.url().includes('/auth/login'),
     );
+    // 登录失败会自动请求一次 /auth/code（A-02 要断言的正是它）；
+    // 先排一个名额，避免这次刷新撞上后端限流窗口。
+    await reserveCaptchaSlot(page);
     await page.locator('button[aria-label="login"]').click();
     const loginResponse = await responsePromise;
     const body = await loginResponse.json();
@@ -75,9 +96,24 @@ test.describe('登录', () => {
       .toContain(body.msg);
     await expect(page).toHaveURL(/\/auth\/login/);
     await expect(page.getByPlaceholder('请输入用户名')).toHaveValue('admin');
-    await expect
-      .poll(async () => captchaImage.getAttribute('src'))
-      .not.toBe(beforeSrc);
+    // 刷新由登录失败分支自动触发；慢宿主上取码 + 出图可能超过默认 15s。
+    // 用带诊断信息的轮询：失败时说明是「没有取码请求」「请求被拒」还是「界面没更新」。
+    let refreshed = false;
+    let afterSrc: null | string = null;
+    const deadline = Date.now() + APP_ENTRY_TIMEOUT;
+    while (Date.now() < deadline) {
+      afterSrc = await captchaImage.getAttribute('src');
+      if (afterSrc !== beforeSrc) {
+        refreshed = true;
+        break;
+      }
+      await page.waitForTimeout(500);
+    }
+    expect(
+      refreshed,
+      `验证码图片未刷新；取码响应=[${captchaEvents.join(' | ')}]；` +
+        `刷新前后 src 长度=${beforeSrc?.length}/${afterSrc?.length}`,
+    ).toBe(true);
   });
 
   test('点击验证码图片可刷新', async ({ page }) => {
