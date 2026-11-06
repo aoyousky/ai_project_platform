@@ -59,6 +59,12 @@ jobs:
         working-directory: frontend
         run: pnpm -F @vben/web-antdv-next build
 
+      # 每次运行生成一次性密钥，不写入仓库、不进日志。
+      # 必须在任何 `docker compose` 调用之前：compose 解析整份文件时，
+      # backend 服务的 SA_TOKEN_JWT_SECRET 是必填插值，缺失会让仅启动 mysql/redis 也报错。
+      - name: 生成 CI 专用 JWT 密钥
+        run: echo "SA_TOKEN_JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
       # 本机镜像代理在 GitHub runner 上不可用，改用 Docker Hub 官方仓库。
       - name: 启动 MySQL / Redis 并初始化库表
         env:
@@ -66,10 +72,6 @@ jobs:
         run: |
           docker compose -f deploy/docker-compose.yml up -d --wait mysql redis
           docker compose -f deploy/docker-compose.yml run --rm db-init
-
-      # 每次运行生成一次性密钥，不写入仓库、不进日志。
-      - name: 生成 CI 专用 JWT 密钥
-        run: echo "SA_TOKEN_JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
 
       - name: 启动后端（8080）
         env:
