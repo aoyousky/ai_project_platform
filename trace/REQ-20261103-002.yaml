@@ -127,3 +127,12 @@ history:
       passed: 14
       report: specs/evals/reports/REQ-20261103-002-20261103-184757.json
       note: A-03 / A-06 待 CLAR-006 / CLAR-007 裁决，评测集冻结项未纳入结论
+  - generation_id: gen-20261106-233606
+    spec_version: "1.2"
+    ci_run: 42242998248
+    note: >-
+      GitHub Actions 门禁首次全绿：run 42242998248（提交 9e14f30，PR #4
+      001-vben-frontend-replacement → feature/20261101_frontend_vben）。
+      gate job 内自建评测栈后门禁 1–5 全部 PASS，本需求评测集 16/16 通过。
+      runner 内报告（*-20261106-153558.json）未回传仓库，交付证据仍以
+      specs/evals/reports/REQ-20261103-002-20261106-222534.json 为准。

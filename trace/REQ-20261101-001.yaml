@@ -193,3 +193,17 @@ history:
       另记：一轮全量跑中 A-01 曾因提交→/index 超过 Spec 的 5s 阈值失败（案例耗时 53.4s，
       主机同时运行其他进程）；同用例单独复跑 3 次均通过（墙钟 17.5s / 11.1s / 10.9s，
       含页面加载），随后全量跑通过。5s 阈值来自 SPEC-001 A-01，未做任何放宽。
+  - at: 2026-11-06T23:36:06+08:00
+    event: GitHub Actions 门禁首次全绿（run 42242998248）
+    note: >-
+      PR #4（001-vben-frontend-replacement → feature/20261101_frontend_vben）的
+      delivery-gate 运行 run 42242998248（提交 9e14f30）completed success：
+      gate / architecture / frontend 三个 job 全部通过，23:26:03 → 23:36:06（+08:00）。
+      CI 内自建评测栈（compose MySQL/Redis + 后端 8080 + 前端 preview 5666）后执行
+      scripts/ci-gate.sh：门禁 1–4 全 PASS，门禁 5 为 REQ-001 8/8、REQ-002 16/16、
+      REQ-003 13/13；本需求 TC-A01 ~ TC-A08 全部 PASS（A-01 5.2s、A-08 0.09s）。
+      同轮验证两处工作流修复：JWT 密钥生成前置于任何 docker compose 调用；
+      checkout fetch-depth: 0 并补建本地 main，使 A-08 的
+      `git diff --stat main...HEAD -- platform/` 具备基线引用。
+      runner 内生成的报告（specs/evals/reports/*-20261106-153558.json）未回传仓库，
+      本需求交付证据仍以本地报告 REQ-20261101-001-20261106-222534.json 为准。
