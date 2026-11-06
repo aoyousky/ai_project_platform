@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>PM 原型三件套 · 一页纸流程（A3 横向）</title>
+<style>
+  @page { size: A3 landscape; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --ink:#14181F; --ink2:#495264; --ink3:#9AA4B5;
+    --line:#E3E7EE; --tint:#F5F7FA;
+    --accent:#1F6FEB; --red:#D92D20; --redbg:#FEF3F2;
+    --dark:#1B2230;
+  }
+  html,body{
+    background:#8b93a3;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  body{
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC","Helvetica Neue",Arial,sans-serif;
+    color:var(--ink); font-feature-settings:"tnum";
+  }
+  .page{
+    width:420mm; height:297mm; background:#fff;
+    padding:12mm 13mm 9mm;
+    display:flex; flex-direction:column;
+    margin:0 auto;
+  }
+  @media screen{
+    .page{ zoom:.62; box-shadow:0 10px 50px rgba(0,0,0,.4); margin:9mm auto; }
+  }
+  @media print{
+    html,body{ background:#fff; }
+    .page{ box-shadow:none; margin:0; }
+  }
+
+  /* ---------- 页头 ---------- */
+  header{ display:flex; align-items:flex-start; justify-content:space-between; gap:14mm; padding-bottom:5mm; }
+  .kicker{
+    font-size:8.5pt; letter-spacing:.28em; color:var(--ink3);
+    margin-bottom:2.5mm; font-weight:600;
+  }
+  h1{ font-size:29pt; line-height:1.16; letter-spacing:-.01em; font-weight:800; }
+  h1 em{ font-style:normal; color:var(--accent); }
+  .sub{ font-size:10.5pt; color:var(--ink2); line-height:1.55; margin-top:3mm; max-width:205mm; }
+  .badge{
+    flex:0 0 88mm; border-left:1.1mm solid var(--ink); padding:1mm 0 1mm 6mm;
+  }
+  .badge .bl{ font-size:7.5pt; letter-spacing:.2em; color:var(--ink3); font-weight:700; margin-bottom:2mm; }
+  .badge .bt{ font-size:11.5pt; line-height:1.65; font-weight:600; }
+
+  /* ---------- 主流程 ---------- */
+  .flow{
+    flex:1; display:grid;
+    grid-template-columns:1fr 9mm 1fr 9mm 1fr 9mm 1fr;
+    gap:0; padding:7mm 0 6mm; min-height:0;
+  }
+  .arrow{ display:flex; align-items:center; justify-content:center; font-size:17pt; color:#C3CBDA; }
+
+  .card{
+    display:flex; flex-direction:column;
+    border:.4mm solid var(--line); border-radius:2mm;
+    padding:5mm 5mm 0; background:#fff; position:relative; overflow:hidden;
+  }
+  .card::before{
+    content:""; position:absolute; inset:0 0 auto 0; height:1.3mm; background:var(--ink);
+  }
+  .num{
+    font-size:26pt; font-weight:300; color:var(--ink3);
+    line-height:1; margin:2mm 0 1mm; letter-spacing:-.02em;
+  }
+  .card h2{ font-size:16.5pt; font-weight:800; letter-spacing:.01em; }
+  .meta{ font-size:8pt; color:var(--ink3); margin-top:1.2mm; letter-spacing:.02em; }
+  .rows{ margin-top:4mm; display:flex; flex-direction:column; gap:3.4mm; }
+  .lab{
+    display:block; font-size:7pt; letter-spacing:.16em;
+    color:var(--ink3); font-weight:700; margin-bottom:1.2mm;
+  }
+  .rows p{ font-size:9.3pt; line-height:1.55; color:var(--ink); }
+  .rows ul{ list-style:none; }
+  .rows li{
+    font-size:9.3pt; line-height:1.5; color:var(--ink);
+    padding-left:3.4mm; position:relative;
+  }
+  .rows li::before{
+    content:""; position:absolute; left:0; top:1.55mm;
+    width:1.3mm; height:1.3mm; background:var(--ink3); border-radius:50%;
+  }
+  .tip{
+    margin-top:3mm; font-size:8.2pt; line-height:1.55; color:var(--ink2);
+    background:var(--tint); border-radius:1.2mm; padding:2.6mm 3.2mm;
+  }
+  .tip b{ font-weight:800; color:var(--ink); margin-right:1.5mm; }
+  .gate{
+    margin:auto -5mm 0; padding:3mm 5mm; background:var(--redbg);
+    border-top:.4mm solid #F9C9C4;
+    font-size:8.2pt; line-height:1.45; color:#9B2C22;
+  }
+  .gate b{ display:block; color:var(--red); font-size:7pt; letter-spacing:.16em; margin-bottom:1mm; }
+
+  /* 终点卡片：深色 */
+  .card.end{ background:var(--dark); border-color:var(--dark); }
+  .card.end::before{ background:#5C6B85; }
+  .card.end .num{ color:#5C6B85; }
+  .card.end h2{ color:#fff; }
+  .card.end .meta{ color:#8C98AD; }
+  .card.end .rows p, .card.end .rows li{ color:#E6EAF2; }
+  .card.end .rows li::before{ background:#8C98AD; }
+  .card.end .lab{ color:#8C98AD; }
+  .card.end .tip{ background:#242D40; color:#C9D2E0; }
+  .card.end .tip b{ color:#fff; }
+  .card.end .gate{ background:#2A3244; border-top-color:#3A4358; color:#FFB4AC; }
+  .card.end .gate b{ color:#FF8B80; }
+
+  /* ---------- 下半部分 ---------- */
+  .band{
+    display:grid; grid-template-columns:1.15fr 1fr .92fr;
+    gap:0; border-top:.4mm solid var(--line); padding-top:5mm;
+  }
+  .band > div{ padding-right:8mm; }
+  .band > div + div{ padding-left:8mm; border-left:.4mm solid var(--line); }
+  .bt{
+    font-size:8pt; letter-spacing:.2em; font-weight:800;
+    margin-bottom:3mm; color:var(--ink2);
+  }
+  .bt.red{ color:var(--red); }
+  .redline{ list-style:none; counter-reset:r; }
+  .redline li{
+    counter-increment:r; position:relative; padding-left:8mm;
+    font-size:9.6pt; line-height:1.5; margin-bottom:2.8mm;
+  }
+  .redline li::before{
+    content:counter(r); position:absolute; left:0; top:.2mm;
+    width:5.4mm; height:5.4mm; background:var(--red); color:#fff;
+    border-radius:50%; font-size:7.5pt; font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .redline b{ font-weight:800; }
+  .pits{ list-style:none; }
+  .pits li{ font-size:9.2pt; line-height:1.5; margin-bottom:2.6mm; padding-left:4.2mm; position:relative; }
+  .pits li::before{ content:"✕"; position:absolute; left:0; top:0; color:var(--red); font-size:7.5pt; font-weight:700; }
+  .pits span{ font-weight:700; }
+  .steps{ display:flex; flex-direction:column; gap:2mm; }
+  .steps .st{ display:flex; align-items:baseline; gap:2.5mm; font-size:9.2pt; line-height:1.4; }
+  .steps .st i{
+    font-style:normal; flex:0 0 4.2mm; height:4.2mm; border-radius:50%;
+    border:.35mm solid var(--ink3); color:var(--ink3);
+    font-size:6.5pt; display:flex; align-items:center; justify-content:center;
+    position:relative; top:-.4mm;
+  }
+  .steps .note{ font-size:8pt; color:var(--ink3); line-height:1.5; margin-top:1mm; padding-left:6.7mm; }
+
+  footer{
+    margin-top:4mm; padding-top:3.5mm; border-top:.3mm dashed var(--line);
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:7.4pt; color:var(--ink3); letter-spacing:.01em;
+  }
+  footer b{ color:var(--ink2); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div>
+      <div class="kicker">PM 原型三件套 · 一页纸流程</div>
+      <h1>从一句话需求，到 AI 能<em>直接交付</em>的规格</h1>
+      <p class="sub">四个步骤 · 三份模板 · 每步一道门禁。跳过任何一步，得到的都是「看起来很精致，但用不了」的原型。</p>
+    </div>
+    <div class="badge">
+      <div class="bl">一句话原则</div>
+      <div class="bt">把形容词换成数字，<br>把「要什么」换成「不要什么」。</div>
+    </div>
+  </header>
+
+  <section class="flow">
+
+    <article class="card">
+      <div class="num">01</div>
+      <h2>场景切片</h2>
+      <div class="meta">PM 独立完成 · 30 分钟</div>
+      <div class="rows">
+        <div><span class="lab">输入</span><p>一句话需求</p></div>
+        <div><span class="lab">做什么</span><p>拆成 ≤7 个「角色 × 触发 × 目标 × 判定」的场景，再聚合成页面清单</p></div>
+        <div><span class="lab">产出</span>
+          <ul>
+            <li>场景表 S-01 … S-07</li>
+            <li>页面清单 P-01 … P-03</li>
+            <li>标出本轮只做 1 页</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip"><b>提示</b>先写 10 条再删到 7 条；砍掉的场景别丢，它们就是 Non-goals。</div>
+      <div class="gate"><b>门禁</b>四维填全 · 角色唯一 · 主路径 ≤3 点击 · 场景 ≤7</div>
+    </article>
+
+    <div class="arrow">→</div>
+
+    <article class="card">
+      <div class="num">02</div>
+      <h2>原型生成</h2>
+      <div class="meta">PM · 3 轮迭代 × 1 页</div>
+      <div class="rows">
+        <div><span class="lab">输入</span><p>只输入这一页对应的场景，不是全部</p></div>
+        <div><span class="lab">做什么</span><p>五段式提示词一次生成；三轮只改一个维度：结构 → 密度 → 视觉</p></div>
+        <div><span class="lab">产出</span>
+          <ul>
+            <li>高保真原型，主路径可点通</li>
+            <li>5 个状态齐全：空 / 加载 / 错误 / 无权限 / 超限</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip"><b>提示</b>跑偏了就说：「停。先说你理解的主行动，我确认后再改。」</div>
+      <div class="gate"><b>门禁</b>自检 8 项全过 · 字段零虚构 · token 零自创</div>
+    </article>
+
+    <div class="arrow">→</div>
+
+    <article class="card">
+      <div class="num">03</div>
+      <h2>断言化</h2>
+      <div class="meta">PM + 业务方 · 半天</div>
+      <div class="rows">
+        <div><span class="lab">输入</span><p>原型的每页交互与 5 个状态</p></div>
+        <div><span class="lab">做什么</span><p>把交互改写成可判定断言，补齐边界、数据契约、Non-goals</p></div>
+        <div><span class="lab">产出</span>
+          <ul>
+            <li>Spec Packet：A-xx / E-xx / 契约 / Non-goals</li>
+            <li>3 个正例 + 1 个反例</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip"><b>提示</b>转不成断言的，列入 UNVERIFIABLE 清单，禁止臆造。</div>
+      <div class="gate"><b>门禁</b>Then 只能是状态码 / 返回值 / 阈值 / 错误码</div>
+    </article>
+
+    <div class="arrow">→</div>
+
+    <article class="card end">
+      <div class="num">04</div>
+      <h2>AI 交付</h2>
+      <div class="meta">Agent + Dev</div>
+      <div class="rows">
+        <div><span class="lab">输入</span><p>签字版 Spec Packet，唯一依据</p></div>
+        <div><span class="lab">做什么</span><p>Agent 生成、人评审；规格没写清就停下出澄清单，不许猜</p></div>
+        <div><span class="lab">产出</span>
+          <ul>
+            <li>代码 + 评测集全绿</li>
+            <li>溯源 trace.yaml</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip"><b>提示</b>IM 记录、会议纪要、口头补充，都不是交付依据。</div>
+      <div class="gate"><b>门禁</b>12 项 review 通过 · 无溯源不得报告完成</div>
+    </article>
+
+  </section>
+
+  <section class="band">
+
+    <div>
+      <div class="bt red">三条红线（踩了必返工）</div>
+      <ol class="redline">
+        <li>不切片直接写提示词，<b>必然产出「万能页」</b>——一页塞五个角色，最后谁都不好用</li>
+        <li><b>一次只生成一页</b>。三页塞进一段提示词，AI 平均分配注意力，三页都平庸</li>
+        <li>原型是<b>证据，不是规格</b>。「能点通」不等于「可交付」，门槛仍是那 5–12 条断言</li>
+      </ol>
+    </div>
+
+    <div>
+      <div class="bt">三个最常见的坑</div>
+      <ul class="pits">
+        <li><span>角色写「用户」「管理员」</span>——太泛，AI 无法据此做任何设计决策</li>
+        <li><span>触发时机留空</span>——AI 会按「打开系统」设计，做出首页式布局</li>
+        <li><span>成功判定写「体验流畅」</span>——不可判定，等于没写</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="bt">30 分钟工作法</div>
+      <div class="steps">
+        <div class="st"><i>1</i>不看界面，先写 10 条场景</div>
+        <div class="st"><i>2</i>按四条规则删到 ≤7 条</div>
+        <div class="st"><i>3</i>聚合页面，标出本轮 1 页</div>
+        <div class="note">第一遍几乎一定会把「功能」当成「场景」，所以先多写再删。砍掉的场景别丢，它们就是 Spec Packet 的 Non-goals。</div>
+      </div>
+    </div>
+
+  </section>
+
+  <footer>
+    <div><b>模板位置</b>　templates/prototype/：PM-场景切片表.md · PM-原型提示词模板.md　│　规格模板：specs/SPEC-TEMPLATE.md</div>
+    <div><b>打印</b>　A3 横向 · 缩放 100% · 关闭页边距　│　v1.0</div>
+  </footer>
+
+</div>
+</body>
+</html>

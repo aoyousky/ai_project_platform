@@ -62,3 +62,10 @@ history: []                               # 追加式；不得覆盖旧记录
 - 顶层含 `spec_hash` 与 `assertion_map`
 - 不含 `UNMAPPED`（P0 断言必须全部映射）
 - `test_evidence.passed == test_evidence.total` 且 `total > 0`（无评测用例时不得声称完成）
+- **开发期豁免（CLAR-003）**：当 `specs/evals/<requirement_id>/cases.yaml` 不存在时，允许
+  `test_evidence:` 留空且 `review_verdict: pending` 的 trace 通过门禁——此时该 trace 只表示
+  "实现进行中"，不得据此报告完成。评测集一旦建立，门禁即恢复严格校验。
+- **豁免期限（CLAR-003 架构追认，2026-11-06）**：以该 SPEC front-matter 的
+  `target_window` 结束日为限；逾期仍未建评测集，门禁 3 判 FAIL。SPEC 缺
+  `target_window` 结束日同样 FAIL（无法界定期限）。Spec Packet 须在任务中声明
+  评测集建立节点（人工评审项，门禁不自动校验）。

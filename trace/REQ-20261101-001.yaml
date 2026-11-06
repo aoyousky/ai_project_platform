@@ -1,0 +1,195 @@
+# 溯源记录 REQ-20261101-001（前端框架替换 / Vben）
+# 状态：评测集已建立（8 条 P0 用例全绿），P0 断言全部映射。
+generation_id: gen-20261102-191800
+requirement_id: REQ-20261101-001
+spec_version: "1.2"
+spec_hash: 2946c1efca03
+constraint_version: 77e727639c28
+allowlist_hash: 4d2d2e9f97f7
+model: deepseek-v4.1-flash
+prompt_version: claudemd-v2
+generated_at: 2026-11-02T19:18:00+08:00
+
+speckit:
+  feature_dir: specs/001-vben-frontend-replacement
+  plan_hash: c653badff8e9
+  tasks_hash: 23bc0ba61d76
+
+clarification_refs: [CLAR-001, CLAR-002, CLAR-003, CLAR-010]
+reviewer: aoyousky（2026-11-06 对话裁决 CLAR-010“B 升版 Spec”；同日 12:12 与 17:20 两次复核 /review 12 项自检结论，后者覆盖评测设施改动，含第 11 项性能证据与第 7 项重复率的标注）
+review_verdict: pass
+
+# git diff --name-only main...HEAD（frontend/ 为 362 个 plus-ui 文件删除，
+# 及随后 Vben v5.7.0 整仓导入，明细见 frontend/PROVENANCE.md）
+diff_scope:
+  - clarifications/CLAR-001.md
+  - clarifications/CLAR-002.md
+  - clarifications/CLAR-003.md
+  - docs/AI-DELIVERY-REDLINES.md
+  - docs/adr/002-frontend-vben-adapter.md
+  - docs/evidence/vben-p1-spike.md
+  - specs/constraints/allowlist.md
+  - specs/001-vben-frontend-replacement/spec.md
+  - specs/001-vben-frontend-replacement/plan.md
+  - specs/001-vben-frontend-replacement/research.md
+  - specs/001-vben-frontend-replacement/data-model.md
+  - specs/001-vben-frontend-replacement/quickstart.md
+  - specs/001-vben-frontend-replacement/tasks.md
+  - specs/001-vben-frontend-replacement/contracts/backend-api-consumed.md
+  - specs/001-vben-frontend-replacement/checklists/requirements.md
+  - specs/SPEC-001-vben-frontend-replacement.md
+  - clarifications/CLAR-010.md
+  - specs/evals/REQ-20261101-001/cases.yaml
+  - specs/evals/REQ-20261101-001/README.md
+  - scripts/ci-gate.sh
+  - scripts/trace-schema.md
+  - scripts/evals/run_eval.py
+  - scripts/evals/tests/test_run_eval.py
+  - scripts/evals/http_probe.mjs
+  - scripts/evals/seed_spec001.sh
+  - frontend/tests/e2e/helpers.ts
+  - frontend/tests/e2e/spec001-assertions.spec.ts
+  - frontend/tests/e2e/login.spec.ts
+  - frontend/tests/e2e/system-post.spec.ts
+  - trace/REQ-20261101-001.yaml
+  - .github/workflows/ci-gate.yml
+  - deploy/prepare.sh
+  - deploy/Dockerfile.frontend
+  - frontend/
+
+# 实现期：断言 → 实现位置的映射。
+# DoD 要求交付前覆盖全部 P0（A-01 ~ A-08）。
+assertion_map:
+  # 登录页提交 → 加密登录 → 令牌落库并跳 /index；E2E 同断言 code=200 + access_token 非空 + 5s 内跳转
+  A-01: frontend/tests/e2e/login.spec.ts#L163
+  # 验证码错误分支：原样展示后端 msg、刷新验证码、保留用户名
+  A-02: frontend/tests/e2e/login.spec.ts#L112
+  # 后端 getRouters → Vben 路由；侧栏多重集匹配与 48 节点单测
+  A-03: frontend/apps/web-antdv-next/src/api/core/menu.ts#L67
+  # 岗位页工具栏「新增」与「删除（批量）」按钮 + v-access 权限码
+  A-04: frontend/apps/web-antdv-next/src/views/system/post/index.vue#L254
+  # 无权限不渲染按钮；未授权路由不注册 → 兜底 not-found 页
+  A-05: frontend/apps/web-antdv-next/src/directives/access.ts#L17
+  # 分页：列表总数与渲染行数（pageSize=10）
+  A-06: frontend/apps/web-antdv-next/src/views/system/post/index.vue#L135
+  # 岗位 CRUD 四步链路（新增/列表/修改/批量删除）
+  A-07: frontend/apps/web-antdv-next/src/api/system/post/index.ts#L42
+  # 后端零改动：由 TC-A08 的 git diff --stat main...HEAD -- platform/ 空输出证明（无实现位置）
+  A-08: specs/evals/REQ-20261101-001/cases.yaml#L186
+
+test_evidence:
+  executed_at: 2026-11-06T22:25:34+08:00
+  base_url: http://localhost:8080
+  runner: >-
+    scripts/ci-gate.sh 门禁 5 → scripts/evals/run_eval.py
+    （HTTP 探针 + 复用 frontend/tests/e2e 的 Playwright 用例 + vitest 单测 + shell git diff；
+    夹具 scripts/evals/seed_spec001.sh，门禁自动预置）
+  total: 8
+  passed: 8
+  report: specs/evals/reports/REQ-20261101-001-20261106-222534.json
+  p0_coverage: 8/8（A-01 ~ A-08 各 1 条用例，全部通过）
+  cases:
+    - TC-A01 A-01 PASS（login.spec.ts：code=200、access_token 非空、5s 内到 /index）
+    - TC-A02 A-02 PASS（验证码错误展示 msg、刷新验证码、保留用户名）
+    - TC-A03 A-03 PASS（GET getRouters code=200 + 侧栏多重集匹配 + menu 单测 48 节点）
+    - TC-A04 A-04 PASS（新增/删除按钮可见）
+    - TC-A05 A-05 PASS（无新增按钮；未授权路由渲染 not-found，无业务表格）
+    - TC-A06 A-06 PASS（切 pageSize=10 后行数 = min(total,10)，总数文案一致）
+    - TC-A07 A-07 PASS（新增→列表→改名→批量删除，total 0→1→0）
+    - TC-A08 A-08 PASS（git diff --stat main...HEAD -- platform/ 为空）
+
+unit_tests:
+  executed_at: 2026-11-06T12:08:13+08:00
+  runner: pnpm test:unit（vitest run --dom）
+  total: 477
+  passed: 477
+  files: 59/59
+  note: 本次改动限于测试/评测设施与文档，未改产品源码；单测作为回归基线全绿
+
+eval_runner_tests:
+  executed_at: 2026-11-06T16:20:00+08:00
+  runner: python scripts/evals/tests/test_run_eval.py
+  total: 2
+  passed: 2
+  red_green: >-
+    RED：对 HEAD 版 run_eval.py 执行同一断言，同名用例被合并为单个键 TC-A01（失败）；
+    GREEN：修复后按「需求目录/用例ID」分离，2/2 通过。
+
+history:
+  - at: 2026-11-02T19:35:00+08:00
+    event: Phase 1（T001–T005）完成
+    commit: 8ce5410
+    note: >-
+      Vben v5.7.0 以 git subtree（--squash）落入 frontend/（源 tag 与 commit 见
+      frontend/PROVENANCE.md）；裁剪 6 个 app + playground + docs；pnpm-lock.yaml 入库，
+      仓库内无 package-lock.json；CI frontend job 与 deploy/prepare.sh 切 pnpm；
+      vitest/playwright 入口就绪。
+      以下为工程自检，不是评测证据；test_evidence 仍为空（CLAR-003）。
+    local_checks:
+      - pnpm test:unit → 35/35 文件、309/309 用例通过（上游既有用例，非本需求断言）
+      - pnpm -F @vben/web-antdv-next typecheck → 通过
+      - pnpm -F @vben/web-antdv-next build → 通过（17.57s，dist.zip 1.24MB）
+  - at: 2026-11-02T20:47:28+08:00
+    event: Phase 2（T006–T019 基础适配层）完成
+    note: >-
+      传输加密（ruoyi-crypto）、RuoYi 响应封装（request）、认证/用户画像 API、
+      后端菜单→Vue Router 转换（含外链 IFrameView）、/index 常量路由与首页移植、
+      layoutMap 补 Layout/ParentView/InnerLink、preferences 与 env 对接本地后端。
+      A-03 的“48 节点全部解析、duplicate_names=0、noRedirect_left=0”已由真实
+      getRouters.json fixture 单测证明；侧栏渲染需登录页（US1）完成后才能 E2E 验证，
+      因此 assertion_map 仍留空，不得据此报告完成。
+      依赖版本修正：catalog 将 @playwright/test 与 playwright 同时钉到 1.64.1
+      （原 ^1.60.0 使两者解析到 1.64.1 / 1.60.0 两个版本，Playwright 报
+      “two different versions of @playwright/test” 无法运行）；@vitest/coverage-v8
+      钉到 4.1.7 以匹配 vitest 4.1.7 的 peer 约束。
+      以下均为工程自检，不是评测证据；test_evidence 仍为空（CLAR-003）。
+    local_checks:
+      - pnpm vitest run → 40/40 文件、354/354 用例通过（含本需求新增 crypto/menu/request/auth/user 用例）
+      - RED→GREEN：新增用例在实现文件被 git stash 后全部失败，恢复后全部通过
+      - pnpm -F @vben/web-antdv-next typecheck → 通过
+      - pnpm test:e2e（smoke）→ 1 过 1 失败：未登录跳转登录页通过；登录用例因登录页尚未接入验证码（T023 未做）在预期 RED 点失败，非缺陷
+      - 真实后端 getRouters.json（48 节点 / 39 叶子）→ createRouter 注册 48 条、无重复 name、无 http 前缀路径
+  - at: 2026-11-06T10:25:00+08:00
+    event: SPEC-001 v1.2（CLAR-010 裁决回写）
+    note: >-
+      A-04 的 Then 文案由"批量删除"更正为"删除（工具栏批量删除）"：上游 plus-ui
+      （0534d3d^ 的 post/index.vue）与当前五个系统页面工具栏均为"删除"，原断言无实现
+      出处。spec_hash 由 73ab85451acf 变为 2946c1efca03；断言条数与语义不变，
+      review_verdict 仍为 pending（评测集尚未建立）。
+  - at: 2026-11-06T12:12:46+08:00
+    event: 评测集建立（A-01 ~ A-08），CLAR-003 开发期豁免结束
+    note: >-
+      新增 specs/evals/REQ-20261101-001（8 条 P0 用例，P0 覆盖 8/8）与 A-05 专用夹具
+      scripts/evals/seed_spec001.sh；评测器新增 e2e/vitest/shell 检查面（复用既有 Playwright
+      与 vitest 资产）与 probe:false（无 HTTP 面的纯 DOM 用例）。8/8 通过，报告见
+      specs/evals/reports/REQ-20261101-001-20261106-121246.json；单测 59 文件 / 477 用例全绿。
+      assertion_map 已补齐 A-01 ~ A-08；review_verdict 由 pending 改为 pass（/review 12 项，
+      第 11 项性能未实测已标注）。
+  - at: 2026-11-06T16:22:09+08:00
+    event: 评测器跨需求 ID 串值修复 + 复跑
+    note: >-
+      门禁 5 首跑失败暴露 run_eval.py 缺陷：结果按 case.id 全局归并，而三个需求都用
+      TC-A01… 编号，REQ-001 的 A-02 失败被错误记到 REQ-002/003 的同名用例上。改为
+      「需求目录/用例ID」作结果键、探针结果按传入位置对齐；新增
+      scripts/evals/tests/test_run_eval.py（RED：旧实现两个 TC-A01 合并为单键；GREEN：2/2 通过）。
+      首跑另有 A-02 用例失败，系评测期间主机休眠约 4 小时导致 E2E 超时；单跑 20.8s 通过，
+      复跑 8/8 通过，报告 specs/evals/reports/REQ-20261101-001-20261106-162209.json。
+  - at: 2026-11-06T17:15:59+08:00
+    event: 取码限流预算改为跨进程账本；门禁 5/5 复跑通过
+    note: >-
+      RED：16:44 全量跑 A-02 失败（验证码图片未刷新）。后端日志显示登录失败后自动刷新
+      的 /auth/code 请求被限流拒绝（该次无「限制令牌」日志，前一次已打印「剩余令牌 => 0」）。
+      根因：后端 /auth/code 10 次/60s/IP；评测器按 (spec, grep) 分组，每组是独立
+      `npx playwright test` 进程，进程内令牌预算无法跨进程生效，且 HTTP 探针未排队。
+      修复：helpers.ts 与 http_probe.mjs 共用 run_eval.py 生成的 JSON 账本
+      （E2E_CAPTCHA_LEDGER / EVAL_CAPTCHA_LEDGER），预算 7 → 5 次/60s；探针取码前排队；
+      isBackendUp 探活由 /auth/code 改为公开的 /auth/tenant/list，不再消耗取码预算。
+      GREEN：bash scripts/ci-gate.sh 5/5 门禁通过（EXIT=0）；REQ-001 8/8、
+      REQ-002 16/16、REQ-003 13/13；报告
+      specs/evals/reports/REQ-20261101-001-20261106-222534.json。
+      其间 17:23 启动的一轮门禁因主机休眠约 5 小时中断，仅 TC-A05 报
+      Playwright 240s 超时（案例耗时 17,774,917ms），其余 7 条仍通过；
+      22:21 唤醒后在最终工作树复跑，5/5 全绿，作为本条证据。
+      另记：一轮全量跑中 A-01 曾因提交→/index 超过 Spec 的 5s 阈值失败（案例耗时 53.4s，
+      主机同时运行其他进程）；同用例单独复跑 3 次均通过（墙钟 17.5s / 11.1s / 10.9s，
+      含页面加载），随后全量跑通过。5s 阈值来自 SPEC-001 A-01，未做任何放宽。

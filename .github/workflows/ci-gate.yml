@@ -8,6 +8,9 @@ on:
 jobs:
   gate:
     runs-on: ubuntu-latest
+    # 门禁 5 需要完整评测栈（MySQL/Redis/后端/前端预览 + Playwright 浏览器），
+    # 冷缓存下一次约 20–35 分钟；上限放宽到 60 分钟只作兜底，不用于日常耗时。
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -21,11 +24,105 @@ jobs:
       - name: 评测执行器自测
         run: python -m unittest discover -s specs/evals/tests -v
 
+      # ---- 评测栈前置：与 deploy/prepare.sh 相同的构建产物 ----
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.4
+          package_json_file: frontend/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.18.0"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: 安装前端依赖（锁定版本）
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      # 探针用 playwright 包自带的 chromium 登录；E2E 用系统 Edge（channel: msedge）。
+      # 两者都必须显式安装，GitHub 托管 runner 上默认都没有。
+      - name: 安装 Playwright 浏览器（chromium + msedge）
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps chromium msedge
+
+      - name: 构建后端（aoyou-admin）
+        run: mvn -B -f platform/pom.xml -pl aoyou-admin -am package -DskipTests -q
+
+      - name: 构建前端（生产产物，供 5666 预览）
+        working-directory: frontend
+        run: pnpm -F @vben/web-antdv-next build
+
+      # 每次运行生成一次性密钥，不写入仓库、不进日志。
+      # 必须在任何 `docker compose` 调用之前：compose 解析整份文件时，
+      # backend 服务的 SA_TOKEN_JWT_SECRET 是必填插值，缺失会让仅启动 mysql/redis 也报错。
+      - name: 生成 CI 专用 JWT 密钥
+        run: echo "SA_TOKEN_JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      # 本机镜像代理在 GitHub runner 上不可用，改用 Docker Hub 官方仓库。
+      - name: 启动 MySQL / Redis 并初始化库表
+        env:
+          REGISTRY: docker.io/library
+        run: |
+          docker compose -f deploy/docker-compose.yml up -d --wait mysql redis
+          docker compose -f deploy/docker-compose.yml run --rm db-init
+
+      - name: 启动后端（8080）
+        env:
+          SPRING_DATASOURCE_DYNAMIC_DATASOURCE_MASTER_URL: "jdbc:mysql://127.0.0.1:3307/aoyou?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true"
+          SPRING_DATASOURCE_DYNAMIC_DATASOURCE_MASTER_USERNAME: root
+          SPRING_DATASOURCE_DYNAMIC_DATASOURCE_MASTER_PASSWORD: root
+          SPRING_DATA_REDIS_HOST: 127.0.0.1
+          SPRING_DATA_REDIS_PORT: "6379"
+          SPRING_DATA_REDIS_PASSWORD: aoyou123
+        run: |
+          nohup java -jar platform/aoyou-admin/target/aoyou-admin.jar \
+            --snail-job.enabled=false \
+            --spring.boot.admin.client.enabled=false \
+            > /tmp/awp-backend.log 2>&1 &
+
+      - name: 启动前端预览（5666）
+        working-directory: frontend
+        run: |
+          nohup pnpm -F @vben/web-antdv-next preview --port 5666 \
+            > /tmp/awp-frontend.log 2>&1 &
+
+      - name: 等待评测栈就绪
+        run: |
+          # 2 核 runner 上 Spring Boot 冷启动可能超过 3 分钟，给到 6 分钟。
+          for _ in $(seq 1 120); do
+            if curl -fsS http://localhost:8080/auth/tenant/list >/dev/null 2>&1 \
+              && curl -fsS http://localhost:5666 >/dev/null 2>&1; then
+              echo "评测栈已就绪：backend:8080 frontend:5666"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "== backend 日志 =="; tail -100 /tmp/awp-backend.log || true
+          echo "== frontend 日志 =="; tail -50 /tmp/awp-frontend.log || true
+          exit 1
+
       - name: 交付门禁（5 道）
         env:
-          # 仓库变量中配置被测服务地址；未配置且存在评测用例时门禁 5 会失败。
-          EVAL_BASE_URL: ${{ vars.EVAL_BASE_URL }}
+          EVAL_BASE_URL: http://localhost:8080
+          EVAL_FRONTEND_URL: http://localhost:5666
+          # 预览服务已由本工作流拉起，Playwright 必须复用而不是再起一个（端口冲突）。
+          E2E_REUSE_SERVER: "1"
         run: bash scripts/ci-gate.sh
+
+      # 失败时保留栈日志，便于判断是环境问题还是断言问题。
+      - name: 失败诊断（栈日志）
+        if: failure()
+        run: |
+          echo "== backend =="; tail -200 /tmp/awp-backend.log || true
+          echo "== frontend =="; tail -100 /tmp/awp-frontend.log || true
+          echo "== containers =="; docker ps -a || true
 
   # 宪章 II 的构建门禁：DDD 四层依赖方向。
   # 只构建 business/（业务代码），不构建 platform/（只读底座，本地 mvn verify 已验证）。
@@ -52,14 +149,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # frontend/ 是 pnpm workspace（Vben monorepo），唯一锁文件为 pnpm-lock.yaml（R8）。
+      # 版本与 frontend/package.json 的 packageManager 字段保持一致。
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.4
+          package_json_file: frontend/package.json
+
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          node-version: "22.18.0"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: 安装依赖（锁定版本）
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: 生产构建
-        run: npm run build:prod
+        run: pnpm -F @vben/web-antdv-next build

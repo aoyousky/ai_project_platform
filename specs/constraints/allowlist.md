@@ -20,7 +20,7 @@
 | 持久化 | MySQL 8.0 Driver、MyBatis-Plus、Flyway | 一服务一库；DDL 版本化 |
 | 缓存 | Redis Client（Lettuce / Redisson 二选一） | key 必须带业务前缀与 TTL |
 | 可观测 | Micrometer、Prometheus Registry、SkyWalking Agent | traceId 全链路 |
-| 前端 | Vue 3、TypeScript、Vite、Pinia、Vue Router、Element Plus、axios | 类型由 OpenAPI 生成 |
+| 前端 | Vue 3、TypeScript、Vite、Pinia、Vue Router、antdv-next、axios、pnpm | 类型由 OpenAPI 生成；明细见 §1.2（2026-11-01 升版，ADR-002） |
 
 **禁止**：SNAPSHOT 依赖、未审计 SDK、内部二方库跨大版本直引、`float/double` 存金额、物理外键、跨库 JOIN。
 
@@ -52,16 +52,55 @@
 | SQL 日志 | p6spy | 3.9.1 | 仅开发环境 |
 | JSON（遗留） | fastjson | 1.2.83 | **禁止业务代码新增使用**；见 §1.3 |
 
-### 1.2 前端依赖（plus-ui 5.X，version 5.6.2-2.6.2）
+### 1.2 前端依赖
 
-| 类别 | 组件 |
-|---|---|
-| 框架 | vue 3、vue-router、pinia、typescript、vite |
-| UI | element-plus、@element-plus/icons-vue |
-| 表格 | vxe-table、vxe-pc-ui |
-| 图表 | echarts |
-| 富文本 | @vueup/vue-quill |
-| 工具 | axios、@vueuse/core、await-to-js、animate.css、nprogress、screenfull、js-cookie、jsencrypt、crypto-js、file-saver、image-conversion、vue-cropper、vue-i18n、vue-json-pretty、vue-types、highlight.js、@highlightjs/vue-plugin |
+> **2026-11-01 升版（CLAR-001 裁决 A / ADR-002）**：前端底座由 plus-ui（Element Plus + npm）
+> 替换为 Vben Admin 5.7.0 + antdv-next + pnpm。本节分两张表：**1.2.1 目标基线**（P4 实施后唯一
+> 有效）与 **1.2.2 存量过渡项**（迁移期内允许保留，P4-3 完成后必须删除）。
+> 版本以 spike 实测 `D:\workstation\_spike\vben-5.7.0` 的 `pnpm-lock.yaml` 为准，见
+> [`docs/evidence/vben-p1-spike.md`](../../docs/evidence/vben-p1-spike.md)。
+>
+> ⚠️ **与宪章的冲突待消解**：`.specify/memory/constitution.md` 第 VII 条与技术栈基线表仍写
+> "Vue 3 + TS + Vite + Pinia + Element Plus"，本节已改为 antdv-next + Vben。按宪章修订流程，
+> 需一次 **MINOR 修订**（ADR-002 D9，到期 2026-11-15）。宪章未修订前，本节的 Vben 基线
+> **仅对 P4-1 起的适配层落地有效**；冲突不影响 P3 Spec Packet 编写。
+
+#### 1.2.1 目标基线（Vben Admin 5.7.0 / `apps/web-antdv-next`）
+
+| 类别 | 组件 | 版本 | 作用域 | 许可证 |
+|---|---|---|---|---|
+| 框架 | vue / vue-router / pinia | 3.5.34 / 5.0.7 / 3.0.4 | runtime | MIT |
+| 语言/构建 | typescript / vite | 6.0.3 / 8.0.13 | dev | Apache-2.0 / MIT |
+| UI 库 | antdv-next | 1.3.0 | runtime | MIT |
+| 框架包 | `@vben/access`、`@vben/common-ui`、`@vben/constants`、`@vben/hooks`、`@vben/icons`、`@vben/layouts`、`@vben/locales`、`@vben/plugins`、`@vben/preferences`、`@vben/request`、`@vben/stores`、`@vben/styles`、`@vben/types`、`@vben/utils`（共 14 个） | workspace（仓库内源码） | runtime | MIT |
+| 表格 | vxe-table / vxe-pc-ui | 4.18.13 / 4.14.16 | runtime（经 `@vben/plugins`） | MIT |
+| 图表 | echarts | 6.1.0 | runtime（经 `@vben/plugins`） | Apache-2.0 |
+| 富文本 | @tiptap/core、@tiptap/vue-3、@tiptap/starter-kit 及官方扩展 | 3.23.x | runtime（经 `@vben/plugins`） | MIT |
+| 样式基座 | tailwindcss（v4）/ reka-ui | 4.3.x / 2.9.7 | runtime（构建 + 组件基座） | MIT |
+| 组合式工具 | @vueuse/core | 14.x | runtime | MIT |
+| 日期 | dayjs | 1.11.x | runtime | MIT |
+| 加密 | crypto-js / jsencrypt | 4.2.0 / 3.5.4 | runtime | MIT |
+| 请求内核 | axios（经 `@vben/request`） | 1.13.x | runtime | MIT |
+| 国际化 | vue-i18n | 11.x | runtime | MIT |
+| 其他工具 | await-to-js、file-saver、js-cookie、nprogress、screenfull、highlight.js、vue-json-pretty、json-bigint、qrcode、tippy.js | 沿用 Vben 锁文件 | runtime | MIT / BSD-3-Clause |
+| 包管理 | pnpm（`packageManager: pnpm@10.33.4`，经 Corepack） | 10.33.4 | toolchain | MIT |
+
+**许可证例外（已采集，不进运行时产物或可选许可）**：
+
+- `@commitlint/*` — GPL-3.0，**仅 devDependency**
+- `lightningcss` — MPL-2.0，构建期
+- `zod-defaults` — 许可证为 Unknown（运行时，经 `@vben/common-ui` form-ui 链路引入）；升级或替换前需复核
+- `node-forge` — BSD-3-Clause / GPL-2.0 双许可，取 BSD-3-Clause
+
+#### 1.2.2 存量过渡项（迁移期保留，P4-3 后删除）
+
+| 类别 | 组件 | 说明 |
+|---|---|---|
+| UI | element-plus、@element-plus/icons-vue | 仅 plus-ui 存量代码使用；随 `frontend/` 旧代码一并删除 |
+| 富文本 | @vueup/vue-quill | 仅 plus-ui 存量；目标基线改用 Vben 内置 tiptap，相关页面迁移时重写（见 ADR-002 C10） |
+| 框架 | 沿用现有 `frontend/package.json` 依赖 | 不得新增、不得升级 |
+| 包管理 | npm | 仅用于迁移前构建；P4-1 起前端统一为 pnpm |
+
 
 ### 1.3 安全复核项（已登记但受限）
 
@@ -77,6 +116,8 @@
 | 架构测试 | ArchUnit | 依赖方向违规即构建失败 |
 | 集成测试 | Testcontainers、Spring Boot Test | 仓储与契约测试 |
 | 契约测试 | OpenAPI 生成器 + 兼容性校验 | 消费方/提供方契约 |
+| 前端单元/组件测试 | Vitest、@vue/test-utils、@vitest/coverage-v8、jsdom | 与源码同目录，`*.test.ts` |
+| 前端端到端 | @playwright/test、playwright-core | 用系统 Edge/Chrome，不下载浏览器二进制 |
 | 静态检查 | SonarQube、Spotless/Checkstyle、ESLint、vue-tsc | CI 强制 |
 | 安全扫描 | CVE 扫描器（由 CI 提供）、secret 扫描 | 高危 7 天、中危 30 天 |
 
@@ -101,5 +142,15 @@
 ## 5. 机器校验口径
 
 - 运行时：`mvn dependency:tree` 的全部 `compile/runtime` 依赖必须能在第 1 节找到对应条目。
-- 前端：`package.json` 的 `dependencies` 必须能在第 1 节找到对应条目。
+- 前端：`pnpm-workspace.yaml` 下各 workspace 包的 `dependencies` 必须能在 §1.2 找到对应条目；
+  `devDependencies` 只校验无高危许可证（§1.2.1 例外栏已登记的除外）。迁移期内 plus-ui 存量依赖
+  按 §1.2.2 校验（只减不增）。
 - 评测器：`specs/evals/run.py` 只允许 `stdlib` + 第 3 节列出的依赖。
+
+## 6. 变更记录
+
+| 日期 | 变更 | 依据 | 批准人 |
+|---|---|---|---|
+| 2026-10-31 | 初版建立（平台底座 5.6.2 依赖快照） | ADR-001 | 架构负责人 |
+| 2026-11-01 | §1.2 增补 Vben Admin 5.7.0 前端栈；新增 §1.2.2 存量过渡项；§5 前端校验口径改 pnpm | ADR-002 / CLAR-001 裁决 A | PM（CLAR-001） |
+| 2026-11-01 | §2 增补前端测试工具（Vitest / @vue/test-utils / coverage-v8 / jsdom / Playwright） | plan.md Post-Design Re-check（001-vben-frontend-replacement） | 架构负责人 |

@@ -1,0 +1,195 @@
+spec_version: "1.2"
+# REQ-20261101-001（SPEC-001 前端框架替换 / Vben）评测用例。
+#
+# 三条证据面，执行器见 scripts/evals/run_eval.py：
+#   1. HTTP（input/expect/verify）  —— 菜单接口、岗位 CRUD 链路、后端零改动
+#   2. `e2e:`                      —— 复用 frontend/tests/e2e 既有 Playwright 用例（按标题 grep）
+#   3. `vitest:`                   —— 复用菜单转换单测
+#
+# `probe: false` 表示该用例没有可独立执行的 HTTP 面（A-01/A-02 的登录体是 AES 密文 +
+# 一次性验证码，A-04~A-06 是纯 DOM 行为），证据只来自 e2e；这些用例的 input/expect
+# 仍按 run.py 的结构要求填写，描述所引用的测试资产。
+#
+# 夹具：A-05 需要 scripts/evals/seed_spec001.sh 预置的 spec001_postonly 账号。
+# 占位符：${EVAL_RUN_ID} 为本次运行唯一后缀（run_eval.py build_env 提供）。
+cases:
+  # ---------------------------------------------------------------- A-01
+  - id: TC-A01
+    assertion: A-01
+    probe: false
+    input:
+      method: E2E
+      path: frontend/tests/e2e/login.spec.ts
+    expect:
+      e2e: "A-01"
+    e2e:
+      spec: tests/e2e/login.spec.ts
+      grep: A-01
+
+  # ---------------------------------------------------------------- A-02
+  - id: TC-A02
+    assertion: A-02
+    probe: false
+    input:
+      method: E2E
+      path: frontend/tests/e2e/login.spec.ts
+    expect:
+      e2e: "A-02"
+    e2e:
+      spec: tests/e2e/login.spec.ts
+      grep: A-02
+
+  # ---------------------------------------------------------------- A-03
+  - id: TC-A03
+    assertion: A-03
+    auth: admin
+    input:
+      method: GET
+      path: /system/menu/getRouters
+    expect:
+      status: 200
+      code: 200
+      data_array_min: 1
+    e2e:
+      spec: tests/e2e/spec001-assertions.spec.ts
+      grep: A-03
+    vitest:
+      file: apps/web-antdv-next/src/api/core/menu.test.ts
+      grep: A-03
+
+  # ---------------------------------------------------------------- A-04
+  - id: TC-A04
+    assertion: A-04
+    probe: false
+    input:
+      method: E2E
+      path: frontend/tests/e2e/spec001-assertions.spec.ts
+    expect:
+      e2e: "A-04"
+    e2e:
+      spec: tests/e2e/spec001-assertions.spec.ts
+      grep: A-04
+
+  # ---------------------------------------------------------------- A-05
+  - id: TC-A05
+    assertion: A-05
+    probe: false
+    input:
+      method: E2E
+      path: frontend/tests/e2e/spec001-assertions.spec.ts
+    expect:
+      e2e: "A-05"
+    e2e:
+      spec: tests/e2e/spec001-assertions.spec.ts
+      grep: A-05
+
+  # ---------------------------------------------------------------- A-06
+  - id: TC-A06
+    assertion: A-06
+    probe: false
+    input:
+      method: E2E
+      path: frontend/tests/e2e/spec001-assertions.spec.ts
+    expect:
+      e2e: "A-06"
+    e2e:
+      spec: tests/e2e/spec001-assertions.spec.ts
+      grep: A-06
+
+  # ---------------------------------------------------------------- A-07
+  # 先断言基线 total=0，再走「新增 → 列表可见 → 改名称 → 批量删除 → 列表为空」，
+  # 操作前后 total 差值一致（0 → 1 → 0）。DOM 面的“勾选并批量删除”由同标题 e2e 覆盖。
+  - id: TC-A07
+    assertion: A-07
+    auth: admin
+    input:
+      method: GET
+      path: /system/post/list
+      query:
+        pageNum: 1
+        pageSize: 10
+        postCode: spec001_a07_${EVAL_RUN_ID}
+    expect:
+      status: 200
+      code: 200
+      total: 0
+    verify:
+      - method: POST
+        path: /system/post
+        body:
+          deptId: 100
+          postCode: spec001_a07_${EVAL_RUN_ID}
+          postName: Spec001 岗位 ${EVAL_RUN_ID}
+          postSort: 1
+          status: '0'
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/post/list
+        query:
+          pageNum: 1
+          pageSize: 10
+          postCode: spec001_a07_${EVAL_RUN_ID}
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            postCode: spec001_a07_${EVAL_RUN_ID}
+        capture:
+          POST_NEW_ID: rows.0.postId
+      - method: PUT
+        path: /system/post
+        body:
+          postId: ${POST_NEW_ID}
+          deptId: 100
+          postCode: spec001_a07_${EVAL_RUN_ID}
+          postName: Spec001 岗位改名 ${EVAL_RUN_ID}
+          postSort: 1
+          status: '0'
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/post/list
+        query:
+          pageNum: 1
+          pageSize: 10
+          postCode: spec001_a07_${EVAL_RUN_ID}
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            postName: Spec001 岗位改名 ${EVAL_RUN_ID}
+      - method: DELETE
+        path: /system/post/${POST_NEW_ID}
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/post/list
+        query:
+          pageNum: 1
+          pageSize: 10
+          postCode: spec001_a07_${EVAL_RUN_ID}
+        expect:
+          status: 200
+          code: 200
+          total: 0
+    e2e:
+      spec: tests/e2e/system-post.spec.ts
+      grep: A-07
+
+  # ---------------------------------------------------------------- A-08
+  - id: TC-A08
+    assertion: A-08
+    input:
+      method: GIT
+      path: git diff --stat main...HEAD -- platform/
+    expect:
+      shell: empty
+    shell:
+      cmd: git diff --stat main...HEAD -- platform/
+      expect_empty: true

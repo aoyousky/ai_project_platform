@@ -1,0 +1,666 @@
+{
+  "code": 200,
+  "msg": "操作成功",
+  "data": [
+    {
+      "name": "System1",
+      "path": "/system",
+      "hidden": false,
+      "redirect": "noRedirect",
+      "component": "Layout",
+      "alwaysShow": true,
+      "meta": {
+        "title": "系统管理",
+        "icon": "system",
+        "noCache": false,
+        "link": null,
+        "activeMenu": null
+      },
+      "children": [
+        {
+          "name": "User100",
+          "path": "user",
+          "hidden": false,
+          "component": "system/user/index",
+          "meta": {
+            "title": "用户管理",
+            "icon": "user",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "User-auth/role/:userId131",
+          "path": "user-auth/role/:userId",
+          "hidden": true,
+          "component": "system/user/authRole",
+          "meta": {
+            "title": "分配角色",
+            "icon": "#",
+            "noCache": true,
+            "link": null,
+            "activeMenu": "/system/user"
+          }
+        },
+        {
+          "name": "Role101",
+          "path": "role",
+          "hidden": false,
+          "component": "system/role/index",
+          "meta": {
+            "title": "角色管理",
+            "icon": "peoples",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Role-auth/user/:roleId130",
+          "path": "role-auth/user/:roleId",
+          "hidden": true,
+          "component": "system/role/authUser",
+          "meta": {
+            "title": "分配用户",
+            "icon": "#",
+            "noCache": true,
+            "link": null,
+            "activeMenu": "/system/role"
+          }
+        },
+        {
+          "name": "Menu102",
+          "path": "menu",
+          "hidden": false,
+          "component": "system/menu/index",
+          "meta": {
+            "title": "菜单管理",
+            "icon": "tree-table",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Dept103",
+          "path": "dept",
+          "hidden": false,
+          "component": "system/dept/index",
+          "meta": {
+            "title": "部门管理",
+            "icon": "tree",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Post104",
+          "path": "post",
+          "hidden": false,
+          "component": "system/post/index",
+          "meta": {
+            "title": "岗位管理",
+            "icon": "post",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Dict105",
+          "path": "dict",
+          "hidden": false,
+          "component": "system/dict/index",
+          "meta": {
+            "title": "字典管理",
+            "icon": "dict",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Dict-data/index/:dictId132",
+          "path": "dict-data/index/:dictId",
+          "hidden": true,
+          "component": "system/dict/data",
+          "meta": {
+            "title": "字典数据",
+            "icon": "#",
+            "noCache": true,
+            "link": null,
+            "activeMenu": "/system/dict"
+          }
+        },
+        {
+          "name": "Config106",
+          "path": "config",
+          "hidden": false,
+          "component": "system/config/index",
+          "meta": {
+            "title": "参数设置",
+            "icon": "edit",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Notice107",
+          "path": "notice",
+          "hidden": false,
+          "component": "system/notice/index",
+          "meta": {
+            "title": "通知公告",
+            "icon": "message",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Log108",
+          "path": "log",
+          "hidden": false,
+          "redirect": "noRedirect",
+          "component": "ParentView",
+          "alwaysShow": true,
+          "meta": {
+            "title": "日志管理",
+            "icon": "log",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          },
+          "children": [
+            {
+              "name": "Operlog500",
+              "path": "operlog",
+              "hidden": false,
+              "component": "monitor/operlog/index",
+              "meta": {
+                "title": "操作日志",
+                "icon": "form",
+                "noCache": false,
+                "link": null,
+                "activeMenu": null
+              }
+            },
+            {
+              "name": "Logininfor501",
+              "path": "logininfor",
+              "hidden": false,
+              "component": "monitor/logininfor/index",
+              "meta": {
+                "title": "登录日志",
+                "icon": "logininfor",
+                "noCache": false,
+                "link": null,
+                "activeMenu": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "Oss-config/index133",
+          "path": "oss-config/index",
+          "hidden": true,
+          "component": "system/oss/config",
+          "meta": {
+            "title": "文件配置管理",
+            "icon": "#",
+            "noCache": true,
+            "link": null,
+            "activeMenu": "/system/oss"
+          }
+        },
+        {
+          "name": "Oss118",
+          "path": "oss",
+          "hidden": false,
+          "component": "system/oss/index",
+          "meta": {
+            "title": "文件管理",
+            "icon": "upload",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Client123",
+          "path": "client",
+          "hidden": false,
+          "component": "system/client/index",
+          "meta": {
+            "title": "客户端管理",
+            "icon": "international",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tenant6",
+      "path": "/tenant",
+      "hidden": false,
+      "redirect": "noRedirect",
+      "component": "Layout",
+      "alwaysShow": true,
+      "meta": {
+        "title": "租户管理",
+        "icon": "chart",
+        "noCache": false,
+        "link": null,
+        "activeMenu": null
+      },
+      "children": [
+        {
+          "name": "Tenant121",
+          "path": "tenant",
+          "hidden": false,
+          "component": "system/tenant/index",
+          "meta": {
+            "title": "租户管理",
+            "icon": "list",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "TenantPackage122",
+          "path": "tenantPackage",
+          "hidden": false,
+          "component": "system/tenantPackage/index",
+          "meta": {
+            "title": "租户套餐管理",
+            "icon": "form",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Monitor2",
+      "path": "/monitor",
+      "hidden": false,
+      "redirect": "noRedirect",
+      "component": "Layout",
+      "alwaysShow": true,
+      "meta": {
+        "title": "系统监控",
+        "icon": "monitor",
+        "noCache": false,
+        "link": null,
+        "activeMenu": null
+      },
+      "children": [
+        {
+          "name": "Online109",
+          "path": "online",
+          "hidden": false,
+          "component": "monitor/online/index",
+          "meta": {
+            "title": "在线用户",
+            "icon": "online",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Admin117",
+          "path": "Admin",
+          "hidden": false,
+          "component": "monitor/admin/index",
+          "meta": {
+            "title": "Admin监控",
+            "icon": "dashboard",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Cache113",
+          "path": "cache",
+          "hidden": false,
+          "component": "monitor/cache/index",
+          "meta": {
+            "title": "缓存监控",
+            "icon": "redis",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Snailjob120",
+          "path": "snailjob",
+          "hidden": false,
+          "component": "monitor/snailjob/index",
+          "meta": {
+            "title": "任务调度中心",
+            "icon": "job",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tool3",
+      "path": "/tool",
+      "hidden": false,
+      "redirect": "noRedirect",
+      "component": "Layout",
+      "alwaysShow": true,
+      "meta": {
+        "title": "系统工具",
+        "icon": "tool",
+        "noCache": false,
+        "link": null,
+        "activeMenu": null
+      },
+      "children": [
+        {
+          "name": "Gen-edit/index/:tableId116",
+          "path": "gen-edit/index/:tableId",
+          "hidden": true,
+          "component": "tool/gen/editTable",
+          "meta": {
+            "title": "修改生成配置",
+            "icon": "#",
+            "noCache": true,
+            "link": null,
+            "activeMenu": "/tool/gen"
+          }
+        },
+        {
+          "name": "Gen115",
+          "path": "gen",
+          "hidden": false,
+          "component": "tool/gen/index",
+          "meta": {
+            "title": "代码生成",
+            "icon": "code",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Demo5",
+      "path": "/demo",
+      "hidden": false,
+      "redirect": "noRedirect",
+      "component": "Layout",
+      "alwaysShow": true,
+      "meta": {
+        "title": "测试菜单",
+        "icon": "star",
+        "noCache": false,
+        "link": null,
+        "activeMenu": null
+      },
+      "children": [
+        {
+          "name": "Demo1500",
+          "path": "demo",
+          "hidden": false,
+          "component": "demo/demo/index",
+          "meta": {
+            "title": "测试单表",
+            "icon": "#",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Tree1506",
+          "path": "tree",
+          "hidden": false,
+          "component": "demo/tree/index",
+          "meta": {
+            "title": "测试树表",
+            "icon": "#",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Leave11638",
+          "path": "leave",
+          "hidden": false,
+          "component": "workflow/leave/index",
+          "meta": {
+            "title": "请假申请",
+            "icon": "#",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Https://gitee.com/dromara/RuoYi-Vue-Plus4",
+      "path": "https://gitee.com/dromara/RuoYi-Vue-Plus",
+      "hidden": false,
+      "component": "Layout",
+      "meta": {
+        "title": "PLUS官网",
+        "icon": "guide",
+        "noCache": false,
+        "link": "https://gitee.com/dromara/RuoYi-Vue-Plus",
+        "activeMenu": null
+      }
+    },
+    {
+      "name": "Workflow11616",
+      "path": "/workflow",
+      "hidden": false,
+      "redirect": "noRedirect",
+      "component": "Layout",
+      "alwaysShow": true,
+      "meta": {
+        "title": "工作流",
+        "icon": "workflow",
+        "noCache": false,
+        "link": null,
+        "activeMenu": null
+      },
+      "children": [
+        {
+          "name": "Category11622",
+          "path": "category",
+          "hidden": false,
+          "component": "workflow/category/index",
+          "meta": {
+            "title": "流程分类",
+            "icon": "category",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "Spel11801",
+          "path": "spel",
+          "hidden": false,
+          "component": "workflow/spel/index",
+          "meta": {
+            "title": "流程表达式",
+            "icon": "input",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "ProcessDefinition11620",
+          "path": "processDefinition",
+          "hidden": false,
+          "component": "workflow/processDefinition/index",
+          "meta": {
+            "title": "流程定义",
+            "icon": "process-definition",
+            "noCache": true,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "ProcessMonitor11630",
+          "path": "processMonitor",
+          "hidden": false,
+          "redirect": "noRedirect",
+          "component": "ParentView",
+          "alwaysShow": true,
+          "meta": {
+            "title": "流程监控",
+            "icon": "monitor",
+            "noCache": false,
+            "link": null,
+            "activeMenu": null
+          },
+          "children": [
+            {
+              "name": "ProcessInstance11621",
+              "path": "processInstance",
+              "hidden": false,
+              "component": "workflow/processInstance/index",
+              "meta": {
+                "title": "流程实例",
+                "icon": "tree-table",
+                "noCache": true,
+                "link": null,
+                "activeMenu": null
+              }
+            },
+            {
+              "name": "AllTaskWaiting11631",
+              "path": "allTaskWaiting",
+              "hidden": false,
+              "component": "workflow/task/allTaskWaiting",
+              "meta": {
+                "title": "待办任务",
+                "icon": "waiting",
+                "noCache": true,
+                "link": null,
+                "activeMenu": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "Design/index11700",
+          "path": "design/index",
+          "hidden": true,
+          "component": "workflow/processDefinition/design",
+          "meta": {
+            "title": "流程设计",
+            "icon": "#",
+            "noCache": true,
+            "link": null,
+            "activeMenu": "/workflow/processDefinition"
+          }
+        },
+        {
+          "name": "LeaveEdit/index11701",
+          "path": "leaveEdit/index",
+          "hidden": true,
+          "component": "workflow/leave/leaveEdit",
+          "meta": {
+            "title": "请假申请",
+            "icon": "#",
+            "noCache": true,
+            "link": null,
+            "activeMenu": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Task11618",
+      "path": "/task",
+      "hidden": false,
+      "redirect": "noRedirect",
+      "component": "Layout",
+      "alwaysShow": true,
+      "meta": {
+        "title": "我的任务",
+        "icon": "my-task",
+        "noCache": false,
+        "link": null,
+        "activeMenu": null
+      },
+      "children": [
+        {
+          "name": "MyDocument11629",
+          "path": "myDocument",
+          "hidden": false,
+          "component": "workflow/task/myDocument",
+          "meta": {
+            "title": "我发起的",
+            "icon": "guide",
+            "noCache": true,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "TaskWaiting11619",
+          "path": "taskWaiting",
+          "hidden": false,
+          "component": "workflow/task/taskWaiting",
+          "meta": {
+            "title": "我的待办",
+            "icon": "waiting",
+            "noCache": true,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "TaskFinish11632",
+          "path": "taskFinish",
+          "hidden": false,
+          "component": "workflow/task/taskFinish",
+          "meta": {
+            "title": "我的已办",
+            "icon": "finish",
+            "noCache": true,
+            "link": null,
+            "activeMenu": null
+          }
+        },
+        {
+          "name": "TaskCopyList11633",
+          "path": "taskCopyList",
+          "hidden": false,
+          "component": "workflow/task/taskCopyList",
+          "meta": {
+            "title": "我的抄送",
+            "icon": "my-copy",
+            "noCache": true,
+            "link": null,
+            "activeMenu": null
+          }
+        }
+      ]
+    }
+  ]
+}

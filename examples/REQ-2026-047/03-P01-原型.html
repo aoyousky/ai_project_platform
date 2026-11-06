@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>P-01 新建发放任务 · 原型（REQ-2026-047）</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --primary:#1F6FEB; --success:#12A150; --warn:#D97706; --danger:#DC2626;
+    --bg:#F5F7FA; --card:#fff; --ink:#1F2329; --ink2:#606266; --ink3:#909399;
+    --line:#E4E7ED; --line2:#EBEEF5;
+  }
+  body{
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",-apple-system,sans-serif;
+    background:var(--bg); color:var(--ink); font-size:14px; line-height:1.5;
+    min-height:100vh; padding-bottom:24px;
+  }
+  .aux{font-size:13px;color:var(--ink3)}
+
+  /* ---------- 原型演示控件（非产品功能） ---------- */
+  .demo{
+    position:fixed; right:16px; bottom:16px; z-index:99;
+    background:#fff; border:1px dashed #C7CDD9; border-radius:8px;
+    padding:10px 12px; box-shadow:0 4px 16px rgba(0,0,0,.06); width:232px;
+  }
+  .demo .dt{font-size:12px;color:var(--ink3);letter-spacing:.04em;margin-bottom:8px}
+  .demo .dt b{color:var(--ink2)}
+  .demo .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .demo button{
+    font:inherit;font-size:12px;padding:4px 9px;border-radius:5px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:var(--ink2);
+  }
+  .demo button:hover{border-color:#B9C0CC}
+  .demo button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  /* ---------- 顶栏 / 面包屑 ---------- */
+  .appbar{background:#fff;border-bottom:1px solid var(--line);height:56px;display:flex;align-items:center;padding:0 32px;gap:28px}
+  .logo{font-weight:700;font-size:15px;letter-spacing:.02em}
+  .logo i{display:inline-block;width:6px;height:16px;background:var(--primary);border-radius:2px;vertical-align:-3px;margin-right:8px}
+  .crumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink3)}
+  .crumb b{color:var(--ink);font-weight:500}
+
+  main{width:1160px;margin:0 auto;padding-top:18px}
+  .ptitle{font-size:20px;font-weight:600;letter-spacing:.01em}
+  .ptitle span{font-size:13px;font-weight:400;color:var(--ink3);margin-left:10px}
+
+  .grid{display:grid;grid-template-columns:1fr 296px;gap:24px;margin-top:16px;align-items:start}
+  .left{display:flex;flex-direction:column;gap:16px}
+
+  .card{background:var(--card);border-radius:8px;padding:16px 24px 14px;border:1px solid var(--line2)}
+  .ch{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .ch .idx{
+    width:20px;height:20px;border-radius:50%;background:#EEF3FE;color:var(--primary);
+    font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none;
+  }
+  .ch h3{font-size:14px;font-weight:600}
+  .ch .hint{margin-left:auto;font-size:13px;color:var(--ink3)}
+
+  .field{display:flex;align-items:flex-start;gap:16px;padding:6px 0}
+  .field + .field{border-top:1px dashed var(--line2)}
+  .field > .lb{width:88px;flex:none;font-size:13px;color:var(--ink2);padding-top:6px}
+
+  .tags{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .tag{
+    display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;
+    background:#F0F4FF;border:1px solid #D6E2FB;border-radius:6px;color:#1A5CD8;font-size:13px;
+  }
+  .tag b{font-weight:500}
+  .tag span{color:#8AA6DA;cursor:pointer;font-size:14px;line-height:1}
+  .addtag{height:30px;padding:0 10px;border:1px dashed #C9D3E4;border-radius:6px;background:#fff;color:var(--ink2);font-size:13px;cursor:pointer}
+
+  .switch{width:36px;height:20px;border-radius:10px;background:var(--primary);position:relative;flex:none;margin-top:4px}
+  .switch i{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+  .swrow{display:flex;align-items:flex-start;gap:10px}
+
+  /* 预估 */
+  .est{display:flex;align-items:baseline;gap:10px;padding-top:3px}
+  .est .v{font-size:20px;font-weight:600;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+  .est .u{font-size:13px;color:var(--ink2);margin-left:-4px}
+  .refresh{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;color:var(--ink3);cursor:pointer;margin-left:2px}
+  .refresh:hover{background:#F2F4F8;color:var(--ink2)}
+  .est-note{margin-top:6px;font-size:13px;color:var(--ink3)}
+  .est-empty{color:var(--ink3);font-size:13px;padding-top:8px}
+  .est-err{color:var(--danger);font-size:13px;padding-top:8px}
+  .est-err button{font:inherit;font-size:13px;color:var(--primary);background:none;border:none;cursor:pointer;margin-left:8px;padding:0}
+
+  .skel{display:inline-block;width:78px;height:20px;border-radius:4px;background:linear-gradient(90deg,#EEF0F4 25%,#F7F8FA 37%,#EEF0F4 63%);background-size:400% 100%;animation:sk 1.2s infinite}
+  @keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
+
+  /* 券选择 */
+  .coupon{
+    flex:1;display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:6px;
+    padding:10px 12px;background:#fff;cursor:pointer;
+  }
+  .coupon:hover{border-color:#B9C8E0}
+  .coupon .nm{font-weight:600;font-size:14px}
+  .coupon .meta{font-size:13px;color:var(--ink3)}
+  .coupon .chg{margin-left:auto;color:var(--primary);font-size:13px}
+
+  .stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:6px;height:32px;overflow:hidden}
+  .stepper button{width:32px;height:30px;border:none;background:#fff;color:var(--ink2);font-size:15px;cursor:pointer}
+  .stepper button:hover{background:#F5F7FA}
+  .stepper span{width:44px;text-align:center;font-size:14px;font-variant-numeric:tabular-nums;border-left:1px solid var(--line);border-right:1px solid var(--line);line-height:30px}
+
+  .stockline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);margin-top:10px}
+  .stockline b{font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
+
+  .alert{
+    display:none;align-items:center;gap:8px;margin-top:12px;padding:9px 12px;border-radius:6px;
+    background:#FEF2F1;border:1px solid #FADBD8;color:#A4261C;font-size:13px;
+  }
+  .alert i{width:6px;height:6px;border-radius:50%;background:var(--danger);flex:none}
+
+  /* 输入 */
+  .inp{height:32px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font:inherit;font-size:14px;color:var(--ink);width:100%;background:#fff}
+  .inp:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(31,111,235,.12)}
+  .radios{display:flex;gap:20px;align-items:center;padding-top:6px;font-size:14px}
+  .radios label{display:flex;align-items:center;gap:6px;cursor:pointer}
+  .dot{width:15px;height:15px;border-radius:50%;border:1px solid #C7CDD9;position:relative;flex:none}
+  .dot.on{border-color:var(--primary);border-width:4px}
+  .ta{width:100%;min-height:44px;border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:inherit;font-size:14px;resize:none;color:var(--ink)}
+  .ta::placeholder{color:#B7BDC9}
+
+  /* 摘要栏 */
+  .summary{
+    position:sticky;top:24px;background:#fff;border:1px solid var(--line2);border-radius:8px;
+    padding:20px;box-shadow:0 1px 2px rgba(16,24,40,.03);
+  }
+  .summary h4{font-size:13px;color:var(--ink3);font-weight:400;letter-spacing:.04em;margin-bottom:14px}
+  .srow{display:flex;align-items:baseline;justify-content:space-between;padding:7px 0}
+  .srow .k{font-size:13px;color:var(--ink2)}
+  .srow .v{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  .srow .v.big{font-size:20px}
+  .srow .v.dim{color:var(--ink3);font-weight:400;font-size:14px}
+  .divider{height:1px;background:var(--line2);margin:12px 0}
+  .approve{
+    display:flex;gap:8px;align-items:flex-start;background:#FFF8EC;border:1px solid #FBE3BE;
+    border-radius:6px;padding:9px 10px;font-size:13px;color:#9A5B00;line-height:1.45;margin-bottom:14px;
+  }
+  .approve i{width:6px;height:6px;border-radius:50%;background:var(--warn);flex:none;margin-top:6px}
+  .approve.hide{display:none}
+  .btn{width:100%;height:36px;border-radius:6px;font:inherit;font-size:14px;cursor:pointer;border:1px solid transparent}
+  .btn.pri{background:var(--primary);color:#fff;font-weight:500}
+  .btn.pri:hover{background:#1A5FCC}
+  .btn.pri:disabled{background:#C3D4F5;cursor:not-allowed}
+  .btn.ghost{background:#fff;border-color:var(--line);color:var(--ink2);margin-top:8px}
+  .btn.ghost:hover{border-color:#B9C0CC}
+  .foot{margin-top:12px;font-size:13px;color:var(--ink3);text-align:center}
+
+  /* 无权限整页 */
+  .noperm{display:none;position:fixed;inset:0;background:var(--bg);z-index:50;align-items:center;justify-content:center}
+  .noperm .box{text-align:center;max-width:360px}
+  .noperm .code{font-size:44px;font-weight:300;color:#C7CDD9;letter-spacing:.08em}
+  .noperm h2{font-size:16px;font-weight:600;margin:12px 0 6px}
+  .noperm p{font-size:13px;color:var(--ink3);margin-bottom:18px}
+  .noperm button{height:34px;padding:0 18px;border-radius:6px;border:1px solid var(--line);background:#fff;font:inherit;font-size:14px;color:var(--ink2);cursor:pointer}
+
+  /* 状态切换：默认只显示正常态预估，按状态显隐 */
+  .only-empty,.only-err{display:none}
+  body[data-state="empty"] .only-empty{display:block}
+  body[data-state="error"] .only-err{display:block}
+  body[data-state="loading"] .est .v{display:none}
+  body[data-state="loading"] .est .skel{display:inline-block}
+  .est .skel{display:none}
+
+  body[data-state="noperm"] .noperm{display:flex}
+  body[data-state="over"] .alert{display:flex}
+</style>
+</head>
+<body data-state="normal">
+
+<div class="appbar">
+  <div class="logo"><i></i>营销中台</div>
+  <div class="crumb">优惠券 <span>/</span> 发放任务 <span>/</span> <b>新建发放任务</b></div>
+</div>
+
+<main>
+  <div class="ptitle">新建发放任务 <span>按人群批量发券，提交后立即执行或进入审批</span></div>
+
+  <div class="grid">
+    <div class="left">
+
+      <!-- 1 人群 -->
+      <section class="card">
+        <div class="ch"><span class="idx">1</span><h3>选择人群</h3><span class="hint">预估基于当前标签快照</span></div>
+
+        <div class="field">
+          <div class="lb">目标标签</div>
+          <div style="flex:1">
+            <div class="tags">
+              <div class="tag"><b>沉睡用户（90 天未下单）</b><span>×</span></div>
+              <button class="addtag">+ 添加标签</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="lb">排除</div>
+          <div class="swrow" style="flex:1">
+            <div class="switch"><i></i></div>
+            <div>
+              <div style="font-size:14px">排除已领过本券的用户</div>
+              <div class="aux" style="margin-top:2px">开启后预估人数会相应减少，避免重复发放</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="lb">预计发放</div>
+          <div style="flex:1">
+            <div class="est only-normal">
+              <span class="v" id="estNum">26,480</span><span class="u">人</span>
+              <span class="skel"></span>
+              <span class="refresh" title="重新预估">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5V5H11"/>
+                </svg>
+              </span>
+            </div>
+            <div class="est only-empty"><span class="est-empty">请先选择目标人群</span></div>
+            <div class="est only-err">
+              <span class="est-err">预估失败（ERR-5012）<button>重试</button></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 券 -->
+      <section class="card">
+        <div class="ch"><span class="idx">2</span><h3>选择券与数量</h3></div>
+
+        <div class="field">
+          <div class="lb">发放券</div>
+          <div style="flex:1">
+            <div class="coupon">
+              <div>
+                <div class="nm">满100减20</div>
+                <div class="meta">面额 ¥20 · 有效期至 2026-12-31 · 可用 50,000 张</div>
+              </div>
+              <span class="chg">更换</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="lb">每人张数</div>
+          <div style="flex:1;display:flex;align-items:center;gap:16px">
+            <div class="stepper">
+              <button>−</button><span id="perUser">1</span><button>+</button>
+            </div>
+            <span class="aux">单次最多 5 张</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="lb">库存影响</div>
+          <div style="flex:1">
+            <div class="stockline">
+              需消耗 <b id="needNum">26,480</b> 张 · 可用 <b>50,000</b> 张
+            </div>
+            <div class="alert"><i></i><span>库存不足，缺口 <b id="gapNum">2,960</b> 张，请减少张数或更换券</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 设置 -->
+      <section class="card">
+        <div class="ch"><span class="idx">3</span><h3>发放设置</h3></div>
+
+        <div class="field">
+          <div class="lb">任务名称</div>
+          <div style="flex:1"><input class="inp" value="2026年11月沉睡用户唤醒"></div>
+        </div>
+
+        <div class="field">
+          <div class="lb">发放时间</div>
+          <div style="flex:1">
+            <div class="radios">
+              <label><span class="dot on"></span>立即发放</label>
+              <label><span class="dot"></span>定时发放</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="lb">备注</div>
+          <div style="flex:1"><textarea class="ta" placeholder="选填，≤200 字"></textarea></div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- 摘要栏 -->
+    <aside class="summary">
+      <h4>本次发放</h4>
+      <div class="srow"><span class="k">预计发放</span><span class="v big" id="sNum">26,480 人</span></div>
+      <div class="srow"><span class="k">消耗券</span><span class="v" id="sCoupon">26,480 张</span></div>
+      <div class="srow"><span class="k">预计成本</span><span class="v" id="sCost">¥529,600</span></div>
+      <div class="divider"></div>
+      <div class="approve" id="approveBox"><i></i><span id="approveTxt">超过免审额度，提交后需主管审批（审批人：李颖）</span></div>
+      <button class="btn pri" id="submitBtn">提交发放任务</button>
+      <button class="btn ghost">存为草稿</button>
+      <div class="foot">提交后可在任务详情查看进度</div>
+    </aside>
+  </div>
+</main>
+
+<!-- 无权限 -->
+<div class="noperm">
+  <div class="box">
+    <div class="code">403</div>
+    <h2>你没有发放优惠券的权限</h2>
+    <p>该动作会影响营销预算，需要 coupon:campaign:create 权限。可向管理员申请，审批通过后生效。</p>
+    <button>申请权限</button>
+  </div>
+</div>
+
+<!-- 原型演示控件 -->
+<div class="demo">
+  <div class="dt"><b>原型演示</b> · 非产品功能</div>
+  <div class="chips">
+    <button data-s="normal" class="on">正常</button>
+    <button data-s="empty">空状态</button>
+    <button data-s="loading">加载中</button>
+    <button data-s="error">错误</button>
+    <button data-s="over">超限</button>
+    <button data-s="noperm">无权限</button>
+  </div>
+</div>
+
+<script>
+  const S = {
+    normal: { num:'26,480', per:1, need:'26,480', cost:'¥529,600', sNum:'26,480 人', sCoupon:'26,480 张', approve:'超过免审额度，提交后需主管审批（审批人：李颖）', dis:false },
+    empty:  { num:'—', per:1, need:'—', cost:'—', sNum:'—', sCoupon:'—', approve:'请先完成左侧配置', dis:true },
+    loading:{ num:'', per:1, need:'—', cost:'—', sNum:'计算中', sCoupon:'—', approve:'预估完成后自动计算审批要求', dis:true },
+    error:  { num:'', per:1, need:'—', cost:'—', sNum:'—', sCoupon:'—', approve:'预估失败，无法判断审批要求', dis:true },
+    over:   { num:'26,480', per:2, need:'52,960', cost:'¥1,059,200', sNum:'26,480 人', sCoupon:'52,960 张', approve:'超过免审额度，提交后需主管审批（审批人：李颖）', dis:true },
+    noperm: { num:'26,480', per:1, need:'26,480', cost:'¥529,600', sNum:'26,480 人', sCoupon:'26,480 张', approve:'—', dis:true }
+  };
+  const $ = id => document.getElementById(id);
+  // 支持 ?state=over 直达某状态（评审/截图用）
+  const q = new URLSearchParams(location.search).get('state');
+  if (q && S[q]) document.querySelector(`.demo button[data-s="${q}"]`).click();
+  document.querySelectorAll('.demo button').forEach(b=>{
+    b.onclick = () => {
+      const s = b.dataset.s;
+      document.body.dataset.state = s;
+      document.querySelectorAll('.demo button').forEach(x=>x.classList.toggle('on', x===b));
+      const c = S[s];
+      $('estNum').textContent = c.num;
+      $('perUser').textContent = c.per;
+      $('needNum').textContent = c.need;
+      $('sNum').textContent = c.sNum;
+      $('sCoupon').textContent = c.sCoupon;
+      $('sCost').textContent = c.cost;
+      $('approveTxt').textContent = c.approve;
+      $('submitBtn').disabled = c.dis;
+    };
+  });
+</script>
+</body>
+</html>

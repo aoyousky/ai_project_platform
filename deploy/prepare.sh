@@ -14,9 +14,15 @@ cp "$ROOT/platform/aoyou-admin/target/aoyou-admin.jar" "$BUILD/app.jar"
 echo "   -> $BUILD/app.jar ($(du -h "$BUILD/app.jar" | cut -f1))"
 
 echo "== 2/2 前端：生产构建 =="
-( cd "$ROOT/frontend" && npm ci && npm run build:prod >/dev/null )
+# frontend/ 是 pnpm workspace（Vben monorepo），锁文件只有 pnpm-lock.yaml。
+(
+  cd "$ROOT/frontend"
+  corepack enable
+  pnpm install --frozen-lockfile
+  pnpm -F @vben/web-antdv-next build >/dev/null
+)
 rm -rf "$BUILD/dist"
-cp -r "$ROOT/frontend/dist" "$BUILD/dist"
+cp -r "$ROOT/frontend/apps/web-antdv-next/dist" "$BUILD/dist"
 echo "   -> $BUILD/dist ($(du -sh "$BUILD/dist" | cut -f1))"
 
 echo "== 就绪，可以执行：docker compose -f deploy/docker-compose.yml up -d --build =="
