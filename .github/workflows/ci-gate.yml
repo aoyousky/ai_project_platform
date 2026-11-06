@@ -12,7 +12,17 @@ jobs:
     # 冷缓存下一次约 20–35 分钟；上限放宽到 60 分钟只作兜底，不用于日常耗时。
     timeout-minutes: 60
     steps:
+      # fetch-depth: 0 + 建立本地 main：A-08 用 `git diff main...HEAD -- platform/`
+      # 证明「后端零改动」。默认浅克隆在 runner 上没有 main 引用，命令会
+      # `fatal: bad revision 'main...HEAD'`（run 42239843722 的 TC-A08 失败原因）。
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 补取 main 引用（A-08 的 diff 基线）
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git branch -f main origin/main
 
       - uses: actions/setup-python@v5
         with:
