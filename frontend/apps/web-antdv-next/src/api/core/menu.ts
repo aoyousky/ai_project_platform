@@ -2,6 +2,8 @@ import type { RouteRecordStringComponent } from '@vben/types';
 
 import { requestClient } from '#/api/request';
 
+import { mapMenuIcon } from './icon-map';
+
 /**
  * RuoYi-Vue-Plus `RouterVo`（后端 `/system/menu/getRouters` 返回项）。
  * 字段语义见 specs/001-vben-frontend-replacement/contracts/backend-api-consumed.md。
@@ -77,8 +79,9 @@ export function convertRuoYiMenus(
         keepAlive: false,
         title: route.meta?.title ?? '',
       };
-      if (route.meta?.icon && route.meta.icon !== '#') {
-        externalMeta['icon'] = route.meta.icon;
+      const externalIcon = mapMenuIcon(route.meta?.icon);
+      if (externalIcon) {
+        externalMeta['icon'] = externalIcon;
       }
       return {
         component: 'IFrameView',
@@ -94,8 +97,9 @@ export function convertRuoYiMenus(
       title: route.meta?.title ?? '',
     };
 
-    if (route.meta?.icon && route.meta.icon !== '#') {
-      meta['icon'] = route.meta.icon;
+    const icon = mapMenuIcon(route.meta?.icon);
+    if (icon) {
+      meta['icon'] = icon;
     }
 
     if (route.component === 'InnerLink' && route.meta?.link) {

@@ -52,6 +52,10 @@ diff_scope:
   - frontend/tests/e2e/login.spec.ts
   - frontend/tests/e2e/system-post.spec.ts
   - trace/REQ-20261101-001.yaml
+  # REQ-001 收口补丁（2026-11-07）：E-09 占位页 / R10 图标映射 / §5 性能实测
+  - docs/evidence/req001-closure-20261107.md
+  - frontend/tests/perf/req001-probe.mjs
+  - frontend/tests/perf/e09-check.mjs
   - .github/workflows/ci-gate.yml
   - deploy/prepare.sh
   - deploy/Dockerfile.frontend
@@ -65,7 +69,10 @@ assertion_map:
   # 验证码错误分支：原样展示后端 msg、刷新验证码、保留用户名
   A-02: frontend/tests/e2e/login.spec.ts#L112
   # 后端 getRouters → Vben 路由；侧栏多重集匹配与 48 节点单测
-  A-03: frontend/apps/web-antdv-next/src/api/core/menu.ts#L67
+  A-03: frontend/apps/web-antdv-next/src/api/core/menu.ts#L69
+  # E-09：未移植菜单 → 统一占位页「即将推出」；侧栏其余菜单保持可用
+  # 实现：组件存在性判断与替换（coming-soon.ts），接入点在 access.ts 的路由生成前
+  E-09: frontend/apps/web-antdv-next/src/router/coming-soon.ts#L44
   # 岗位页工具栏「新增」与「删除（批量）」按钮 + v-access 权限码
   A-04: frontend/apps/web-antdv-next/src/views/system/post/index.vue#L254
   # 无权限不渲染按钮；未授权路由不注册 → 兜底 not-found 页
@@ -78,7 +85,7 @@ assertion_map:
   A-08: specs/evals/REQ-20261101-001/cases.yaml#L186
 
 test_evidence:
-  executed_at: 2026-11-06T22:25:34+08:00
+  executed_at: 2026-11-07T12:39:57+08:00
   base_url: http://localhost:8080
   runner: >-
     scripts/ci-gate.sh 门禁 5 → scripts/evals/run_eval.py
@@ -86,7 +93,7 @@ test_evidence:
     夹具 scripts/evals/seed_spec001.sh，门禁自动预置）
   total: 8
   passed: 8
-  report: specs/evals/reports/REQ-20261101-001-20261106-222534.json
+  report: specs/evals/reports/REQ-20261101-001-20261107-123957.json
   p0_coverage: 8/8（A-01 ~ A-08 各 1 条用例，全部通过）
   cases:
     - TC-A01 A-01 PASS（login.spec.ts：code=200、access_token 非空、5s 内到 /index）
@@ -99,12 +106,27 @@ test_evidence:
     - TC-A08 A-08 PASS（git diff --stat main...HEAD -- platform/ 为空）
 
 unit_tests:
-  executed_at: 2026-11-06T12:08:13+08:00
+  executed_at: 2026-11-07T12:27:12+08:00
   runner: pnpm test:unit（vitest run --dom）
-  total: 477
-  passed: 477
-  files: 59/59
-  note: 本次改动限于测试/评测设施与文档，未改产品源码；单测作为回归基线全绿
+  total: 487
+  passed: 487
+  files: 61/61
+  note: >-
+    收口补丁新增 E-09（coming-soon 6 例）与 R10（icon-map 4 例）单测，全量单测
+    61 文件 / 487 用例通过。RED→GREEN：临时移走实现文件后两个新套件均
+    `Failed to resolve import`（2 failed，0 用例运行），恢复后 2 套件 / 10 用例通过。
+
+typecheck:
+  executed_at: 2026-11-07T12:28:00+08:00
+  runner: pnpm turbo run typecheck --filter=@vben/web-antdv-next（vue-tsc --noEmit --skipLibCheck）
+  result: 0 错误（任务成功）
+
+e09_manual_e2e:
+  executed_at: 2026-11-07T12:32:00+08:00
+  runner: node frontend/tests/perf/e09-check.mjs（Playwright / msedge，生产构建 preview:5666）
+  result: >-
+    URL=/system/dict，占位页「即将推出」可见，侧栏可见，console_errors=[]。
+    证据见 docs/evidence/req001-closure-20261107.md
 
 eval_runner_tests:
   executed_at: 2026-11-06T16:20:00+08:00
@@ -207,3 +229,22 @@ history:
       `git diff --stat main...HEAD -- platform/` 具备基线引用。
       runner 内生成的报告（specs/evals/reports/*-20261106-153558.json）未回传仓库，
       本需求交付证据仍以本地报告 REQ-20261101-001-20261106-222534.json 为准。
+  - at: 2026-11-07T12:28:00+08:00
+    event: REQ-001 收口补丁（E-09 / R10 / §5 性能实测）
+    note: >-
+      按用户指令“先做 REQ-001 收口补丁”补齐 SPEC-001 三条此前无证据的义务：
+      E-09 未移植菜单统一占位页（coming-soon.ts + access.ts 路由生成前替换，
+      组件存在性以 import.meta.glob 的 pageMap 实际清单为准）；
+      §4/R10 菜单图标映射（icon-map.ts，33 个 plus-ui 图标名 → lucide；`#` 丢弃；
+      未知图标回退 lucide:circle 且同名仅告警一次；只认对象自有属性，防原型链键误命中）；
+      §5 性能口径实测（req001-probe.mjs）。改动仅应用层与测试/证据文件，
+      platform/ 与 packages/** 零改动，未新增依赖。证据详见
+      docs/evidence/req001-closure-20261107.md。
+      /review 12 项自检：第 1–6、8–12 项通过；第 5 项发现并修复 ICON_MAP 原型链键
+      误命中（补单测）；第 7 项复杂度/重复率为估算值（函数级 CC ≤ 4，无大段复制）。
+    local_checks:
+      - 单测 61 文件 / 487 用例通过（新增 10 例；RED→GREEN 受控复验通过）
+      - typecheck（vue-tsc）0 错误；ESLint 对改动文件 exit 0
+      - E-09 端到端：/system/dict 显示「即将推出」，侧栏可见，console_errors=[]
+      - 性能实测（重建后的最终包，2026-11-07T12:35:35+08:00）：登录往返中位数 360ms（样本 1746/265/360）、首页可交互 2082ms、路由切换 warm 中位数 122ms（样本 122/89/92/1283/305）、cold 295ms；dist 5,461,715 字节（254 文件）、zip 1,685,039 字节
+      - 门禁 5/5 EXIT 0（2026-11-07T12:39:57+08:00）：REQ-001 8/8、REQ-002 16/16、REQ-003 13/13
