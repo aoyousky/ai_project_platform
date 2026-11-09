@@ -107,16 +107,16 @@ assertion_map:
   A-15: platform/aoyou-admin/src/main/java/com/aoyou/web/service/dashboard/DashboardSlaCalculator.java#L38
 
 test_evidence:
-  executed_at: 2026-11-09T14:19:30+08:00
+  executed_at: 2026-11-09T20:56:52+08:00
   base_url: http://localhost:5666
   total: 14
   passed: 14
-  report: specs/evals/reports/REQ-20261108-006-20261109-141930.json
+  report: specs/evals/reports/REQ-20261108-006-20261109-205652.json
   p0_coverage: 12/12
   note: >-
-    TC-A01～TC-A14 全部通过；P0 A-01～A-12 全覆盖。评测栈为工作树生产构建
-    （vite preview:5666）+ 重新打包的 awp-backend（含 DashboardController），
-    避免共享容器被其它 worktree 替换导致 404。
+    TC-A01～TC-A14 全部通过；P0 A-01～A-12 全覆盖。评测栈为主检出目录在合入
+    003-system-auxiliary 后重新打包的 awp-backend + 合并分支前端生产构建
+    （vite preview:5666）。首次报告随 005 工作树删除而丢失，本轮为重跑恢复。
 
 unit_tests:
   backend:
@@ -159,3 +159,8 @@ history:
       3 秒查询超时；14/14 评测通过（P0 12/12），后端 24/24、前端 496/496。
       期间清理了共享 Redis 中旧 JWT 会话对评测登录的污染，并在评测前重新打包
       后端，排除其它 worktree 替换容器造成的 /dashboard/home 404 干扰。
+  - generation_id: gen-20261109-205652
+    spec_version: "1.4"
+    note: >-
+      合入 003-system-auxiliary 后重跑评测以恢复丢失的报告文件：14/14 通过
+      （P0 12/12），trace 的 test_evidence 已指向本轮报告。
