@@ -38,6 +38,7 @@ import type {
   BaseFormComponentType,
   IconPickerProps,
 } from '@vben/common-ui';
+import type { TipTapProps } from '@vben/plugins/tiptap';
 import type { Recordable } from '@vben/types';
 
 import {
@@ -59,6 +60,7 @@ import {
 } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
+import { VbenTiptap } from '@vben/plugins/tiptap';
 import { isEmpty } from '@vben/utils';
 
 import { message, Modal, notification } from 'antdv-next';
@@ -553,6 +555,7 @@ export type ComponentType =
   | 'Switch'
   | 'Textarea'
   | 'TimePicker'
+  | 'Tiptap'
   | 'TreeSelect'
   | 'Upload'
   | BaseFormComponentType;
@@ -586,6 +589,7 @@ export interface ComponentPropsMap {
   Switch: SwitchProps;
   Textarea: TextAreaProps;
   TimePicker: TimePickerProps;
+  Tiptap: TipTapProps;
   TreeSelect: TreeSelectProps;
   Upload: AdapterUploadProps;
 }
@@ -651,6 +655,7 @@ async function initComponentAdapter() {
     Switch,
     Textarea: withDefaultPlaceholder(Textarea, 'input'),
     TimePicker,
+    Tiptap: VbenTiptap,
     TreeSelect: withDefaultPlaceholder(TreeSelect, 'select'),
     Upload: withPreviewUpload(),
   };

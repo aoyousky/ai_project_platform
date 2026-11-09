@@ -94,12 +94,12 @@ assertion_map:
   E-10: frontend/apps/web-antdv-next/src/views/system/user/user-page-logic.ts#L169
 
 test_evidence:
-  executed_at: 2026-11-06T22:25:34+08:00
+  executed_at: 2026-11-07T12:39:57+08:00
   base_url: http://localhost:8080
   runner: scripts/ci-gate.sh 门禁 5 → scripts/evals/run_eval.py（等价注入夹具，见 specs/evals/REQ-20261103-002/README.md）
   total: 16
   passed: 16
-  report: specs/evals/reports/REQ-20261103-002-20261106-222534.json
+  report: specs/evals/reports/REQ-20261103-002-20261107-123957.json
   p0_coverage: 11/11 有用例；11/11 通过
 
 history:
@@ -136,3 +136,9 @@ history:
       gate job 内自建评测栈后门禁 1–5 全部 PASS，本需求评测集 16/16 通过。
       runner 内报告（*-20261106-153558.json）未回传仓库，交付证据仍以
       specs/evals/reports/REQ-20261103-002-20261106-222534.json 为准。
+  - generation_id: gen-20261107-123957
+    spec_version: "1.2"
+    note: >-
+      REQ-001 收口补丁后本地全量门禁回归：门禁 5/5 EXIT 0，本需求评测集 16/16
+      通过。本次改动仅涉及 REQ-001 的应用层与证据文件，本需求产品源码零改动；
+      本报告作为最新回归证据。报告 specs/evals/reports/REQ-20261103-002-20261107-123957.json。

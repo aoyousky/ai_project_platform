@@ -14,7 +14,11 @@ vi.mock('@vben/utils', () => ({
   downloadFileFromBlobPart,
 }));
 
-import { downloadBlob, getDictDataByTypeApi } from './common';
+import {
+  downloadBinary,
+  downloadBlob,
+  getDictDataByTypeApi,
+} from './common';
 
 describe('api/system/common', () => {
   beforeEach(() => {
@@ -82,5 +86,59 @@ describe('api/system/common', () => {
     await expect(downloadBlob('/system/user/export')).rejects.toThrow(
       '导出失败',
     );
+  });
+
+  it('GET 二进制成功：raw + blob，按传入文件名保存', async () => {
+    const blob = new Blob(['image'], { type: 'image/png' });
+    get.mockResolvedValue({
+      data: blob,
+      headers: { 'content-type': 'image/png' },
+    });
+
+    await downloadBinary('/resource/oss/download/1', {
+      fileName: 'spec004.png',
+    });
+
+    expect(get).toHaveBeenCalledWith('/resource/oss/download/1', {
+      params: undefined,
+      responseReturn: 'raw',
+      responseType: 'blob',
+    });
+    expect(downloadFileFromBlobPart).toHaveBeenCalledWith({
+      fileName: 'spec004.png',
+      source: blob,
+    });
+  });
+
+  it('GET 二进制返回 JSON 错误体时抛出 msg，不保存文件', async () => {
+    const blob = new Blob([JSON.stringify({ msg: '文件不存在' })], {
+      type: 'application/json',
+    });
+    get.mockResolvedValue({
+      data: blob,
+      headers: { 'content-type': 'application/json;charset=UTF-8' },
+    });
+
+    await expect(
+      downloadBinary('/resource/oss/download/1', { fileName: 'spec004.png' }),
+    ).rejects.toThrow('文件不存在');
+    expect(downloadFileFromBlobPart).not.toHaveBeenCalled();
+  });
+
+  it('未传文件名时回退到 download', async () => {
+    const blob = new Blob(['file'], {
+      type: 'application/octet-stream',
+    });
+    get.mockResolvedValue({
+      data: blob,
+      headers: { 'content-type': 'application/octet-stream' },
+    });
+
+    await downloadBinary('/resource/oss/download/1');
+
+    expect(downloadFileFromBlobPart).toHaveBeenCalledWith({
+      fileName: 'download',
+      source: blob,
+    });
   });
 });

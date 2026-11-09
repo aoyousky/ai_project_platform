@@ -1,6 +1,7 @@
 # deploy/ — 本地 Docker 一键启动
 
-用于**在本地验证脚手架能否跑通**：MySQL + Redis + 后端 + 前端。
+用于**在本地验证脚手架能否跑通**：MySQL + Redis + MinIO + 后端 + 前端。
+MinIO 仅用于对象存储（文件管理上传/下载与文件配置）的本地/CI 验证。
 这不是生产部署方案（没有 TLS、没有多副本、密码明文在 `.env`）。
 
 ## 前置
@@ -23,7 +24,7 @@ cp .env.example .env
 #   export SA_TOKEN_JWT_SECRET=$(openssl rand -hex 32)
 
 ./prepare.sh                              # 产出 build/app.jar 与 build/dist/
-docker compose up -d --build              # 起 4 个容器
+docker compose up -d --build              # 起 MySQL/Redis/MinIO/后端/前端；minio-init 建桶
 ```
 
 `prepare.sh` 只写 `deploy/build/`（已 gitignore），不改 `platform/` 或 `frontend/`。
@@ -36,6 +37,8 @@ docker compose up -d --build              # 起 4 个容器
 | backend | 8080 | 8080 | `/prod-api/*` 由 nginx 反代 |
 | mysql | 3306 | **3307** | 宿主机 3306 常被本机 mysqld 占用 |
 | redis | 6379 | 6379 | 密码 `REDIS_PASSWORD` |
+| minio (S3) | 9000 | 9000 | 桶 `aoyou`，由 `minio-init` 创建 |
+| minio (console) | 9001 | 9001 | 本地调试用，不对外 |
 
 ## 验证
 

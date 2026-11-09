@@ -89,15 +89,19 @@ describe('convertRuoYiMenus（RouterVo → Vben route）', () => {
     expect(absent?.meta?.keepAlive).toBe(true);
   });
 
-  it('icon:"#" 为占位，丢弃（E-07）', () => {
+  it('icon:"#" 为占位，丢弃；真实图标映射为 iconify（E-07 / R10）', () => {
     const [placeholder] = convertRuoYiMenus([
       { component: 'a/index', meta: { icon: '#' }, path: 'a' },
     ]);
     const [real] = convertRuoYiMenus([
       { component: 'b/index', meta: { icon: 'system' }, path: 'b' },
     ]);
+    const [unknown] = convertRuoYiMenus([
+      { component: 'c/index', meta: { icon: 'no-such-icon' }, path: 'c' },
+    ]);
     expect(placeholder?.meta).not.toHaveProperty('icon');
-    expect(real?.meta?.['icon']).toBe('system');
+    expect(real?.meta?.['icon']).toBe('lucide:settings');
+    expect(unknown?.meta?.['icon']).toBe('lucide:circle');
   });
 
   it('内链路径原样保留，不拼接父路径', () => {

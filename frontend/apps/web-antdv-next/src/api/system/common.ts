@@ -50,6 +50,8 @@ export interface DownloadOptions {
   data?: Record<string, any>;
   fileName?: string;
   params?: Record<string, any>;
+  /** 数组参数的序列化方式；后端 `Integer[]` 绑定需要 `repeat` */
+  paramsSerializer?: 'brackets' | 'comma' | 'indices' | 'repeat';
 }
 
 /** 按类型加载字典数据（无权限码要求） */
@@ -97,6 +99,7 @@ export async function downloadBlob(
     options.data,
     {
       params: options.params,
+      paramsSerializer: options.paramsSerializer,
       responseReturn: 'raw',
       responseType: 'blob',
     },
@@ -111,6 +114,35 @@ export async function downloadBlob(
 
   downloadFileFromBlobPart({
     fileName: options.fileName ?? 'export.xlsx',
+    source: blob,
+  });
+}
+
+/**
+ * 下载 GET 二进制响应（文件管理预览/下载等）。
+ *
+ * 与 POST 导出共用同一套失败识别：后端业务失败仍返回 HTTP 200 + JSON，
+ * 读取 `msg` 抛出，不能把错误体保存成文件。GET 无请求体，因此只传 params。
+ */
+export async function downloadBinary(
+  url: string,
+  options: DownloadOptions = {},
+): Promise<void> {
+  const response = await requestClient.get<BlobResponse>(url, {
+    params: options.params,
+    responseReturn: 'raw',
+    responseType: 'blob',
+  });
+
+  const blob = response.data;
+
+  if (isJsonBlob(response)) {
+    const msg = await readFailureMessage(blob);
+    throw new Error(msg || '下载失败');
+  }
+
+  downloadFileFromBlobPart({
+    fileName: options.fileName ?? 'download',
     source: blob,
   });
 }

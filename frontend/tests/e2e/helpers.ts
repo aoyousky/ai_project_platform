@@ -1,7 +1,8 @@
 import type { Locator, Page } from '@playwright/test';
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 import process from 'node:process';
 
 import { expect } from '@playwright/test';
@@ -65,6 +66,38 @@ export function readCaptchaCode(uuid: string): string {
     throw new Error(`验证码 uuid=${uuid} 在 Redis 中没有对应明文（已过期或被消费）`);
   }
   return code;
+}
+
+/**
+ * 重新写入 SPEC-004 评测夹具（幂等）。
+ *
+ * E2E 会删除并重建夹具（A-05 删除操作日志），单独重跑时必须先恢复数据，
+ * 否则用例在“列表 total ≥ 1”处失败。夹具脚本同时会被 `scripts/ci-gate.sh`
+ * 调用一次；这里设置 `EVAL_SKIP_RESTART=1`，避免在用例开始时重启后端
+ * 造成数秒停机（OSS 端点缓存已由门禁阶段的首次 seed 刷新）。
+ *
+ * 路径解析覆盖两种执行目录：仓库根（CI 从根目录调用）与 `frontend/`
+ * （本地 `pnpm exec playwright test`）。
+ */
+export function seedSpec004Fixtures(): void {
+  if (process.env.E2E_SKIP_SEED === '1') {
+    return;
+  }
+  const candidates = [
+    process.env.E2E_SEED_SPEC004 ?? '',
+    path.resolve(process.cwd(), '..', 'scripts', 'evals', 'seed_spec004.sh'),
+    path.resolve(process.cwd(), 'scripts', 'evals', 'seed_spec004.sh'),
+  ].filter(Boolean);
+  const script = candidates.find((candidate) => existsSync(candidate));
+  if (!script) {
+    throw new Error(
+      `找不到 SPEC-004 夹具脚本，已查找：${candidates.join(', ')}`,
+    );
+  }
+  execFileSync('bash', [script], {
+    env: { ...process.env, EVAL_SKIP_RESTART: '1' },
+    stdio: 'ignore',
+  });
 }
 
 /**
@@ -298,6 +331,9 @@ export async function waitForAppReady(page: Page): Promise<void> {
 /**
  * 在 vxe 表格搜索框中输入并只等待本次搜索触发的响应。
  * 按参数匹配可避免在页面挂载请求的旧数据上取行号。
+ *
+ * 同一页面有多个表格（如字典双栏）时传 `root` 限定到对应面板，
+ * 否则占位符与“搜索”按钮在 page 级会命中多个元素。
  */
 export async function searchGrid(
   page: Page,
@@ -307,11 +343,13 @@ export async function searchGrid(
     placeholder: string;
     value: string;
   },
+  root?: Locator,
 ): Promise<void> {
-  await expect(page.locator('.vxe-loading.is--visible')).toHaveCount(0, {
+  const scope = root ?? page;
+  await expect(scope.locator('.vxe-loading.is--visible')).toHaveCount(0, {
     timeout: 15_000,
   });
-  await page.getByPlaceholder(options.placeholder).last().fill(options.value);
+  await scope.getByPlaceholder(options.placeholder).last().fill(options.value);
   const loaded = page.waitForResponse((response) => {
     if (response.request().method() !== 'GET') {
       return false;
@@ -322,9 +360,9 @@ export async function searchGrid(
       url.searchParams.get(options.param) === options.value
     );
   });
-  await page.getByRole('button', { name: /搜\s*索/ }).click();
+  await scope.getByRole('button', { name: /搜\s*索/ }).click();
   await loaded;
-  await expect(page.locator('.vxe-loading.is--visible')).toHaveCount(0, {
+  await expect(scope.locator('.vxe-loading.is--visible')).toHaveCount(0, {
     timeout: 15_000,
   });
 }
