@@ -2,7 +2,7 @@
 
 - REQ: REQ-20261101-001（影响合并分支 `005-home-workbench` 的全量评测口径）
 - TRIGGER: SPEC-001 v1.2 A-08 / FR-013「交付分支相对 `main` 的 `platform/` 零改动」
-- STATUS: 待裁决
+- STATUS: 已裁决
 - RAISED_BY: agent
 - DATE: 2026-11-09
 
@@ -40,4 +40,11 @@ A-08 的评测用例固定执行 `git diff --stat main...HEAD -- platform/`，�
 
 ## PM 裁决
 
-待裁决。是否升版 Spec Packet：待定。
+- 裁决人：aoyousky（PM）
+- 裁决日期：2026-11-09
+- 结论：**采纳 A**。A-08 仅在 REQ-001 自身交付分支
+  `001-vben-frontend-replacement` 执行；合并分支 `005-home-workbench` 的全量评测
+  将 A-08 标记为 N/A，不修改 `SPEC-001` 与 `cases.yaml`。
+- REQ-001 的验收证据继续使用其需求分支报告
+  `specs/evals/reports/REQ-20261101-001-20261107-123957.json`（8/8）。
+- 升版：**否**。该裁决仅明确既有 A-08 的作用域，不改动断言语义。
