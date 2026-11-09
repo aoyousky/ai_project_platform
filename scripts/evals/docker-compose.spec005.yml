@@ -1,0 +1,15 @@
+# SPEC-005 评测栈覆盖（仅本地 Docker 测试栈）
+#
+# 在 deploy/docker-compose.yml 之上启用评测夹具需要的 SLA 覆盖：
+# 流程 `fast`（加急审批）的生效 SLA = 1h，使夹具中的 5.4h 办结记录计入
+# `efficiency.overdueRate`（1/12 → 8%），见 SPEC-005 v1.1 A-09 夹具口径。
+#
+# 用法（scripts/evals/run_spec005.sh 已封装）：
+#   docker compose -f deploy/docker-compose.yml \
+#     -f scripts/evals/docker-compose.spec005.yml up -d --build backend
+services:
+  backend:
+    command:
+      - --snail-job.enabled=false
+      - --spring.boot.admin.client.enabled=false
+      - --dashboard.workbench.slaHoursByFlow.fast=1

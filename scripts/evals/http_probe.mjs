@@ -486,6 +486,102 @@ function evaluate(response, expect) {
       }
     }
   }
+  if (expect.nulls) {
+    for (const path of expect.nulls) {
+      if (getPath(json, path) !== null) {
+        errors.push(`${path} 期望 null，实际 ${JSON.stringify(getPath(json, path))}`);
+      }
+    }
+  }
+  if (expect.not_nulls) {
+    for (const path of expect.not_nulls) {
+      if (getPath(json, path) === null || getPath(json, path) === undefined) {
+        errors.push(`${path} 期望非 null`);
+      }
+    }
+  }
+  if (expect.array_length_eq) {
+    for (const item of expect.array_length_eq) {
+      const actual = getPath(json, item.path);
+      if (!Array.isArray(actual) || actual.length !== item.length) {
+        errors.push(
+          `${item.path} 期望数组长度 = ${item.length}，实际 ${Array.isArray(actual) ? actual.length : JSON.stringify(actual)}`,
+        );
+      }
+    }
+  }
+  if (expect.number_range) {
+    for (const item of expect.number_range) {
+      const actual = getPath(json, item.path);
+      const ok = typeof actual === 'number' && actual >= item.min && actual <= item.max;
+      if (!ok) {
+        errors.push(`${item.path} 期望 ${item.min}～${item.max} 的数字，实际 ${JSON.stringify(actual)}`);
+      }
+    }
+  }
+  if (expect.array_field_not_in) {
+    for (const item of expect.array_field_not_in) {
+      const actual = getPath(json, item.path);
+      if (!Array.isArray(actual)) {
+        errors.push(`${item.path} 期望数组，实际 ${JSON.stringify(actual)}`);
+        continue;
+      }
+      const forbidden = (item.values ?? []).map(String);
+      for (const entry of actual) {
+        if (forbidden.includes(String(entry?.[item.field]))) {
+          errors.push(`${item.path}[].${item.field} 不应包含 ${entry?.[item.field]}`);
+        }
+      }
+    }
+  }
+  if (expect.array_field_in) {
+    for (const item of expect.array_field_in) {
+      const actual = getPath(json, item.path);
+      if (!Array.isArray(actual)) {
+        errors.push(`${item.path} 期望数组，实际 ${JSON.stringify(actual)}`);
+        continue;
+      }
+      const allowed = (item.values ?? []).map(String);
+      for (const entry of actual) {
+        if (!allowed.includes(String(entry?.[item.field]))) {
+          errors.push(
+            `${item.path}[].${item.field} 期望属于 ${JSON.stringify(allowed)}，实际 ${JSON.stringify(entry?.[item.field])}`,
+          );
+        }
+      }
+    }
+  }
+  if (expect.array_objects_contain) {
+    for (const item of expect.array_objects_contain) {
+      const actual = getPath(json, item.path);
+      if (!Array.isArray(actual)) {
+        errors.push(`${item.path} 期望数组，实际 ${JSON.stringify(actual)}`);
+        continue;
+      }
+      const hit = actual.some(
+        (entry) => subsetErrors(entry, item.contains ?? {}).length === 0,
+      );
+      if (!hit) {
+        errors.push(
+          `${item.path} 中未找到匹配 ${JSON.stringify(item.contains)} 的条目`,
+        );
+      }
+    }
+  }
+  if (expect.string_matches) {
+    for (const item of expect.string_matches) {
+      const actual = getPath(json, item.path);
+      if (actual === null || actual === undefined) {
+        errors.push(`${item.path} 期望字符串，实际 ${JSON.stringify(actual)}`);
+        continue;
+      }
+      if (!new RegExp(item.pattern).test(String(actual))) {
+        errors.push(
+          `${item.path} 不匹配 /${item.pattern}/，实际 ${JSON.stringify(actual)}`,
+        );
+      }
+    }
+  }
   if (expect.data_array_min !== undefined) {
     if (!Array.isArray(json?.data) || json.data.length < expect.data_array_min) {
       errors.push(`data 期望数组且长度 >= ${expect.data_array_min}`);

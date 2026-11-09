@@ -1,0 +1,1303 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>遨游苍穹 · 登录后首页 / 工作台原型</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="dark" data-option="a" data-page="home" data-crole="admin">
+
+<div class="proto-bar">
+  <div class="proto-brand">
+    <span class="proto-badge">原型</span>
+    <span>遨游苍穹 · <b>登录后首页 / 工作台</b></span>
+  </div>
+  <div class="proto-group">
+    <span class="proto-label">方案</span>
+    <div class="seg" id="option-switch">
+      <button data-option="a" class="active">A · 运营驾驶舱</button>
+      <button data-option="b">B · 协同工作台</button>
+      <button data-option="c">C · 角色门户</button>
+    </div>
+  </div>
+  <div class="proto-group">
+    <span class="proto-label">页面</span>
+    <div class="seg" id="page-switch">
+      <button data-page="home" class="active">首页</button>
+      <button data-page="workbench">工作台</button>
+    </div>
+  </div>
+  <button class="proto-theme" id="theme-toggle">
+    <svg class="icon" aria-hidden="true"><use href="#i-sun"></use></svg>
+    <span>切换浅色</span>
+  </button>
+</div>
+
+<svg class="icon-sprite" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.8 12 3l9 7.8"/><path d="M5 9.8V21h14V9.8"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.2 2.7-5.8 6-5.8s6 2.6 6 5.8"/><circle cx="17.5" cy="8.5" r="2.3"/><path d="M16 14.6c2.8 0 5 2.2 5 5"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.6 3.1-6.4 7-6.4s7 2.8 7 6.4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.4 3.2 8.3 7.5 9.5 4.3-1.2 7.5-5.1 7.5-9.5V6L12 3Z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="3" width="12" height="18" rx="1.5"/><path d="M16 9h4v12H4"/><path d="M8 7h4M8 11h4M8 15h4"/></symbol>
+  <symbol id="i-id" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M12 9h6M12 13h6M5 16h7"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-workflow" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1.2"/><rect x="15" y="15" width="6" height="6" rx="1.2"/><path d="M9 6h4a2 2 0 0 1 2 2v4"/><path d="M15 18h-4a2 2 0 0 1-2-2v-4"/></symbol>
+  <symbol id="i-check-square" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+  <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><circle cx="7" cy="7.5" r="1"/><circle cx="7" cy="16.5" r="1"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></symbol>
+  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5Z"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8L4 5Z"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M9 5H5v14h14v-4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5"/><path d="M12 17.2v.2"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7Z"/><path d="M22 2 11 13"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 4H5v16h4"/><path d="M14 8l4 4-4 4"/><path d="M18 12H9"/></symbol>
+  <symbol id="i-drag" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M4 14h5l1 2h4l1-2h5"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3V6Z"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20V7"/></symbol>
+</svg>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">遨</div>
+      <div>
+        <div class="logo-title">遨游苍穹</div>
+        <div class="logo-sub">管理系统</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">工作台</div>
+      <a class="nav-item active" data-nav="home">
+        <svg class="icon" aria-hidden="true"><use href="#i-home"></use></svg>
+        <span>首页</span>
+      </a>
+      <a class="nav-item" data-nav="workbench">
+        <svg class="icon" aria-hidden="true"><use href="#i-grid"></use></svg>
+        <span>工作台</span>
+        <span class="nav-badge">7</span>
+      </a>
+
+      <div class="nav-label">组织与权限</div>
+      <a class="nav-item nav-parent">
+        <svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg>
+        <span>系统管理</span>
+        <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+      </a>
+      <div class="nav-sub">
+        <a class="current">用户管理</a>
+        <a>角色管理</a>
+        <a>菜单管理</a>
+        <a>部门管理</a>
+        <a>岗位管理</a>
+        <a>通知公告</a>
+      </div>
+
+      <div class="nav-label">平台能力</div>
+      <a class="nav-item">
+        <svg class="icon" aria-hidden="true"><use href="#i-layers"></use></svg>
+        <span>租户管理</span>
+      </a>
+      <a class="nav-item">
+        <svg class="icon" aria-hidden="true"><use href="#i-monitor"></use></svg>
+        <span>系统监控</span>
+      </a>
+      <a class="nav-item">
+        <svg class="icon" aria-hidden="true"><use href="#i-workflow"></use></svg>
+        <span>流程管理</span>
+      </a>
+      <a class="nav-item">
+        <svg class="icon" aria-hidden="true"><use href="#i-check-square"></use></svg>
+        <span>我的任务</span>
+        <span class="nav-badge">7</span>
+      </a>
+      <a class="nav-item">
+        <svg class="icon" aria-hidden="true"><use href="#i-settings"></use></svg>
+        <span>系统工具</span>
+      </a>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="tenant-chip"><i class="dot good"></i><span>遨游科技 · 企业版</span></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" title="折叠菜单">
+          <svg class="icon" aria-hidden="true"><use href="#i-menu"></use></svg>
+        </button>
+        <div class="breadcrumb">
+          <span>首页</span><span class="sep">/</span><b id="breadcrumb-title">运营驾驶舱</b>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="search">
+          <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <input type="text" placeholder="搜索菜单、用户、流程" aria-label="全局搜索">
+        </div>
+        <button class="icon-btn" title="通知">
+          <svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg>
+          <i class="badge-dot"></i>
+        </button>
+        <button class="icon-btn" title="刷新">
+          <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
+        </button>
+        <div class="user">
+          <div class="avatar-sm">张</div>
+          <div>
+            <div class="user-name">张启明</div>
+            <div class="user-role">超级管理员</div>
+          </div>
+          <svg class="icon" style="width:13px;height:13px;color:var(--text-3)" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+        </div>
+      </div>
+    </header>
+
+    <div class="tabbar">
+      <button class="tab active" data-tab-page="home">
+        <svg class="icon" aria-hidden="true"><use href="#i-home"></use></svg>
+        首页
+      </button>
+      <button class="tab" data-tab-page="workbench">
+        <svg class="icon" aria-hidden="true"><use href="#i-grid"></use></svg>
+        工作台
+      </button>
+    </div>
+
+    <main class="content">
+
+      <!-- ============ A / 首页 ============ -->
+      <section class="view" data-option="a" data-page="home">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">运营驾驶舱</h1>
+            <p class="page-sub">2026年11月7日 星期六 · 遨游科技 · 数据更新于 10:32</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn"><svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>刷新</button>
+            <button class="btn primary"><svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>新建流程</button>
+          </div>
+        </div>
+
+        <div class="grid grid-kpi">
+          <article class="card"><div class="stat">
+            <div class="stat-top"><span class="stat-label">用户总数</span><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg></span></div>
+            <div class="stat-value">1,286</div>
+            <div class="stat-foot">
+              <span class="stat-delta good"><svg class="icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg>+12 <em>本月新增</em></span>
+              <svg class="spark" viewBox="0 0 72 24" aria-hidden="true"><polyline points="2,19 10,17 18,18 26,14 34,15 42,12 50,13 58,9 70,8" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round"/><circle cx="70" cy="8" r="2.4" fill="var(--primary)"/></svg>
+            </div>
+          </div></article>
+
+          <article class="card"><div class="stat">
+            <div class="stat-top"><span class="stat-label">在线用户</span><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-activity"></use></svg></span></div>
+            <div class="stat-value">48</div>
+            <div class="stat-foot">
+              <span class="stat-delta good"><svg class="icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg>+6 <em>较昨日</em></span>
+              <svg class="spark" viewBox="0 0 72 24" aria-hidden="true"><polyline points="2,17 10,13 18,15 26,10 34,12 42,8 50,11 58,7 70,6" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round"/><circle cx="70" cy="6" r="2.4" fill="var(--primary)"/></svg>
+            </div>
+          </div></article>
+
+          <article class="card"><div class="stat">
+            <div class="stat-top"><span class="stat-label">待办任务</span><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg></span></div>
+            <div class="stat-value">7</div>
+            <div class="stat-foot">
+              <span class="stat-delta good"><svg class="icon" aria-hidden="true"><use href="#i-arrow-down"></use></svg>-3 <em>较昨日</em></span>
+              <svg class="spark" viewBox="0 0 72 24" aria-hidden="true"><polyline points="2,8 10,10 18,9 26,13 34,12 42,15 50,14 58,17 70,18" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round"/><circle cx="70" cy="18" r="2.4" fill="var(--primary)"/></svg>
+            </div>
+          </div></article>
+
+          <article class="card"><div class="stat">
+            <div class="stat-top"><span class="stat-label">今日登录</span><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-send"></use></svg></span></div>
+            <div class="stat-value">213</div>
+            <div class="stat-foot">
+              <span class="stat-delta good"><svg class="icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg>+8.6% <em>较昨日</em></span>
+              <svg class="spark" viewBox="0 0 72 24" aria-hidden="true"><polyline points="2,16 10,14 18,12 26,15 34,11 42,9 50,10 58,6 70,7" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round"/><circle cx="70" cy="7" r="2.4" fill="var(--primary)"/></svg>
+            </div>
+          </div></article>
+        </div>
+
+        <div class="grid grid-2-1">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">近 7 日登录趋势</div>
+                <div class="card-sub">累计 1,382 次 · 较上周 +8.6%</div>
+              </div>
+              <span class="chart-badge"><svg class="icon" style="width:11px;height:11px" aria-hidden="true"><use href="#i-arrow-up"></use></svg>+8.6%</span>
+            </div>
+            <div class="card-body chart-body">
+              <div class="chart-canvas" id="login-chart"></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div class="card-title">快捷入口</div>
+              <a class="card-link" href="#"><span>全部功能</span><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg></a>
+            </div>
+            <div class="card-body">
+              <div class="quick-grid">
+                <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg></span><span>用户管理</span></a>
+                <a class="quick-item"><span class="quick-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span><span>角色管理</span></a>
+                <a class="quick-item"><span class="quick-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-menu"></use></svg></span><span>菜单管理</span></a>
+                <a class="quick-item"><span class="quick-icon tint-4"><svg class="icon" aria-hidden="true"><use href="#i-building"></use></svg></span><span>部门管理</span></a>
+                <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-id"></use></svg></span><span>岗位管理</span></a>
+                <a class="quick-item"><span class="quick-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span><span>通知公告</span></a>
+                <a class="quick-item"><span class="quick-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-workflow"></use></svg></span><span>流程设计</span></a>
+                <a class="quick-item"><span class="quick-icon tint-4"><svg class="icon" aria-hidden="true"><use href="#i-check-square"></use></svg></span><span>我的待办</span></a>
+                <a class="quick-item"><span class="quick-icon tint-neutral"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span>登录日志</span></a>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="grid grid-3">
+          <article class="card">
+            <div class="card-head">
+              <div class="card-title">通知公告</div>
+              <a class="card-link" href="#">查看全部</a>
+            </div>
+            <div class="card-body">
+              <div class="notice-list">
+                <div class="notice-item">
+                  <span class="notice-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span>
+                  <div class="notice-main">
+                    <div class="notice-title">平台 v5.7 升级完成，新增角色权限审计</div>
+                    <div class="notice-meta"><span class="tag info">系统</span><span>2 小时前</span></div>
+                  </div>
+                </div>
+                <div class="notice-item">
+                  <span class="notice-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span>
+                  <div class="notice-main">
+                    <div class="notice-title">请于本周内完成弱口令排查与整改</div>
+                    <div class="notice-meta"><span class="tag warning">安全</span><span>昨天 16:40</span></div>
+                  </div>
+                </div>
+                <div class="notice-item">
+                  <span class="notice-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-server"></use></svg></span>
+                  <div class="notice-main">
+                    <div class="notice-title">11月9日 22:00 - 24:00 数据库例行维护</div>
+                    <div class="notice-meta"><span class="tag neutral">运维</span><span>11-05</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div class="card-title">最近登录</div>
+              <a class="card-link" href="#">登录日志</a>
+            </div>
+            <div class="card-body tight" style="padding-top:13px">
+              <table class="data-table">
+                <thead><tr><th>用户</th><th>IP</th><th>时间</th><th>状态</th></tr></thead>
+                <tbody>
+                  <tr><td class="strong">李思远</td><td class="num">10.12.3.24</td><td class="time">09:42</td><td><span class="status good"><i class="dot good"></i>成功</span></td></tr>
+                  <tr><td class="strong">王雅雯</td><td class="num">10.12.3.31</td><td class="time">09:18</td><td><span class="status good"><i class="dot good"></i>成功</span></td></tr>
+                  <tr><td class="strong">admin</td><td class="num">127.0.0.1</td><td class="time">08:55</td><td><span class="status good"><i class="dot good"></i>成功</span></td></tr>
+                  <tr><td class="strong">陈默</td><td class="num">10.12.3.27</td><td class="time">08:41</td><td><span class="status critical"><i class="dot critical"></i>失败</span></td></tr>
+                  <tr><td class="strong">赵一鸣</td><td class="num">10.12.3.12</td><td class="time">08:27</td><td><span class="status good"><i class="dot good"></i>成功</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div class="card-title">系统健康</div>
+              <a class="card-link" href="#">监控中心</a>
+            </div>
+            <div class="card-body">
+              <div class="health-services">
+                <div class="health-service"><span class="name"><i class="dot good"></i>应用服务</span><span class="status good">正常</span></div>
+                <div class="health-service"><span class="name"><i class="dot good"></i>MySQL</span><span class="status good">正常</span></div>
+                <div class="health-service"><span class="name"><i class="dot good"></i>Redis</span><span class="status good">正常</span></div>
+                <div class="health-service"><span class="name"><i class="dot warning"></i>任务调度</span><span class="status">延迟 12s</span></div>
+              </div>
+              <div class="meters">
+                <div class="meter-row"><div class="meter-head"><span>CPU 使用率</span><span>42%</span></div><div class="meter-track"><div class="meter-fill" style="width:42%"></div></div></div>
+                <div class="meter-row"><div class="meter-head"><span>内存使用率</span><span>68%</span></div><div class="meter-track"><div class="meter-fill" style="width:68%"></div></div></div>
+                <div class="meter-row"><div class="meter-head"><span>磁盘使用率</span><span>54%</span></div><div class="meter-track"><div class="meter-fill" style="width:54%"></div></div></div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="grid grid-1-1">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">部门人员分布</div>
+                <div class="card-sub">Top 5 · 共 36 个部门 · 单位：人</div>
+              </div>
+              <a class="card-link" href="#">组织架构</a>
+            </div>
+            <div class="card-body">
+              <div class="hbars">
+                <div class="hbar-row"><span class="hbar-label">运营中心</span><div class="hbar-track"><div class="hbar-fill" style="width:100%"></div></div><span class="hbar-value">286</span></div>
+                <div class="hbar-row"><span class="hbar-label">技术中心</span><div class="hbar-track"><div class="hbar-fill" style="width:86.7%"></div></div><span class="hbar-value">248</span></div>
+                <div class="hbar-row"><span class="hbar-label">客户成功部</span><div class="hbar-track"><div class="hbar-fill" style="width:67.5%"></div></div><span class="hbar-value">193</span></div>
+                <div class="hbar-row"><span class="hbar-label">财务部</span><div class="hbar-track"><div class="hbar-fill" style="width:44.1%"></div></div><span class="hbar-value">126</span></div>
+                <div class="hbar-row"><span class="hbar-label">人力资源部</span><div class="hbar-track"><div class="hbar-fill" style="width:34.3%"></div></div><span class="hbar-value">98</span></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div class="card-title">最近操作</div>
+              <a class="card-link" href="#">操作日志</a>
+            </div>
+            <div class="card-body">
+              <div class="timeline">
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>王雅雯</b> 提交了「采购申请」</div><div class="tl-time">10:24 · 采购申请 · 待审批</div></div></div>
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>李思远</b> 通过了「用印申请」</div><div class="tl-time">10:12 · 用印申请 · 已通过</div></div></div>
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>系统</b> 自动归档 12 个已完成流程</div><div class="tl-time">09:45 · 流程归档 · 成功</div></div></div>
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>陈默</b> 更新了部门「客户成功部」</div><div class="tl-time">09:18 · 组织架构 · 已保存</div></div></div>
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>赵一鸣</b> 新增用户「林晓」</div><div class="tl-time">08:56 · 用户管理 · 已创建</div></div></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ============ A / 工作台 ============ -->
+      <section class="view" data-option="a" data-page="workbench" hidden>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">工作台</h1>
+            <p class="page-sub">集中处理你的待办、流程与通知 · 2026-11-07</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn"><svg class="icon" aria-hidden="true"><use href="#i-filter"></use></svg>筛选</button>
+            <button class="btn primary"><svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>新建流程</button>
+          </div>
+        </div>
+
+        <article class="card welcome-card">
+          <div class="welcome-inner">
+            <div class="welcome-main">
+              <div class="avatar-lg">张</div>
+              <div>
+                <div class="welcome-title">上午好，张启明</div>
+                <div class="welcome-sub">运营中心 · 超级管理员 · 上次登录 2026-11-06 18:42</div>
+              </div>
+            </div>
+            <div class="welcome-stats">
+              <div class="welcome-stat"><span class="label">待办</span><span class="value">7</span></div>
+              <div class="welcome-stat"><span class="label">已办</span><span class="value">32</span></div>
+              <div class="welcome-stat"><span class="label">我发起</span><span class="value">12</span></div>
+              <div class="welcome-stat"><span class="label">抄送</span><span class="value">5</span></div>
+            </div>
+          </div>
+        </article>
+
+        <div class="grid grid-2-1">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">我的待办</div>
+                <div class="card-sub">共 7 项 · 其中 2 项已超时</div>
+              </div>
+              <a class="card-link" href="#">全部待办<svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg></a>
+            </div>
+            <div class="card-body">
+              <div class="todo-list">
+                <div class="todo-row">
+                  <div class="todo-main">
+                    <div class="todo-title">采购申请审批 <span class="tag critical"><i class="dot critical"></i>紧急</span></div>
+                    <div class="todo-meta"><span class="who">王雅雯</span><span class="sep">·</span>部门负责人审批<span class="sep">·</span>2 小时前</div>
+                  </div>
+                  <button class="btn small primary">办理</button>
+                </div>
+                <div class="todo-row">
+                  <div class="todo-main">
+                    <div class="todo-title">用印申请 <span class="tag warning"><i class="dot warning"></i>高</span></div>
+                    <div class="todo-meta"><span class="who">李思远</span><span class="sep">·</span>法务审核<span class="sep">·</span>4 小时前</div>
+                  </div>
+                  <button class="btn small primary">办理</button>
+                </div>
+                <div class="todo-row">
+                  <div class="todo-main">
+                    <div class="todo-title">假期申请 <span class="tag neutral">普通</span></div>
+                    <div class="todo-meta"><span class="who">陈默</span><span class="sep">·</span>直属领导审批<span class="sep">·</span>昨天 16:20</div>
+                  </div>
+                  <button class="btn small primary">办理</button>
+                </div>
+                <div class="todo-row">
+                  <div class="todo-main">
+                    <div class="todo-title">供应商准入 · 资质审核 <span class="tag neutral">普通</span></div>
+                    <div class="todo-meta"><span class="who">赵一鸣</span><span class="sep">·</span>资质审核<span class="sep">·</span>昨天 09:12</div>
+                  </div>
+                  <button class="btn small primary">办理</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <div class="stack">
+            <article class="card">
+              <div class="card-head"><div class="card-title">快捷入口</div><a class="card-link" href="#">全部</a></div>
+              <div class="card-body">
+                <div class="quick-grid">
+                  <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-check-square"></use></svg></span><span>我的待办</span></a>
+                  <a class="quick-item"><span class="quick-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-send"></use></svg></span><span>我发起的</span></a>
+                  <a class="quick-item"><span class="quick-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-inbox"></use></svg></span><span>我的抄送</span></a>
+                  <a class="quick-item"><span class="quick-icon tint-4"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span><span>通知公告</span></a>
+                  <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg></span><span>通讯录</span></a>
+                  <a class="quick-item"><span class="quick-icon tint-neutral"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span>流程模板</span></a>
+                </div>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="card-head"><div class="card-title">通知公告</div><a class="card-link" href="#">更多</a></div>
+              <div class="card-body">
+                <div class="notice-list">
+                  <div class="notice-item">
+                    <span class="notice-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span>
+                    <div class="notice-main">
+                      <div class="notice-title">平台 v5.7 升级完成</div>
+                      <div class="notice-meta"><span>2 小时前</span></div>
+                    </div>
+                  </div>
+                  <div class="notice-item">
+                    <span class="notice-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span>
+                    <div class="notice-main">
+                      <div class="notice-title">弱口令排查与整改提醒</div>
+                      <div class="notice-meta"><span>昨天 16:40</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="grid grid-1-1">
+          <article class="card">
+            <div class="card-head">
+              <div class="card-title">我发起的流程</div>
+              <a class="card-link" href="#">全部</a>
+            </div>
+            <div class="card-body tight" style="padding-top:13px">
+              <table class="data-table">
+                <thead><tr><th>流程</th><th>状态</th><th>当前节点</th><th>更新时间</th></tr></thead>
+                <tbody>
+                  <tr><td class="strong">年度采购计划</td><td><span class="tag info">审批中</span></td><td>财务复核</td><td class="time">11-06 15:20</td></tr>
+                  <tr><td class="strong">新员工账号开通</td><td><span class="tag good">已完成</span></td><td>归档</td><td class="time">11-05 10:18</td></tr>
+                  <tr><td class="strong">数据导出授权</td><td><span class="tag critical">已驳回</span></td><td>王雅雯</td><td class="time">11-04 14:05</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div class="card-title">最近动态</div>
+              <a class="card-link" href="#">更多</a>
+            </div>
+            <div class="card-body">
+              <div class="timeline">
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>王雅雯</b> 提交了「采购申请」</div><div class="tl-time">10 分钟前</div></div></div>
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>李思远</b> 通过了「用印申请」</div><div class="tl-time">32 分钟前</div></div></div>
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text">系统自动归档 12 个已完成流程</div><div class="tl-time">1 小时前</div></div></div>
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>陈默</b> 更新了部门「客户成功部」</div><div class="tl-time">2 小时前</div></div></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ============ B / 首页 ============ -->
+      <section class="view" data-option="b" data-page="home" hidden>
+        <div class="b-greeting">
+          <div>
+            <div class="b-eyebrow">2026年11月7日 · 星期六</div>
+            <h1>上午好，张启明</h1>
+            <p>今天有 <strong>7</strong> 项待办，其中 <strong class="danger-text">2 项已超时</strong>。建议先处理超时任务。</p>
+          </div>
+          <div class="date-tile">
+            <span class="date-day">07</span>
+            <span class="date-mon">11月</span>
+            <span class="date-week">星期六 · 第 45 周</span>
+          </div>
+        </div>
+
+        <div class="b-summary">
+          <div class="b-summary-item">
+            <span class="b-summary-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg></span>
+            <div><div class="label">待办任务</div><div class="value">7</div></div>
+            <span class="hint">2 项超时</span>
+          </div>
+          <div class="b-summary-item">
+            <span class="b-summary-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-check-square"></use></svg></span>
+            <div><div class="label">本周已办</div><div class="value">32</div></div>
+            <span class="hint">+12</span>
+          </div>
+          <div class="b-summary-item">
+            <span class="b-summary-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-send"></use></svg></span>
+            <div><div class="label">我发起的</div><div class="value">12</div></div>
+            <span class="hint">3 项审批中</span>
+          </div>
+        </div>
+
+        <div class="grid grid-2-1">
+          <article class="card">
+            <div class="card-head">
+              <div><div class="card-title">我的待办</div><div class="card-sub">按紧急程度排序 · 共 7 项</div></div>
+              <a class="card-link" href="#">全部待办<svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg></a>
+            </div>
+            <div class="card-body">
+              <div class="b-group">
+                <div class="b-group-head"><i class="dot critical"></i>已超时<span class="count">2</span></div>
+                <div class="b-task prio-critical">
+                  <div class="b-task-main">
+                    <div class="b-task-title">采购申请审批 <span class="tag critical">已超时</span></div>
+                    <div class="b-task-meta">采购申请 · 王雅雯 · 部门负责人审批 · 截止 11-06 18:00</div>
+                  </div>
+                  <div class="b-task-actions"><span class="b-task-due">超时 16 小时</span><button class="btn small primary">办理</button></div>
+                </div>
+                <div class="b-task prio-critical">
+                  <div class="b-task-main">
+                    <div class="b-task-title">合同用印申请 <span class="tag critical">已超时</span></div>
+                    <div class="b-task-meta">用印申请 · 李思远 · 法务审核 · 截止 11-06 17:30</div>
+                  </div>
+                  <div class="b-task-actions"><span class="b-task-due">超时 17 小时</span><button class="btn small primary">办理</button></div>
+                </div>
+              </div>
+
+              <div class="b-group">
+                <div class="b-group-head"><i class="dot warning"></i>今天到期<span class="count">3</span></div>
+                <div class="b-task prio-warning">
+                  <div class="b-task-main">
+                    <div class="b-task-title">假期申请 <span class="tag warning">今天到期</span></div>
+                    <div class="b-task-meta">请假流程 · 陈默 · 直属领导审批 · 截止 11-07 18:00</div>
+                  </div>
+                  <div class="b-task-actions"><span class="b-task-due normal">剩余 7 小时</span><button class="btn small">办理</button></div>
+                </div>
+                <div class="b-task prio-warning">
+                  <div class="b-task-main">
+                    <div class="b-task-title">供应商准入 · 资质审核 <span class="tag warning">今天到期</span></div>
+                    <div class="b-task-meta">供应商准入 · 赵一鸣 · 资质审核 · 截止 11-07 20:00</div>
+                  </div>
+                  <div class="b-task-actions"><span class="b-task-due normal">剩余 9 小时</span><button class="btn small">办理</button></div>
+                </div>
+                <div class="b-task prio-warning">
+                  <div class="b-task-main">
+                    <div class="b-task-title">办公用品采购审批 <span class="tag warning">今天到期</span></div>
+                    <div class="b-task-meta">采购申请 · 周敏 · 行政审核 · 截止 11-07 21:00</div>
+                  </div>
+                  <div class="b-task-actions"><span class="b-task-due normal">剩余 10 小时</span><button class="btn small">办理</button></div>
+                </div>
+              </div>
+
+              <div class="b-group">
+                <div class="b-group-head"><i class="dot"></i>本周<span class="count">2</span></div>
+                <div class="b-task prio-normal">
+                  <div class="b-task-main">
+                    <div class="b-task-title">差旅报销审批</div>
+                    <div class="b-task-meta">报销流程 · 林晓 · 财务复核 · 截止 11-09 18:00</div>
+                  </div>
+                  <div class="b-task-actions"><span class="b-task-due normal">剩余 2 天</span><button class="btn small">办理</button></div>
+                </div>
+                <div class="b-task prio-normal">
+                  <div class="b-task-main">
+                    <div class="b-task-title">岗位调整申请</div>
+                    <div class="b-task-meta">人事流程 · 王雅雯 · 人力资源审核 · 截止 11-10 18:00</div>
+                  </div>
+                  <div class="b-task-actions"><span class="b-task-due normal">剩余 3 天</span><button class="btn small">办理</button></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <div class="stack">
+            <article class="card">
+              <div class="card-head"><div class="card-title">快捷入口</div><a class="card-link" href="#">全部</a></div>
+              <div class="card-body">
+                <div class="quick-grid">
+                  <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg></span><span>发起流程</span></a>
+                  <a class="quick-item"><span class="quick-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-check-square"></use></svg></span><span>我的待办</span></a>
+                  <a class="quick-item"><span class="quick-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-send"></use></svg></span><span>我发起的</span></a>
+                  <a class="quick-item"><span class="quick-icon tint-4"><svg class="icon" aria-hidden="true"><use href="#i-inbox"></use></svg></span><span>抄送我的</span></a>
+                  <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span><span>通知公告</span></a>
+                  <a class="quick-item"><span class="quick-icon tint-neutral"><svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg></span><span>流程模板</span></a>
+                </div>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-head"><div class="card-title">通知公告</div><a class="card-link" href="#">更多</a></div>
+              <div class="card-body">
+                <div class="notice-list">
+                  <div class="notice-item"><span class="notice-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span><div class="notice-main"><div class="notice-title">平台 v5.7 升级完成</div><div class="notice-meta"><span class="tag info">系统</span><span>2 小时前</span></div></div></div>
+                  <div class="notice-item"><span class="notice-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span><div class="notice-main"><div class="notice-title">弱口令排查与整改提醒</div><div class="notice-meta"><span class="tag warning">安全</span><span>昨天</span></div></div></div>
+                  <div class="notice-item"><span class="notice-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-server"></use></svg></span><div class="notice-main"><div class="notice-title">数据库例行维护通知</div><div class="notice-meta"><span class="tag neutral">运维</span><span>11-05</span></div></div></div>
+                </div>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-head"><div class="card-title">本周效率</div><span class="card-sub">目标 20 项</span></div>
+              <div class="card-body">
+                <div class="progress-line"><span>已完成 12 / 20</span><span class="right">60%</span></div>
+                <div class="progress-track"><div class="progress-fill" style="width:60%"></div></div>
+                <div class="progress-list" style="margin-top:12px">
+                  <div class="progress-line"><span>平均处理时长</span><span class="right">3.2 小时</span></div>
+                  <div class="progress-line"><span>超时率</span><span class="right">8%</span></div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="grid grid-2-1">
+          <article class="card">
+            <div class="card-head">
+              <div><div class="card-title">我参与的流程</div><div class="card-sub">进行中 3 项</div></div>
+              <a class="card-link" href="#">全部</a>
+            </div>
+            <div class="card-body">
+              <div class="progress-list">
+                <div class="progress-item">
+                  <div class="progress-line"><span>年度采购计划 · 财务复核</span><span class="right">60% · 预计 11-08</span></div>
+                  <div class="progress-track"><div class="progress-fill" style="width:60%"></div></div>
+                </div>
+                <div class="progress-item">
+                  <div class="progress-line"><span>供应商准入 · 资质审核</span><span class="right">35% · 预计 11-10</span></div>
+                  <div class="progress-track"><div class="progress-fill" style="width:35%"></div></div>
+                </div>
+                <div class="progress-item">
+                  <div class="progress-line"><span>假期申请 · 直属领导审批</span><span class="right">80% · 预计 11-07</span></div>
+                  <div class="progress-track"><div class="progress-fill" style="width:80%"></div></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head"><div class="card-title">最近动态</div><a class="card-link" href="#">更多</a></div>
+            <div class="card-body">
+              <div class="timeline">
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>王雅雯</b> 提交了「采购申请」</div><div class="tl-time">10 分钟前</div></div></div>
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>李思远</b> 通过了「用印申请」</div><div class="tl-time">32 分钟前</div></div></div>
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text">系统自动归档 12 个已完成流程</div><div class="tl-time">1 小时前</div></div></div>
+                <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>陈默</b> 更新了部门「客户成功部」</div><div class="tl-time">2 小时前</div></div></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ============ B / 工作台 ============ -->
+      <section class="view" data-option="b" data-page="workbench" hidden>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">工作台</h1>
+            <p class="page-sub">按优先级处理流程任务 · 今日剩余 7 项</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>批量办理</button>
+            <button class="btn primary"><svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>发起流程</button>
+          </div>
+        </div>
+
+        <div class="b-toolbar">
+          <div class="b-tabs">
+            <button class="b-tab active">待办 <span class="count">7</span></button>
+            <button class="b-tab">已办 <span class="count">32</span></button>
+            <button class="b-tab">我发起 <span class="count">12</span></button>
+            <button class="b-tab">抄送 <span class="count">5</span></button>
+          </div>
+          <div class="b-toolbar-right">
+            <div class="b-search">
+              <svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-search"></use></svg>
+              <input type="text" placeholder="搜索流程名称、发起人" aria-label="搜索任务">
+            </div>
+            <button class="btn small"><svg class="icon" aria-hidden="true"><use href="#i-filter"></use></svg>筛选</button>
+          </div>
+        </div>
+
+        <div class="b-workbench-grid">
+          <aside class="card b-filter">
+            <div class="filter-group">
+              <div class="filter-title">任务状态</div>
+              <label class="filter-option active"><input type="checkbox" checked>全部待办<span class="spacer"></span><span class="count">7</span></label>
+              <label class="filter-option"><input type="checkbox">已超时<span class="spacer"></span><span class="count danger">2</span></label>
+              <label class="filter-option"><input type="checkbox">今天到期<span class="spacer"></span><span class="count">3</span></label>
+              <label class="filter-option"><input type="checkbox">本周<span class="spacer"></span><span class="count">2</span></label>
+            </div>
+            <div class="filter-group">
+              <div class="filter-title">流程类型</div>
+              <label class="filter-option"><input type="checkbox" checked>采购申请</label>
+              <label class="filter-option"><input type="checkbox" checked>用印申请</label>
+              <label class="filter-option"><input type="checkbox" checked>假期申请</label>
+              <label class="filter-option"><input type="checkbox">报销审批</label>
+              <label class="filter-option"><input type="checkbox">供应商准入</label>
+            </div>
+            <button class="btn ghost full">清除筛选</button>
+          </aside>
+
+          <section class="card">
+            <div class="b-list-head">
+              <div><div class="title">待办任务</div><div class="hint">按截止时间从近到远排序</div></div>
+              <a class="card-link" href="#">批量选中</a>
+            </div>
+            <div class="b-list">
+              <div class="b-task-row">
+                <input type="checkbox" aria-label="选择任务">
+                <div class="row-main">
+                  <div class="row-title">采购申请审批 <span class="tag critical">已超时</span></div>
+                  <div class="row-meta">采购申请 · 王雅雯 · 部门负责人审批 · 截止 11-06 18:00</div>
+                </div>
+                <div class="row-side"><span class="row-due">超时 16 小时</span><button class="btn small primary">办理</button></div>
+              </div>
+              <div class="b-task-row">
+                <input type="checkbox" aria-label="选择任务">
+                <div class="row-main">
+                  <div class="row-title">合同用印申请 <span class="tag critical">已超时</span></div>
+                  <div class="row-meta">用印申请 · 李思远 · 法务审核 · 截止 11-06 17:30</div>
+                </div>
+                <div class="row-side"><span class="row-due">超时 17 小时</span><button class="btn small primary">办理</button></div>
+              </div>
+              <div class="b-task-row">
+                <input type="checkbox" aria-label="选择任务">
+                <div class="row-main">
+                  <div class="row-title">假期申请 <span class="tag warning">今天到期</span></div>
+                  <div class="row-meta">请假流程 · 陈默 · 直属领导审批 · 截止 11-07 18:00</div>
+                </div>
+                <div class="row-side"><span class="row-due normal">剩余 7 小时</span><button class="btn small">办理</button></div>
+              </div>
+              <div class="b-task-row">
+                <input type="checkbox" aria-label="选择任务">
+                <div class="row-main">
+                  <div class="row-title">供应商准入 · 资质审核 <span class="tag warning">今天到期</span></div>
+                  <div class="row-meta">供应商准入 · 赵一鸣 · 资质审核 · 截止 11-07 20:00</div>
+                </div>
+                <div class="row-side"><span class="row-due normal">剩余 9 小时</span><button class="btn small">办理</button></div>
+              </div>
+              <div class="b-task-row">
+                <input type="checkbox" aria-label="选择任务">
+                <div class="row-main">
+                  <div class="row-title">办公用品采购审批 <span class="tag warning">今天到期</span></div>
+                  <div class="row-meta">采购申请 · 周敏 · 行政审核 · 截止 11-07 21:00</div>
+                </div>
+                <div class="row-side"><span class="row-due normal">剩余 10 小时</span><button class="btn small">办理</button></div>
+              </div>
+              <div class="b-task-row">
+                <input type="checkbox" aria-label="选择任务">
+                <div class="row-main">
+                  <div class="row-title">差旅报销审批 <span class="tag neutral">本周</span></div>
+                  <div class="row-meta">报销流程 · 林晓 · 财务复核 · 截止 11-09 18:00</div>
+                </div>
+                <div class="row-side"><span class="row-due normal">剩余 2 天</span><button class="btn small">办理</button></div>
+              </div>
+              <div class="b-task-row">
+                <input type="checkbox" aria-label="选择任务">
+                <div class="row-main">
+                  <div class="row-title">岗位调整申请 <span class="tag neutral">本周</span></div>
+                  <div class="row-meta">人事流程 · 王雅雯 · 人力资源审核 · 截止 11-10 18:00</div>
+                </div>
+                <div class="row-side"><span class="row-due normal">剩余 3 天</span><button class="btn small">办理</button></div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="b-context">
+            <article class="card">
+              <div class="card-head"><div class="card-title">本周效率</div><span class="card-sub">目标 20 项</span></div>
+              <div class="card-body">
+                <div class="progress-item">
+                  <div class="progress-line"><span>已完成 12 / 20</span><span class="right">60%</span></div>
+                  <div class="progress-track"><div class="progress-fill" style="width:60%"></div></div>
+                </div>
+                <div class="progress-list" style="margin-top:13px">
+                  <div class="progress-line"><span>平均处理时长</span><span class="right">3.2 小时</span></div>
+                  <div class="progress-line"><span>超时率</span><span class="right">8%</span></div>
+                  <div class="progress-line"><span>本周已办</span><span class="right">32 项</span></div>
+                </div>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-head"><div class="card-title">常用流程</div><a class="card-link" href="#">管理</a></div>
+              <div class="card-body">
+                <div class="chip-list">
+                  <a class="chip">采购申请</a>
+                  <a class="chip">用印申请</a>
+                  <a class="chip">假期申请</a>
+                  <a class="chip">报销审批</a>
+                  <a class="chip">供应商准入</a>
+                  <a class="chip">账号权限变更</a>
+                </div>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-head"><div class="card-title">公告</div><a class="card-link" href="#">更多</a></div>
+              <div class="card-body">
+                <div class="notice-list">
+                  <div class="notice-item"><span class="notice-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span><div class="notice-main"><div class="notice-title">v5.7 升级完成</div><div class="notice-meta"><span>2 小时前</span></div></div></div>
+                  <div class="notice-item"><span class="notice-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span><div class="notice-main"><div class="notice-title">弱口令整改提醒</div><div class="notice-meta"><span>昨天</span></div></div></div>
+                </div>
+              </div>
+            </article>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ C / 首页 ============ -->
+      <section class="view" data-option="c" data-page="home" hidden>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">系统门户</h1>
+            <p class="page-sub">同一入口，按登录角色展示不同的首页内容</p>
+          </div>
+          <div class="c-role-toggle">
+            <span class="c-role-label">原型预览视角</span>
+            <div class="seg small" id="c-role-switch">
+              <button data-crole="admin" class="active">管理员</button>
+              <button data-crole="user">业务用户</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-admin-only">
+          <div class="c-status-banner">
+            <i class="dot good"></i>
+            <span class="status good">全部服务正常</span>
+            <span class="time">最后刷新 10:32</span>
+            <span class="spacer"></span>
+            <a class="card-link" href="#">查看监控<svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg></a>
+          </div>
+
+          <div class="grid grid-kpi">
+            <article class="card"><div class="stat">
+              <div class="stat-top"><span class="stat-label">用户总数</span><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg></span></div>
+              <div class="stat-value">1,286</div>
+              <div class="stat-foot"><span class="stat-delta good"><svg class="icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg>+12 <em>本月新增</em></span><svg class="spark" viewBox="0 0 72 24" aria-hidden="true"><polyline points="2,19 10,17 18,18 26,14 34,15 42,12 50,13 58,9 70,8" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round"/><circle cx="70" cy="8" r="2.4" fill="var(--primary)"/></svg></div>
+            </div></article>
+            <article class="card"><div class="stat">
+              <div class="stat-top"><span class="stat-label">在线用户</span><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-activity"></use></svg></span></div>
+              <div class="stat-value">48</div>
+              <div class="stat-foot"><span class="stat-delta good"><svg class="icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg>+6 <em>较昨日</em></span><svg class="spark" viewBox="0 0 72 24" aria-hidden="true"><polyline points="2,17 10,13 18,15 26,10 34,12 42,8 50,11 58,7 70,6" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round"/><circle cx="70" cy="6" r="2.4" fill="var(--primary)"/></svg></div>
+            </div></article>
+            <article class="card"><div class="stat">
+              <div class="stat-top"><span class="stat-label">待办任务</span><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg></span></div>
+              <div class="stat-value">7</div>
+              <div class="stat-foot"><span class="stat-delta good"><svg class="icon" aria-hidden="true"><use href="#i-arrow-down"></use></svg>-3 <em>较昨日</em></span><svg class="spark" viewBox="0 0 72 24" aria-hidden="true"><polyline points="2,8 10,10 18,9 26,13 34,12 42,15 50,14 58,17 70,18" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round"/><circle cx="70" cy="18" r="2.4" fill="var(--primary)"/></svg></div>
+            </div></article>
+            <article class="card"><div class="stat">
+              <div class="stat-top"><span class="stat-label">今日异常日志</span><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg></span></div>
+              <div class="stat-value">3</div>
+              <div class="stat-foot"><span class="stat-delta good"><svg class="icon" aria-hidden="true"><use href="#i-arrow-down"></use></svg>-2 <em>较昨日</em></span><svg class="spark" viewBox="0 0 72 24" aria-hidden="true"><polyline points="2,7 10,9 18,11 26,8 34,12 42,14 50,11 58,16 70,15" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round"/><circle cx="70" cy="15" r="2.4" fill="var(--primary)"/></svg></div>
+            </div></article>
+          </div>
+
+          <div class="grid grid-2-1">
+            <article class="card">
+              <div class="card-head">
+                <div><div class="card-title">流程处理概览</div><div class="card-sub">共 56 项 · 近 7 日</div></div>
+                <a class="card-link" href="#">流程分析</a>
+              </div>
+              <div class="card-body">
+                <div class="seg-bar" aria-label="流程处理构成">
+                  <div class="seg-part" style="flex:7;background:var(--series-1)">7</div>
+                  <div class="seg-part" style="flex:32;background:var(--series-2)">32</div>
+                  <div class="seg-part" style="flex:12;background:var(--series-3)">12</div>
+                  <div class="seg-part dark-label" style="flex:5;background:var(--series-4)">5</div>
+                </div>
+                <div class="seg-legend">
+                  <span class="seg-legend-item"><i style="background:var(--series-1)"></i>待办</span>
+                  <span class="seg-legend-item"><i style="background:var(--series-2)"></i>已办</span>
+                  <span class="seg-legend-item"><i style="background:var(--series-3)"></i>我发起</span>
+                  <span class="seg-legend-item"><i style="background:var(--series-4)"></i>抄送</span>
+                </div>
+                <div class="mini-list">
+                  <div class="mini-row"><span class="mini-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mini-main">采购申请审批 · 王雅雯 · 部门负责人审批</span><span class="mini-time">2 小时前</span></div>
+                  <div class="mini-row"><span class="mini-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mini-main">合同用印申请 · 李思远 · 法务审核</span><span class="mini-time">4 小时前</span></div>
+                  <div class="mini-row"><span class="mini-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mini-main">假期申请 · 陈默 · 直属领导审批</span><span class="mini-time">昨天</span></div>
+                  <div class="mini-row"><span class="mini-icon tint-4"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mini-main">办公用品采购 · 周敏 · 行政审核</span><span class="mini-time">昨天 16:20</span></div>
+                  <div class="mini-row"><span class="mini-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mini-main">差旅报销 · 林晓 · 财务复核</span><span class="mini-time">昨天 14:05</span></div>
+                  <div class="mini-row"><span class="mini-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mini-main">供应商准入 · 赵一鸣 · 资质审核</span><span class="mini-time">11-05 16:20</span></div>
+                  <div class="mini-row"><span class="mini-icon tint-neutral"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mini-main">账号权限变更 · 系统 · 管理员审批</span><span class="mini-time">11-05 09:30</span></div>
+                </div>
+              </div>
+            </article>
+
+            <div class="stack">
+              <article class="card">
+                <div class="card-head"><div class="card-title">快捷入口</div><a class="card-link" href="#">全部</a></div>
+                <div class="card-body">
+                  <div class="quick-grid">
+                    <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg></span><span>用户管理</span></a>
+                    <a class="quick-item"><span class="quick-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span><span>角色管理</span></a>
+                    <a class="quick-item"><span class="quick-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-menu"></use></svg></span><span>菜单管理</span></a>
+                    <a class="quick-item"><span class="quick-icon tint-4"><svg class="icon" aria-hidden="true"><use href="#i-building"></use></svg></span><span>部门管理</span></a>
+                    <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-workflow"></use></svg></span><span>流程设计</span></a>
+                    <a class="quick-item"><span class="quick-icon tint-neutral"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span>操作日志</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="card-head"><div class="card-title">通知公告</div><a class="card-link" href="#">更多</a></div>
+                <div class="card-body">
+                  <div class="notice-list">
+                    <div class="notice-item"><span class="notice-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span><div class="notice-main"><div class="notice-title">v5.7 升级完成，新增权限审计</div><div class="notice-meta"><span class="tag info">系统</span><span>2 小时前</span></div></div></div>
+                    <div class="notice-item"><span class="notice-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span><div class="notice-main"><div class="notice-title">弱口令排查与整改提醒</div><div class="notice-meta"><span class="tag warning">安全</span><span>昨天</span></div></div></div>
+                    <div class="notice-item"><span class="notice-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-server"></use></svg></span><div class="notice-main"><div class="notice-title">数据库例行维护通知</div><div class="notice-meta"><span class="tag neutral">运维</span><span>11-05</span></div></div></div>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="grid grid-2-1">
+            <article class="card">
+              <div class="card-head">
+                <div><div class="card-title">部门人员分布</div><div class="card-sub">Top 5 · 共 36 个部门 · 单位：人</div></div>
+                <a class="card-link" href="#">组织架构</a>
+              </div>
+              <div class="card-body">
+                <div class="hbars">
+                  <div class="hbar-row"><span class="hbar-label">运营中心</span><div class="hbar-track"><div class="hbar-fill" style="width:100%"></div></div><span class="hbar-value">286</span></div>
+                  <div class="hbar-row"><span class="hbar-label">技术中心</span><div class="hbar-track"><div class="hbar-fill" style="width:86.7%"></div></div><span class="hbar-value">248</span></div>
+                  <div class="hbar-row"><span class="hbar-label">客户成功部</span><div class="hbar-track"><div class="hbar-fill" style="width:67.5%"></div></div><span class="hbar-value">193</span></div>
+                  <div class="hbar-row"><span class="hbar-label">财务部</span><div class="hbar-track"><div class="hbar-fill" style="width:44.1%"></div></div><span class="hbar-value">126</span></div>
+                  <div class="hbar-row"><span class="hbar-label">人力资源部</span><div class="hbar-track"><div class="hbar-fill" style="width:34.3%"></div></div><span class="hbar-value">98</span></div>
+                </div>
+                <div class="dept-foot">其余 31 个部门合计 435 人 · 组织架构共 36 个部门</div>
+              </div>
+            </article>
+
+            <div class="stack">
+              <article class="card">
+                <div class="card-head"><div class="card-title">审计提醒</div><a class="card-link" href="#">审计中心</a></div>
+                <div class="card-body">
+                  <div class="mini-list">
+                    <div class="mini-row"><span class="mini-icon" style="color:var(--critical);background:var(--critical-weak)"><svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg></span><span class="mini-main">3 个账号连续登录失败 ≥ 5 次</span><span class="mini-time">待处理</span></div>
+                    <div class="mini-row"><span class="mini-icon" style="color:var(--warning);background:var(--warning-weak)"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span><span class="mini-main">2 个角色存在未使用菜单权限</span><span class="mini-time">待复核</span></div>
+                    <div class="mini-row"><span class="mini-icon tint-neutral"><svg class="icon" aria-hidden="true"><use href="#i-eye"></use></svg></span><span class="mini-main">1 条高风险操作待复核</span><span class="mini-time">今日</span></div>
+                  </div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="card-head"><div class="card-title">系统健康</div><a class="card-link" href="#">监控</a></div>
+                <div class="card-body">
+                  <div class="health-services" style="margin-bottom:10px">
+                    <div class="health-service"><span class="name"><i class="dot good"></i>应用服务</span><span class="status good">正常</span></div>
+                    <div class="health-service"><span class="name"><i class="dot good"></i>MySQL</span><span class="status good">正常</span></div>
+                    <div class="health-service"><span class="name"><i class="dot good"></i>Redis</span><span class="status good">正常</span></div>
+                    <div class="health-service"><span class="name"><i class="dot warning"></i>任务调度</span><span class="status">延迟 12s</span></div>
+                  </div>
+                  <div class="meters">
+                    <div class="meter-row"><div class="meter-head"><span>内存</span><span>68%</span></div><div class="meter-track"><div class="meter-fill" style="width:68%"></div></div></div>
+                    <div class="meter-row"><div class="meter-head"><span>磁盘</span><span>54%</span></div><div class="meter-track"><div class="meter-fill" style="width:54%"></div></div></div>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-user-only">
+          <div class="b-greeting">
+            <div>
+              <div class="b-eyebrow">2026年11月7日 · 星期六</div>
+              <h1>上午好，张启明</h1>
+              <p>今天有 <strong>7</strong> 项待办，其中 <strong class="danger-text">2 项已超时</strong>。</p>
+            </div>
+            <div class="date-tile"><span class="date-day">07</span><span class="date-mon">11月</span><span class="date-week">星期六 · 第 45 周</span></div>
+          </div>
+
+          <div class="b-summary">
+            <div class="b-summary-item"><span class="b-summary-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg></span><div><div class="label">待办任务</div><div class="value">7</div></div><span class="hint">2 项超时</span></div>
+            <div class="b-summary-item"><span class="b-summary-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-check-square"></use></svg></span><div><div class="label">本周已办</div><div class="value">32</div></div><span class="hint">+12</span></div>
+            <div class="b-summary-item"><span class="b-summary-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-send"></use></svg></span><div><div class="label">我发起的</div><div class="value">12</div></div><span class="hint">3 项审批中</span></div>
+          </div>
+
+          <div class="grid grid-2-1">
+            <article class="card">
+              <div class="card-head"><div><div class="card-title">我的待办</div><div class="card-sub">按紧急程度排序 · 共 7 项</div></div><a class="card-link" href="#">全部待办<svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg></a></div>
+              <div class="card-body">
+                <div class="b-group">
+                  <div class="b-group-head"><i class="dot critical"></i>已超时<span class="count">2</span></div>
+                  <div class="b-task prio-critical"><div class="b-task-main"><div class="b-task-title">采购申请审批 <span class="tag critical">已超时</span></div><div class="b-task-meta">采购申请 · 王雅雯 · 部门负责人审批 · 截止 11-06 18:00</div></div><div class="b-task-actions"><span class="b-task-due">超时 16 小时</span><button class="btn small primary">办理</button></div></div>
+                  <div class="b-task prio-critical"><div class="b-task-main"><div class="b-task-title">合同用印申请 <span class="tag critical">已超时</span></div><div class="b-task-meta">用印申请 · 李思远 · 法务审核 · 截止 11-06 17:30</div></div><div class="b-task-actions"><span class="b-task-due">超时 17 小时</span><button class="btn small primary">办理</button></div></div>
+                </div>
+                <div class="b-group">
+                  <div class="b-group-head"><i class="dot warning"></i>今天到期<span class="count">3</span></div>
+                  <div class="b-task prio-warning"><div class="b-task-main"><div class="b-task-title">假期申请 <span class="tag warning">今天到期</span></div><div class="b-task-meta">请假流程 · 陈默 · 直属领导审批 · 截止 11-07 18:00</div></div><div class="b-task-actions"><span class="b-task-due normal">剩余 7 小时</span><button class="btn small">办理</button></div></div>
+                  <div class="b-task prio-warning"><div class="b-task-main"><div class="b-task-title">供应商准入 · 资质审核 <span class="tag warning">今天到期</span></div><div class="b-task-meta">供应商准入 · 赵一鸣 · 资质审核 · 截止 11-07 20:00</div></div><div class="b-task-actions"><span class="b-task-due normal">剩余 9 小时</span><button class="btn small">办理</button></div></div>
+                  <div class="b-task prio-warning"><div class="b-task-main"><div class="b-task-title">办公用品采购审批 <span class="tag warning">今天到期</span></div><div class="b-task-meta">采购申请 · 周敏 · 行政审核 · 截止 11-07 21:00</div></div><div class="b-task-actions"><span class="b-task-due normal">剩余 10 小时</span><button class="btn small">办理</button></div></div>
+                </div>
+                <div class="b-group">
+                  <div class="b-group-head"><i class="dot"></i>本周<span class="count">2</span></div>
+                  <div class="b-task prio-normal"><div class="b-task-main"><div class="b-task-title">差旅报销审批</div><div class="b-task-meta">报销流程 · 林晓 · 财务复核 · 截止 11-09 18:00</div></div><div class="b-task-actions"><span class="b-task-due normal">剩余 2 天</span><button class="btn small">办理</button></div></div>
+                  <div class="b-task prio-normal"><div class="b-task-main"><div class="b-task-title">岗位调整申请</div><div class="b-task-meta">人事流程 · 王雅雯 · 人力资源审核 · 截止 11-10 18:00</div></div><div class="b-task-actions"><span class="b-task-due normal">剩余 3 天</span><button class="btn small">办理</button></div></div>
+                </div>
+              </div>
+            </article>
+
+            <div class="stack">
+              <article class="card">
+                <div class="card-head"><div class="card-title">快捷入口</div><a class="card-link" href="#">全部</a></div>
+                <div class="card-body">
+                  <div class="quick-grid">
+                    <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg></span><span>发起流程</span></a>
+                    <a class="quick-item"><span class="quick-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-check-square"></use></svg></span><span>我的待办</span></a>
+                    <a class="quick-item"><span class="quick-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-send"></use></svg></span><span>我发起的</span></a>
+                    <a class="quick-item"><span class="quick-icon tint-4"><svg class="icon" aria-hidden="true"><use href="#i-inbox"></use></svg></span><span>抄送我的</span></a>
+                    <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span><span>通知公告</span></a>
+                    <a class="quick-item"><span class="quick-icon tint-neutral"><svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg></span><span>流程模板</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="card-head"><div class="card-title">通知公告</div><a class="card-link" href="#">更多</a></div>
+                <div class="card-body">
+                  <div class="notice-list">
+                    <div class="notice-item"><span class="notice-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span><div class="notice-main"><div class="notice-title">平台 v5.7 升级完成</div><div class="notice-meta"><span class="tag info">系统</span><span>2 小时前</span></div></div></div>
+                    <div class="notice-item"><span class="notice-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span><div class="notice-main"><div class="notice-title">弱口令排查与整改提醒</div><div class="notice-meta"><span class="tag warning">安全</span><span>昨天</span></div></div></div>
+                    <div class="notice-item"><span class="notice-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-server"></use></svg></span><div class="notice-main"><div class="notice-title">数据库例行维护通知</div><div class="notice-meta"><span class="tag neutral">运维</span><span>11-05</span></div></div></div>
+                  </div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="card-head"><div class="card-title">我参与的流程</div><span class="card-sub">进行中 3 项</span></div>
+                <div class="card-body">
+                  <div class="progress-list">
+                    <div class="progress-item">
+                      <div class="progress-line"><span>年度采购计划 · 财务复核</span><span class="right">60% · 预计 11-08</span></div>
+                      <div class="progress-track"><div class="progress-fill" style="width:60%"></div></div>
+                    </div>
+                    <div class="progress-item">
+                      <div class="progress-line"><span>供应商准入 · 资质审核</span><span class="right">35% · 预计 11-10</span></div>
+                      <div class="progress-track"><div class="progress-fill" style="width:35%"></div></div>
+                    </div>
+                    <div class="progress-item">
+                      <div class="progress-line"><span>假期申请 · 直属领导审批</span><span class="right">80% · 预计 11-07</span></div>
+                      <div class="progress-track"><div class="progress-fill" style="width:80%"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="grid grid-2-1">
+            <article class="card">
+              <div class="card-head"><div class="card-title">最近动态</div><a class="card-link" href="#">更多</a></div>
+              <div class="card-body">
+                <div class="timeline">
+                  <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>王雅雯</b> 提交了「采购申请」</div><div class="tl-time">10 分钟前</div></div></div>
+                  <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>李思远</b> 通过了「用印申请」</div><div class="tl-time">32 分钟前</div></div></div>
+                  <div class="timeline-item"><div class="tl-main"><div class="tl-text">系统自动归档 12 个已完成流程</div><div class="tl-time">1 小时前</div></div></div>
+                  <div class="timeline-item"><div class="tl-main"><div class="tl-text"><b>陈默</b> 更新了部门「客户成功部」</div><div class="tl-time">2 小时前</div></div></div>
+                </div>
+              </div>
+            </article>
+            <div class="stack">
+              <article class="card">
+                <div class="card-head"><div class="card-title">常用流程</div><a class="card-link" href="#">管理</a></div>
+                <div class="card-body">
+                  <div class="chip-list">
+                    <a class="chip">采购申请</a>
+                    <a class="chip">用印申请</a>
+                    <a class="chip">假期申请</a>
+                    <a class="chip">报销审批</a>
+                    <a class="chip">账号权限变更</a>
+                  </div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="card-head"><div class="card-title">本周效率</div><span class="card-sub">目标 20 项</span></div>
+                <div class="card-body">
+                  <div class="progress-item">
+                    <div class="progress-line"><span>已完成 12 / 20</span><span class="right">60%</span></div>
+                    <div class="progress-track"><div class="progress-fill" style="width:60%"></div></div>
+                  </div>
+                  <div class="progress-list" style="margin-top:13px">
+                    <div class="progress-line"><span>平均处理时长</span><span class="right">3.2 小时</span></div>
+                    <div class="progress-line"><span>超时率</span><span class="right">8%</span></div>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ C / 工作台 ============ -->
+      <section class="view" data-option="c" data-page="workbench" hidden>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">我的工作台</h1>
+            <p class="page-sub">组件化、可自定义的个人工作台</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn" id="edit-layout"><svg class="icon" aria-hidden="true"><use href="#i-grid"></use></svg><span>编辑布局</span></button>
+            <button class="btn primary">工作台设置</button>
+          </div>
+        </div>
+
+        <article class="card c-profile">
+          <div class="c-profile-main">
+            <div class="avatar-lg">张</div>
+            <div>
+              <div class="c-profile-name">张启明</div>
+              <div class="c-profile-sub">运营中心 · 超级管理员 · 上次登录 2026-11-06 18:42</div>
+            </div>
+          </div>
+          <div class="c-profile-meta">
+            <div class="item"><span class="label">待办</span><span class="value">7</span></div>
+            <div class="item"><span class="label">已办</span><span class="value">32</span></div>
+            <div class="item"><span class="label">我发起</span><span class="value">12</span></div>
+          </div>
+        </article>
+
+        <div class="c-widget-grid" id="c-workbench">
+          <article class="widget card span-4">
+            <div class="widget-head">
+              <span class="drag-handle"><svg class="icon" aria-hidden="true"><use href="#i-drag"></use></svg></span>
+              <div class="widget-title">快捷入口</div>
+              <div class="widget-actions"><button class="icon-btn" style="width:24px;height:24px"><svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-more"></use></svg></button></div>
+            </div>
+            <div class="widget-body">
+              <div class="quick-grid">
+                <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg></span><span>发起流程</span></a>
+                <a class="quick-item"><span class="quick-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-check-square"></use></svg></span><span>我的待办</span></a>
+                <a class="quick-item"><span class="quick-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-send"></use></svg></span><span>我发起的</span></a>
+                <a class="quick-item"><span class="quick-icon tint-4"><svg class="icon" aria-hidden="true"><use href="#i-inbox"></use></svg></span><span>抄送我的</span></a>
+                <a class="quick-item"><span class="quick-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span><span>通知公告</span></a>
+                <a class="quick-item"><span class="quick-icon tint-neutral"><svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg></span><span>流程模板</span></a>
+              </div>
+            </div>
+          </article>
+
+          <article class="widget card span-5">
+            <div class="widget-head">
+              <span class="drag-handle"><svg class="icon" aria-hidden="true"><use href="#i-drag"></use></svg></span>
+              <div class="widget-title">我的待办</div>
+              <div class="widget-actions"><a class="card-link" href="#">全部 7 项</a></div>
+            </div>
+            <div class="widget-body">
+              <div class="mini-list">
+                <div class="mini-row"><span class="mini-icon" style="color:var(--critical);background:var(--critical-weak)"><svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg></span><span class="mini-main">采购申请审批 · 王雅雯 · 部门负责人审批</span><span class="mini-time">超时 16h</span></div>
+                <div class="mini-row"><span class="mini-icon" style="color:var(--critical);background:var(--critical-weak)"><svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg></span><span class="mini-main">合同用印申请 · 李思远 · 法务审核</span><span class="mini-time">超时 17h</span></div>
+                <div class="mini-row"><span class="mini-icon" style="color:var(--warning);background:var(--warning-weak)"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg></span><span class="mini-main">假期申请 · 陈默 · 直属领导审批</span><span class="mini-time">今天 18:00</span></div>
+                <div class="mini-row"><span class="mini-icon tint-neutral"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mini-main">供应商准入 · 赵一鸣 · 资质审核</span><span class="mini-time">今天 20:00</span></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="widget card span-3">
+            <div class="widget-head">
+              <span class="drag-handle"><svg class="icon" aria-hidden="true"><use href="#i-drag"></use></svg></span>
+              <div class="widget-title">通知公告</div>
+              <div class="widget-actions"><button class="icon-btn" style="width:24px;height:24px"><svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-more"></use></svg></button></div>
+            </div>
+            <div class="widget-body">
+              <div class="notice-list">
+                <div class="notice-item"><span class="notice-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span><div class="notice-main"><div class="notice-title">v5.7 升级完成，新增权限审计</div><div class="notice-meta"><span>2 小时前</span></div></div></div>
+                <div class="notice-item"><span class="notice-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span><div class="notice-main"><div class="notice-title">弱口令排查与整改提醒</div><div class="notice-meta"><span>昨天</span></div></div></div>
+                <div class="notice-item"><span class="notice-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-server"></use></svg></span><div class="notice-main"><div class="notice-title">数据库例行维护通知</div><div class="notice-meta"><span>11-05</span></div></div></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="widget card span-5">
+            <div class="widget-head">
+              <span class="drag-handle"><svg class="icon" aria-hidden="true"><use href="#i-drag"></use></svg></span>
+              <div class="widget-title">流程处理概览</div>
+              <div class="widget-actions"><a class="card-link" href="#">分析</a></div>
+            </div>
+            <div class="widget-body">
+              <div class="seg-bar" aria-label="流程处理构成">
+                <div class="seg-part" style="flex:7;background:var(--series-1)">7</div>
+                <div class="seg-part" style="flex:32;background:var(--series-2)">32</div>
+                <div class="seg-part" style="flex:12;background:var(--series-3)">12</div>
+                <div class="seg-part dark-label" style="flex:5;background:var(--series-4)">5</div>
+              </div>
+              <div class="seg-legend">
+                <span class="seg-legend-item"><i style="background:var(--series-1)"></i>待办</span>
+                <span class="seg-legend-item"><i style="background:var(--series-2)"></i>已办</span>
+                <span class="seg-legend-item"><i style="background:var(--series-3)"></i>我发起</span>
+                <span class="seg-legend-item"><i style="background:var(--series-4)"></i>抄送</span>
+              </div>
+              <div class="mini-list">
+                <div class="mini-row"><span class="mini-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mini-main">采购申请审批 · 部门负责人审批</span><span class="mini-time">2 小时前</span></div>
+                <div class="mini-row"><span class="mini-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mini-main">合同用印申请 · 法务审核</span><span class="mini-time">4 小时前</span></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="widget card span-4">
+            <div class="widget-head">
+              <span class="drag-handle"><svg class="icon" aria-hidden="true"><use href="#i-drag"></use></svg></span>
+              <div class="widget-title">最近访问</div>
+              <div class="widget-actions"><button class="icon-btn" style="width:24px;height:24px"><svg class="icon" style="width:14px;height:14px" aria-hidden="true"><use href="#i-more"></use></svg></button></div>
+            </div>
+            <div class="widget-body">
+              <div class="recent-list">
+                <div class="recent-row"><span class="recent-icon tint-1"><svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg></span><span class="recent-name">用户管理 · 张启明</span><span class="recent-time">10:24</span></div>
+                <div class="recent-row"><span class="recent-icon tint-2"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span><span class="recent-name">角色管理 · 超级管理员</span><span class="recent-time">09:58</span></div>
+                <div class="recent-row"><span class="recent-icon tint-3"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="recent-name">采购申请审批 · WF-20261106-018</span><span class="recent-time">09:42</span></div>
+                <div class="recent-row"><span class="recent-icon tint-4"><svg class="icon" aria-hidden="true"><use href="#i-building"></use></svg></span><span class="recent-name">部门管理 · 客户成功部</span><span class="recent-time">09:18</span></div>
+                <div class="recent-row"><span class="recent-icon tint-neutral"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg></span><span class="recent-name">通知公告 · v5.7 升级完成</span><span class="recent-time">08:56</span></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="widget card span-3">
+            <div class="widget-head">
+              <span class="drag-handle"><svg class="icon" aria-hidden="true"><use href="#i-drag"></use></svg></span>
+              <div class="widget-title">常用流程</div>
+              <div class="widget-actions"><a class="card-link" href="#">管理</a></div>
+            </div>
+            <div class="widget-body">
+              <div class="chip-list">
+                <a class="chip">采购申请</a>
+                <a class="chip">用印申请</a>
+                <a class="chip">假期申请</a>
+                <a class="chip">报销审批</a>
+                <a class="chip">账号权限变更</a>
+                <a class="chip">合同用印</a>
+                <a class="chip">出差申请</a>
+              </div>
+            </div>
+          </article>
+        </div>
+        <div class="c-edit-note">原型演示：点击右上角「编辑布局」查看可拖拽 / 可隐藏的组件态。</div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

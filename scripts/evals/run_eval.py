@@ -24,6 +24,9 @@
   EVAL_SPEC003_MENU_ADMIN_USER / _PASSWORD      默认 spec003_menu_admin / admin123
   EVAL_SPEC003_ROUTER_USER / _PASSWORD          默认 spec003_router / admin123（A-18）
   EVAL_SPEC003_ROUTER_TOKEN                     可选；提供后跳过路由账号登录
+  EVAL_SPEC005_ADMIN_TOKEN / EVAL_SPEC005_LIMITED_TOKEN
+  EVAL_SPEC005_TENANT_B_TOKEN                   SPEC-005 夹具直取令牌；提供后跳过登录，
+                                                保持 A-01/A-02 的登录日志夹具稳定
 """
 from __future__ import annotations
 
@@ -36,7 +39,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 try:
@@ -61,6 +64,12 @@ CLARIFICATION_REFS = {
         "CLAR-005": "已裁决（Spec v1.1）：A-05 不含 authRole；空 roleIds 为 no-op（E-22）",
         "CLAR-006": "已裁决（Spec v1.1）：编辑提交原 userName（只读）",
         "CLAR-007": "已裁决（Spec v1.1）：空 roleIds 返回 200 且为 no-op（E-21）",
+    },
+    "REQ-20261108-006": {
+        "CLAR-011": "已裁决（Spec v1.1）：dueTime 由 flow_task.create_time + 生效 SLA 派生",
+        "CLAR-012": "已裁决（Spec v1.2）：效率统计改为滚动 7×24h + 节点任务时长",
+        "CLAR-013": "已裁决（Spec v1.3）：公告标题长度边界按 30 字符",
+        "CLAR-014": "已裁决（Spec v1.4）：SLA 上限 168h，非法配置启动失败",
     },
 }
 
@@ -116,6 +125,11 @@ def build_env() -> dict[str, str]:
     env.setdefault("EVAL_SPEC003_ROLE_NAME", "Spec003 角色")
     env.setdefault("EVAL_SPEC003_DEPT_NAME", "Spec003 部门")
     env.setdefault("EVAL_SPEC003_MENU_NAME", "Spec003 目录")
+    # SPEC-005 登录趋势 / 工作台分组的日期口径（Asia/Shanghai，D-6～D）。
+    now_cn = datetime.now(timezone(timedelta(hours=8)))
+    for offset in range(7):
+        day = (now_cn - timedelta(days=offset)).strftime("%Y-%m-%d")
+        env.setdefault(f"EVAL_DATE_D{offset or ''}", day)
     return env
 
 
@@ -187,12 +201,41 @@ def run_probe(cases: list[dict], env: dict[str, str]) -> list[dict] | None:
                     "EVAL_SPEC003_ROUTER_PASSWORD", "admin123"
                 ),
             },
+            # SPEC-005：三个账号都走夹具直取令牌，避免评测登录写入
+            # sys_logininfor 干扰 A-01/A-02 的登录数断言。
+            "spec005Admin": {
+                "username": env.get(
+                    "EVAL_SPEC005_ADMIN_USER", "spec005_admin_a"
+                ),
+                "password": env.get(
+                    "EVAL_SPEC005_ADMIN_PASSWORD", "admin123"
+                ),
+            },
+            "spec005Limited": {
+                "username": env.get(
+                    "EVAL_SPEC005_LIMITED_USER", "spec005_limited"
+                ),
+                "password": env.get(
+                    "EVAL_SPEC005_LIMITED_PASSWORD", "admin123"
+                ),
+            },
+            "spec005TenantB": {
+                "username": env.get(
+                    "EVAL_SPEC005_TENANT_B_USER", "spec005_admin_b"
+                ),
+                "password": env.get(
+                    "EVAL_SPEC005_TENANT_B_PASSWORD", "admin123"
+                ),
+            },
         },
         "directTokens": {
             "admin": env.get("EVAL_TOKEN"),
             "limited": env.get("EVAL_NOACCESS_TOKEN"),
             "menuAdmin": env.get("EVAL_SPEC003_MENU_ADMIN_TOKEN"),
             "router": env.get("EVAL_SPEC003_ROUTER_TOKEN"),
+            "spec005Admin": env.get("EVAL_SPEC005_ADMIN_TOKEN"),
+            "spec005Limited": env.get("EVAL_SPEC005_LIMITED_TOKEN"),
+            "spec005TenantB": env.get("EVAL_SPEC005_TENANT_B_TOKEN"),
         },
         "cases": substitute(cases, env),
     }

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aoyou.web.mapper.DashboardMapper">
+
+    <select id="countUsers" resultType="java.lang.Long">
+        select count(*)
+        from sys_user
+        where del_flag = '0'
+          and tenant_id = #{tenantId}
+    </select>
+
+    <select id="selectDeptDistribution" resultType="java.util.Map">
+        select d.dept_id as deptId,
+               d.dept_name as deptName,
+               count(u.user_id) as userCount
+        from sys_dept d
+                 left join sys_user u
+                        on u.dept_id = d.dept_id
+                       and u.del_flag = '0'
+                       and u.tenant_id = d.tenant_id
+        where d.del_flag = '0'
+          and d.tenant_id = #{tenantId}
+        group by d.dept_id, d.dept_name
+        having count(u.user_id) > 0
+        order by userCount desc, d.dept_id asc
+        limit #{limit}
+    </select>
+
+    <select id="selectLoginTrend" resultType="java.util.Map">
+        select date_format(login_time, '%Y-%m-%d') as date,
+               count(*) as count
+        from sys_logininfor
+        where tenant_id = #{tenantId}
+          and status = '0'
+          and login_time &gt;= #{start}
+          and login_time &lt; #{endExclusive}
+        group by date_format(login_time, '%Y-%m-%d')
+        order by date asc
+    </select>
+
+    <select id="countErrorOperations" resultType="java.lang.Long">
+        select count(*)
+        from sys_oper_log
+        where tenant_id = #{tenantId}
+          and status = 1
+          and oper_time &gt;= #{start}
+          and oper_time &lt; #{endExclusive}
+    </select>
+
+    <select id="selectLatestNotices" resultType="java.util.Map">
+        select notice_id as noticeId,
+               notice_title as title,
+               notice_type as noticeType,
+               create_time as createTime
+        from sys_notice
+        where tenant_id = #{tenantId}
+        order by create_time desc, notice_id desc
+        limit #{limit}
+    </select>
+
+    <select id="selectRecentLogins" resultType="java.util.Map">
+        select user_name as userName,
+               ipaddr as ipaddr,
+               login_time as loginTime,
+               status as status
+        from sys_logininfor
+        where tenant_id = #{tenantId}
+        order by login_time desc
+        limit #{limit}
+    </select>
+
+    <select id="selectRecentOperations" resultType="java.util.Map">
+        select oper_name as operName,
+               title as title,
+               oper_time as operTime,
+               status as status
+        from sys_oper_log
+        where tenant_id = #{tenantId}
+        order by oper_time desc
+        limit #{limit}
+    </select>
+
+    <select id="selectUserTenants" resultType="java.util.Map">
+        select user_name as userName, tenant_id as tenantId
+        from sys_user
+        where del_flag = '0'
+        <if test="userNames != null and userNames.size() > 0">
+            and user_name in
+            <foreach collection="userNames" item="userName" open="(" separator="," close=")">
+                #{userName}
+            </foreach>
+        </if>
+        <if test="userNames == null or userNames.size() == 0">
+            and 1 = 0
+        </if>
+    </select>
+
+    <select id="countTodos" resultType="java.lang.Long">
+        select count(distinct t.id)
+        from flow_user u
+                 join flow_task t on t.id = u.associated
+        where u.processed_by = #{userId}
+          and u.type in ('1', '2', '3')
+          and u.del_flag = '0'
+          and t.node_type = 1
+          and t.del_flag = '0'
+    </select>
+
+    <select id="selectTodos" resultType="java.util.Map">
+        select distinct
+               t.id as taskId,
+               coalesce(d.flow_code, '') as flowCode,
+               coalesce(d.flow_name, '未命名流程') as flowName,
+               coalesce(nullif(u2.nick_name, ''), nullif(i.create_by, ''), '未知') as initiatorName,
+               coalesce(nullif(t.node_name, ''), '待办') as nodeName,
+               t.create_time as createTime
+        from flow_user u
+                 join flow_task t on t.id = u.associated
+                 left join flow_definition d on d.id = t.definition_id
+                 left join flow_instance i on i.id = t.instance_id
+                 left join sys_user u2 on u2.user_id = cast(i.create_by as unsigned)
+        where u.processed_by = #{userId}
+          and u.type in ('1', '2', '3')
+          and u.del_flag = '0'
+          and t.node_type = 1
+          and t.del_flag = '0'
+        order by t.create_time asc, t.id asc
+    </select>
+
+    <select id="countDoneTasks" resultType="java.lang.Long">
+        select count(distinct h.id)
+        from flow_his_task h
+        where h.approver = #{userId}
+          and h.del_flag = '0'
+          and h.node_type in ('1', '3', '4')
+          and h.flow_status &lt;&gt; 'copy'
+    </select>
+
+    <select id="countInitiatedInstances" resultType="java.lang.Long">
+        select count(*)
+        from flow_instance i
+        where i.create_by = #{userId}
+          and i.del_flag = '0'
+    </select>
+
+    <select id="countCopyTasks" resultType="java.lang.Long">
+        select count(distinct h.id)
+        from flow_user u
+                 join flow_his_task h on h.task_id = u.associated
+        where u.processed_by = #{userId}
+          and u.type = '4'
+          and u.del_flag = '0'
+          and h.del_flag = '0'
+    </select>
+
+    <select id="selectEfficiencyRecords" resultType="java.util.Map">
+        select h.create_time as createTime,
+               h.update_time as updateTime,
+               coalesce(d.flow_code, '') as flowCode
+        from flow_his_task h
+                 left join flow_definition d on d.id = h.definition_id
+        where h.approver = #{userId}
+          and h.del_flag = '0'
+          and h.flow_status &lt;&gt; 'copy'
+          and h.update_time &gt;= #{start}
+          and h.update_time &lt;= #{end}
+    </select>
+
+    <select id="selectFlowProgress" resultType="java.util.Map">
+        select i.id as instanceId,
+               coalesce(d.flow_name, '未命名流程') as flowName,
+               coalesce(nullif(i.node_name, ''), '处理中') as nodeName,
+               (select count(*)
+                from flow_node n
+                where n.definition_id = i.definition_id
+                  and n.node_type = 1
+                  and n.del_flag = '0') as totalNodes,
+               (select count(distinct h.node_code)
+                from flow_his_task h
+                where h.instance_id = i.id
+                  and h.node_type = 1
+                  and h.flow_status = '2'
+                  and h.del_flag = '0') as doneNodes
+        from flow_instance i
+                 left join flow_definition d on d.id = i.definition_id
+        where i.create_by = #{userId}
+          and i.flow_status = '1'
+          and i.del_flag = '0'
+        order by i.update_time desc, i.id desc
+        limit 5
+    </select>
+
+    <select id="selectCommonFlows" resultType="java.util.Map">
+        select id as definitionId,
+               flow_name as name
+        from flow_definition
+        where is_publish = 1
+          and del_flag = '0'
+        order by id desc
+        limit #{limit}
+    </select>
+</mapper>

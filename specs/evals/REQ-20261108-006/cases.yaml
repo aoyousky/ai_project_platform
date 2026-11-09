@@ -1,0 +1,517 @@
+spec_version: "1.4"
+# REQ-20261108-006（SPEC-005 v1.4 首页/工作台）评测用例。
+#
+# 夹具由 scripts/evals/seed_spec005.sh 分两阶段写入本地 Docker 测试栈：
+#   base → 生成 3 个令牌（spec005_tokens.mjs）→ volatile 重置日志/在线键
+#   → HTTP 探针（直取 EVAL_SPEC005_*_TOKEN，不再真实登录）
+# 编排入口见 scripts/evals/run_spec005.sh。
+#
+# 证据面（scripts/evals/run_eval.py）：
+#   1. HTTP（input/expect/verify）—— 聚合接口的字段、计数、空值语义与租户隔离
+#   2. e2e:    —— frontend/tests/e2e/spec005-home-workbench.spec.ts（按标题 grep）
+#   3. vitest: —— 页面展示逻辑单测（按标题 grep）
+#   4. shell:  —— A-12 真实 MySQL 锁注入 3 秒超时（scripts/evals/spec005_timeout_probe.py）
+#
+# `probe: false` 表示纯 DOM 行为（A-08/A-10/A-14），证据只来自 e2e。
+# A-12 的 DOM 错误态由 e2e 的路由 mock 覆盖，真实超时由 shell 覆盖。
+# 占位符 ${EVAL_DATE_D} = 请求当天、${EVAL_DATE_D1}～${EVAL_DATE_D6} = 前 1～6 天
+# （Asia/Shanghai，run_eval.py build_env 提供）。
+cases:
+  # ---------------------------------------------------------------- A-01
+  - id: TC-A01
+    assertion: A-01
+    auth: spec005Admin
+    input:
+      method: GET
+      path: /dashboard/home
+    expect:
+      status: 200
+      code: 200
+      json:
+        data:
+          metrics:
+            userTotal: 1286
+            onlineTotal: 48
+            todoTotal: 7
+            todayLoginTotal: 213
+            todayErrorLogTotal: 3
+      arrays_empty:
+        - data.warnings
+      string_matches:
+        - path: data.serverTime
+          pattern: '\+08:00$'
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-01
+    vitest:
+      file: apps/web-antdv-next/src/views/dashboard/home/home-page-logic.test.ts
+      grep: A-01
+
+  # ---------------------------------------------------------------- A-02
+  - id: TC-A02
+    assertion: A-02
+    auth: spec005Admin
+    input:
+      method: GET
+      path: /dashboard/home
+    expect:
+      status: 200
+      code: 200
+      array_length_eq:
+        - path: data.loginTrend
+          length: 7
+      json:
+        data:
+          loginTrend:
+            - date: ${EVAL_DATE_D6}
+              count: 142
+            - date: ${EVAL_DATE_D5}
+              count: 168
+            - date: ${EVAL_DATE_D4}
+              count: 153
+            - date: ${EVAL_DATE_D3}
+              count: 201
+            - date: ${EVAL_DATE_D2}
+              count: 187
+            - date: ${EVAL_DATE_D1}
+              count: 226
+            - date: ${EVAL_DATE_D}
+              count: 213
+      not_nulls:
+        - data.loginTrend
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-02
+    vitest:
+      file: apps/web-antdv-next/src/views/dashboard/home/home-page-logic.test.ts
+      grep: A-02
+
+  # ---------------------------------------------------------------- A-03
+  - id: TC-A03
+    assertion: A-03
+    auth: spec005Admin
+    input:
+      method: GET
+      path: /dashboard/home
+    expect:
+      status: 200
+      code: 200
+      array_length_eq:
+        - path: data.deptDistribution
+          length: 5
+      json:
+        data:
+          deptDistribution:
+            - deptName: 运营中心
+              userCount: 286
+            - deptName: 技术中心
+              userCount: 248
+            - deptName: 客户成功部
+              userCount: 193
+            - deptName: 财务部
+              userCount: 126
+            - deptName: 人力资源部
+              userCount: 98
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-03
+
+  # ---------------------------------------------------------------- A-04
+  - id: TC-A04
+    assertion: A-04
+    auth: spec005Admin
+    input:
+      method: GET
+      path: /dashboard/home
+    expect:
+      status: 200
+      code: 200
+      json:
+        data:
+          health:
+            status: DEGRADED
+            services:
+              - name: 应用服务
+                status: UP
+              - name: MySQL
+                status: UP
+              - name: Redis
+                status: UP
+              - name: 任务调度
+                status: UNKNOWN
+                latencyMs: null
+      array_length_eq:
+        - path: data.health.services
+          length: 4
+      nulls:
+        - data.health.services.3.latencyMs
+      number_range:
+        - path: data.health.cpuUsage
+          min: 0
+          max: 100
+        - path: data.health.memoryUsage
+          min: 0
+          max: 100
+        - path: data.health.diskUsage
+          min: 0
+          max: 100
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-04
+    vitest:
+      file: apps/web-antdv-next/src/views/dashboard/home/home-page-logic.test.ts
+      grep: A-04
+
+  # ---------------------------------------------------------------- A-05
+  - id: TC-A05
+    assertion: A-05
+    auth: spec005Admin
+    input:
+      method: GET
+      path: /dashboard/home
+    expect:
+      status: 200
+      code: 200
+      array_length_eq:
+        - path: data.notices
+          length: 3
+        - path: data.recentLogins
+          length: 5
+        - path: data.recentOperations
+          length: 5
+      json:
+        data:
+          notices:
+            - title: 系统升级通知
+            - title: 安全提醒：请更新密码
+            - title: 国庆值班安排
+      array_field_in:
+        - path: data.recentLogins
+          field: status
+          values:
+            - SUCCESS
+            - FAIL
+        - path: data.recentOperations
+          field: status
+          values:
+            - SUCCESS
+            - FAIL
+      # 种子公告没有发布时间；契约规定 null = 未设置，不得伪造时间
+      nulls:
+        - data.notices.0.publishTime
+        - data.notices.1.publishTime
+        - data.notices.2.publishTime
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-05
+
+  # ---------------------------------------------------------------- A-06
+  - id: TC-A06
+    assertion: A-06
+    auth: spec005Limited
+    input:
+      method: GET
+      path: /dashboard/home
+    expect:
+      status: 200
+      code: 200
+      json:
+        data:
+          metrics:
+            todoTotal: 7
+      nulls:
+        - data.metrics.userTotal
+        - data.metrics.onlineTotal
+        - data.metrics.todayLoginTotal
+        - data.metrics.todayErrorLogTotal
+        - data.loginTrend
+        - data.deptDistribution
+        - data.health
+        - data.recentLogins
+        - data.recentOperations
+      array_length_eq:
+        - path: data.notices
+          length: 3
+        - path: data.warnings
+          length: 9
+      array_objects_contain:
+        - path: data.warnings
+          contains:
+            field: metrics.userTotal
+            code: PERMISSION_DENIED
+        - path: data.warnings
+          contains:
+            field: deptDistribution
+            code: PERMISSION_DENIED
+        - path: data.warnings
+          contains:
+            field: metrics.onlineTotal
+            code: PERMISSION_DENIED
+        - path: data.warnings
+          contains:
+            field: metrics.todayLoginTotal
+            code: PERMISSION_DENIED
+        - path: data.warnings
+          contains:
+            field: loginTrend
+            code: PERMISSION_DENIED
+        - path: data.warnings
+          contains:
+            field: recentLogins
+            code: PERMISSION_DENIED
+        - path: data.warnings
+          contains:
+            field: metrics.todayErrorLogTotal
+            code: PERMISSION_DENIED
+        - path: data.warnings
+          contains:
+            field: recentOperations
+            code: PERMISSION_DENIED
+        - path: data.warnings
+          contains:
+            field: health
+            code: PERMISSION_DENIED
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-06
+
+  # ---------------------------------------------------------------- A-07
+  - id: TC-A07
+    assertion: A-07
+    auth: spec005Admin
+    input:
+      method: GET
+      path: /dashboard/workbench
+    expect:
+      status: 200
+      code: 200
+      json:
+        data:
+          metrics:
+            todoTotal: 7
+            doneTotal: 32
+            initiatedTotal: 12
+            copyTotal: 5
+          groupCounts:
+            overdue: 2
+            today: 3
+            next7Days: 2
+            unscheduled: 0
+      array_length_eq:
+        - path: data.groups.overdue
+          length: 2
+        - path: data.groups.today
+          length: 3
+        - path: data.groups.next7Days
+          length: 2
+        - path: data.groups.unscheduled
+          length: 0
+      array_field_in:
+        - path: data.groups.overdue
+          field: priority
+          values:
+            - OVERDUE
+        - path: data.groups.today
+          field: priority
+          values:
+            - TODAY
+        - path: data.groups.next7Days
+          field: priority
+          values:
+            - NEXT_7_DAYS
+      arrays_empty:
+        - data.warnings
+        - data.groups.unscheduled
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-07
+    vitest:
+      file: apps/web-antdv-next/src/views/dashboard/workspace/workbench-page-logic.test.ts
+      grep: A-07
+
+  # ---------------------------------------------------------------- A-08
+  # 纯 DOM：四个筛选入口的点击结果只由 e2e 覆盖
+  - id: TC-A08
+    assertion: A-08
+    probe: false
+    input:
+      method: E2E
+      path: frontend/tests/e2e/spec005-home-workbench.spec.ts
+    expect:
+      e2e: "A-08"
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-08
+    vitest:
+      file: apps/web-antdv-next/src/views/dashboard/workspace/workbench-page-logic.test.ts
+      grep: A-08
+
+  # ---------------------------------------------------------------- A-09
+  - id: TC-A09
+    assertion: A-09
+    auth: spec005Admin
+    input:
+      method: GET
+      path: /dashboard/workbench
+    expect:
+      status: 200
+      code: 200
+      json:
+        data:
+          efficiency:
+            completedThisWeek: 12
+            weeklyTarget: 20
+            avgHandleHours: 3.2
+            overdueRate: 8
+      not_nulls:
+        - data.efficiency.avgHandleHours
+        - data.efficiency.overdueRate
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-09
+    vitest:
+      file: apps/web-antdv-next/src/views/dashboard/workspace/workbench-page-logic.test.ts
+      grep: A-09
+
+  # ---------------------------------------------------------------- A-10
+  # 真实登录会写 sys_logininfor，只能放在探针之后；本用例只断言路由与标题
+  - id: TC-A10
+    assertion: A-10
+    probe: false
+    input:
+      method: E2E
+      path: frontend/tests/e2e/spec005-home-workbench.spec.ts
+    expect:
+      e2e: "A-10"
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-10
+
+  # ---------------------------------------------------------------- A-11
+  - id: TC-A11
+    assertion: A-11
+    auth: spec005TenantB
+    input:
+      method: GET
+      path: /dashboard/home
+    expect:
+      status: 200
+      code: 200
+      json:
+        data:
+          metrics:
+            userTotal: 42
+      array_length_eq:
+        - path: data.deptDistribution
+          length: 3
+      array_field_not_in:
+        - path: data.deptDistribution
+          field: deptName
+          values:
+            - 运营中心
+            - 技术中心
+            - 客户成功部
+            - 财务部
+            - 人力资源部
+      string_matches:
+        - path: data.serverTime
+          pattern: '\+08:00$'
+    verify:
+      - auth: spec005Admin
+        method: GET
+        path: /dashboard/home
+        expect:
+          status: 200
+          code: 200
+          json:
+            data:
+              metrics:
+                userTotal: 1286
+          array_length_eq:
+            - path: data.deptDistribution
+              length: 5
+          array_field_not_in:
+            - path: data.deptDistribution
+              field: deptName
+              values:
+                - 租户B客户一组
+                - 租户B客户二组
+                - 租户B海外组
+          string_matches:
+            - path: data.serverTime
+              pattern: '\+08:00$'
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-11
+
+  # ---------------------------------------------------------------- A-12
+  # 真实超时：对 sys_logininfor 加写锁 12s，接口查询 3s 超时后降级为 null + TIMEOUT。
+  # DOM 错误态：e2e 用路由 mock 返回同一降级载荷，断言 home-trend-error 可见、
+  # home-trend-chart 不渲染。
+  - id: TC-A12
+    assertion: A-12
+    input:
+      method: SHELL
+      path: scripts/evals/spec005_timeout_probe.py
+    expect:
+      exit_code: 0
+    shell:
+      cmd: python scripts/evals/spec005_timeout_probe.py
+      expect_empty: true
+      timeout: 180
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-12
+    vitest:
+      file: apps/web-antdv-next/src/views/dashboard/home/home-page-logic.test.ts
+      grep: A-12
+
+  # ---------------------------------------------------------------- A-13（P1）
+  - id: TC-A13
+    assertion: A-13
+    auth: spec005Admin
+    input:
+      method: GET
+      path: /dashboard/workbench
+    expect:
+      status: 200
+      code: 200
+      array_length_eq:
+        - path: data.flowProgress
+          length: 3
+      json:
+        data:
+          flowProgress:
+            - flowName: 费用报销
+              nodeName: 部门经理审批
+              progressPercent: 50
+              estimatedEndDate: null
+            - flowName: 费用报销
+              nodeName: 财务审批
+              progressPercent: 50
+              estimatedEndDate: null
+            - flowName: 合同审批
+              nodeName: 法务审批
+              progressPercent: null
+              estimatedEndDate: null
+      nulls:
+        - data.flowProgress.2.progressPercent
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-13
+    vitest:
+      file: apps/web-antdv-next/src/views/dashboard/workspace/workbench-page-logic.test.ts
+      grep: A-13
+
+  # ---------------------------------------------------------------- A-14（P1）
+  - id: TC-A14
+    assertion: A-14
+    probe: false
+    input:
+      method: E2E
+      path: frontend/tests/e2e/spec005-home-workbench.spec.ts
+    expect:
+      e2e: "A-14"
+    e2e:
+      spec: tests/e2e/spec005-home-workbench.spec.ts
+      grep: A-14

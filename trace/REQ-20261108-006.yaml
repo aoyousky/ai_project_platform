@@ -1,0 +1,161 @@
+generation_id: gen-20261109-143039
+requirement_id: REQ-20261108-006
+spec_version: "1.4"
+spec_hash: 4a11f8bd9fc1
+constraint_version: 77e727639c28
+allowlist_hash: 4d2d2e9f97f7
+model: deepseek-v4.1-flash
+prompt_version: claudemd-v1
+generated_at: 2026-11-09T14:30:39+08:00
+
+speckit: null
+
+clarification_refs: [CLAR-011, CLAR-012, CLAR-013, CLAR-014]
+reviewer: pending
+review_verdict: pass
+review_notes: >-
+  agent /review 12 项自检全部通过；第 7 项为估算、第 11 项按检查项要求标注“未实测”，
+  详见 docs/evidence/REQ-20261108-006/review-12-items.md。人工复核仍为 pending。
+
+diff_scope:
+  - clarifications/CLAR-011.md
+  - clarifications/CLAR-012.md
+  - clarifications/CLAR-013.md
+  - clarifications/CLAR-014.md
+  - docs/evidence/REQ-20261108-006/red-green-query-timeout.md
+  - docs/evidence/REQ-20261108-006/review-12-items.md
+  - docs/prototypes/home-workspace/app.js
+  - docs/prototypes/home-workspace/index.html
+  - docs/prototypes/home-workspace/README.md
+  - docs/prototypes/home-workspace/screens/a-home-dark.png
+  - docs/prototypes/home-workspace/screens/a-home-light.png
+  - docs/prototypes/home-workspace/screens/a-workbench-dark.png
+  - docs/prototypes/home-workspace/screens/b-home-dark.png
+  - docs/prototypes/home-workspace/screens/b-home-light.png
+  - docs/prototypes/home-workspace/screens/b-workbench-dark.png
+  - docs/prototypes/home-workspace/screens/c-home-admin-dark.png
+  - docs/prototypes/home-workspace/screens/c-home-admin-light.png
+  - docs/prototypes/home-workspace/screens/c-home-user-dark.png
+  - docs/prototypes/home-workspace/screens/c-home-user-light.png
+  - docs/prototypes/home-workspace/screens/c-workbench-dark.png
+  - docs/prototypes/home-workspace/screens/c-workbench-edit-dark.png
+  - docs/prototypes/home-workspace/screens/c-workspace-light.png
+  - docs/prototypes/home-workspace/styles.css
+  - frontend/apps/web-antdv-next/src/api/dashboard/home.ts
+  - frontend/apps/web-antdv-next/src/api/dashboard/types.ts
+  - frontend/apps/web-antdv-next/src/api/dashboard/workbench.ts
+  - frontend/apps/web-antdv-next/src/layouts/basic.vue
+  - frontend/apps/web-antdv-next/src/router/routes/modules/dashboard.ts
+  - frontend/apps/web-antdv-next/src/views/dashboard/home/home-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/dashboard/home/home-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/dashboard/home/home-trend-chart.vue
+  - frontend/apps/web-antdv-next/src/views/dashboard/home/index.vue
+  - frontend/apps/web-antdv-next/src/views/dashboard/workspace/index.vue
+  - frontend/apps/web-antdv-next/src/views/dashboard/workspace/workbench-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/dashboard/workspace/workbench-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/index.vue
+  - frontend/tests/e2e/spec005-home-workbench.spec.ts
+  - frontend/tests/e2e/spec005-token.ts
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/config/DashboardConfig.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/config/DashboardProperties.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/config/DashboardQueryTimeoutInterceptor.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/controller/DashboardController.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/domain/vo/DashboardWarning.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/domain/vo/HomeResponse.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/domain/vo/WorkbenchResponse.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/mapper/DashboardMapper.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/service/dashboard/DashboardEfficiencyCalculator.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/service/dashboard/DashboardSlaCalculator.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/service/dashboard/DashboardTime.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/service/IDashboardService.java
+  - platform/aoyou-admin/src/main/java/com/aoyou/web/service/impl/DashboardServiceImpl.java
+  - platform/aoyou-admin/src/main/resources/application.yml
+  - platform/aoyou-admin/src/main/resources/mapper/DashboardMapper.xml
+  - platform/aoyou-admin/src/test/java/com/aoyou/web/config/DashboardPropertiesTest.java
+  - platform/aoyou-admin/src/test/java/com/aoyou/web/config/DashboardQueryTimeoutInterceptorTest.java
+  - platform/aoyou-admin/src/test/java/com/aoyou/web/service/dashboard/DashboardEfficiencyCalculatorTest.java
+  - platform/aoyou-admin/src/test/java/com/aoyou/web/service/dashboard/DashboardSlaCalculatorTest.java
+  - platform/aoyou-admin/src/test/java/com/aoyou/web/service/impl/DashboardServiceImplTest.java
+  - scripts/evals/docker-compose.spec005.yml
+  - scripts/evals/http_probe.mjs
+  - scripts/evals/run_eval.py
+  - scripts/evals/run_spec005.sh
+  - scripts/evals/seed_spec005.sh
+  - scripts/evals/spec005_redis_seed.py
+  - scripts/evals/spec005_timeout_probe.py
+  - scripts/evals/spec005_tokens.mjs
+  - specs/evals/REQ-20261108-006/cases.yaml
+  - specs/SPEC-005-home-workbench.md
+  - trace/REQ-20261108-006.yaml
+
+assertion_map:
+  A-01: platform/aoyou-admin/src/main/java/com/aoyou/web/service/impl/DashboardServiceImpl.java#L121
+  A-02: platform/aoyou-admin/src/main/java/com/aoyou/web/service/impl/DashboardServiceImpl.java#L509
+  A-03: platform/aoyou-admin/src/main/java/com/aoyou/web/service/impl/DashboardServiceImpl.java#L497
+  A-04: platform/aoyou-admin/src/main/java/com/aoyou/web/service/impl/DashboardServiceImpl.java#L595
+  A-05: platform/aoyou-admin/src/main/java/com/aoyou/web/service/impl/DashboardServiceImpl.java#L549
+  A-06: platform/aoyou-admin/src/main/java/com/aoyou/web/service/impl/DashboardServiceImpl.java#L143
+  A-07: platform/aoyou-admin/src/main/java/com/aoyou/web/service/impl/DashboardServiceImpl.java#L387
+  A-08: frontend/apps/web-antdv-next/src/views/dashboard/workspace/workbench-page-logic.ts#L93
+  A-09: platform/aoyou-admin/src/main/java/com/aoyou/web/service/dashboard/DashboardEfficiencyCalculator.java#L20
+  A-10: frontend/apps/web-antdv-next/src/preferences.ts#L16
+  A-11: platform/aoyou-admin/src/main/resources/mapper/DashboardMapper.xml#L11
+  A-12: platform/aoyou-admin/src/main/java/com/aoyou/web/config/DashboardQueryTimeoutInterceptor.java#L45
+  # P1：以下三项不进入门禁 P0 覆盖统计，但同样记录实现位置
+  A-13: platform/aoyou-admin/src/main/java/com/aoyou/web/service/impl/DashboardServiceImpl.java#L471
+  A-14: frontend/apps/web-antdv-next/src/views/dashboard/workspace/index.vue#L187
+  A-15: platform/aoyou-admin/src/main/java/com/aoyou/web/service/dashboard/DashboardSlaCalculator.java#L38
+
+test_evidence:
+  executed_at: 2026-11-09T14:19:30+08:00
+  base_url: http://localhost:5666
+  total: 14
+  passed: 14
+  report: specs/evals/reports/REQ-20261108-006-20261109-141930.json
+  p0_coverage: 12/12
+  note: >-
+    TC-A01～TC-A14 全部通过；P0 A-01～A-12 全覆盖。评测栈为工作树生产构建
+    （vite preview:5666）+ 重新打包的 awp-backend（含 DashboardController），
+    避免共享容器被其它 worktree 替换导致 404。
+
+unit_tests:
+  backend:
+    executed_at: 2026-11-09T14:23:36+08:00
+    command: >-
+      mvn -f platform/pom.xml -pl aoyou-admin -am test -DskipTests=false
+      -Dsurefire.failIfNoSpecifiedTests=false（MySQL 指向评测栈 localhost:3307）
+    total: 24
+    passed: 24
+    breakdown:
+      DashboardPropertiesTest: 6
+      DashboardQueryTimeoutInterceptorTest: 2
+      DashboardEfficiencyCalculatorTest: 5
+      DashboardSlaCalculatorTest: 6
+      DashboardServiceImplTest: 4
+      TagUnitTest: 1
+  frontend:
+    executed_at: 2026-11-09T14:24:46+08:00
+    command: pnpm test:unit
+    total: 496
+    passed: 496
+    files: 61/61
+
+red_green_evidence:
+  files:
+    - docs/evidence/REQ-20261108-006/red-green-query-timeout.md
+  note: >-
+    RED：DashboardQueryTimeoutInterceptor 在 proceed 前读取不存在的 statement 属性，
+    每查询抛 ReflectionException；修复后 GREEN 24/24。另有 DashboardMapper
+    flowProgress SQL 的 RED→GREEN：reports/REQ-20261108-006-20261109-123750.json
+    12/14 → 修复后 125810.json 13/14 → 补齐 TC-A13/A-14 后本轮 14/14。
+
+review_evidence: docs/evidence/REQ-20261108-006/review-12-items.md
+
+history:
+  - generation_id: gen-20261109-143039
+    spec_version: "1.4"
+    note: >-
+      首版溯源：按签字 SPEC-005 v1.4 交付首页/工作台、权限降级、SLA 派生与
+      3 秒查询超时；14/14 评测通过（P0 12/12），后端 24/24、前端 496/496。
+      期间清理了共享 Redis 中旧 JWT 会话对评测登录的污染，并在评测前重新打包
+      后端，排除其它 worktree 替换容器造成的 /dashboard/home 404 干扰。

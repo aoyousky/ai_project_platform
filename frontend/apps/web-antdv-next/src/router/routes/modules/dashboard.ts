@@ -24,7 +24,8 @@ const routes: RouteRecordRaw[] = [
       },
       {
         name: 'Workspace',
-        path: '/workspace',
+        // SPEC-005 A-07 / A-10：工作台地址固定为 /dashboard/workspace
+        path: 'workspace',
         component: () => import('#/views/dashboard/workspace/index.vue'),
         meta: {
           icon: 'carbon:workspace',
