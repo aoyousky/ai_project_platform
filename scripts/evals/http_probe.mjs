@@ -14,6 +14,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { basename, extname } from 'node:path';
 
 const require = createRequire(
   new URL('../../frontend/package.json', import.meta.url),
@@ -368,7 +369,9 @@ async function send(step, token) {
     headers.clientid = clientId;
   }
   let body;
-  if (step.body !== undefined) {
+  if (step.formData !== undefined) {
+    body = buildFormData(step.formData);
+  } else if (step.body !== undefined) {
     headers['Content-Type'] = 'application/json';
     body = JSON.stringify(step.body);
   }
@@ -390,7 +393,54 @@ async function send(step, token) {
       json = null;
     }
   }
-  return { buffer, contentType, json, latency, status: response.status };
+  return {
+    buffer,
+    contentType,
+    headers: response.headers,
+    json,
+    latency,
+    status: response.status,
+  };
+}
+
+function buildFormData(formData) {
+  const data = new FormData();
+  for (const [key, value] of Object.entries(formData ?? {})) {
+    if (value && typeof value === 'object' && ('path' in value || 'file' in value)) {
+      const filePath = value.path ?? value.file;
+      let bytes;
+      try {
+        bytes = readFileSync(filePath);
+      } catch {
+        // 不把夹具路径写进报告
+        throw new Error('无法读取上传夹具');
+      }
+      const filename = value.filename ?? basename(String(filePath));
+      const contentType = value.contentType ?? mimeFor(filename);
+      data.append(key, new Blob([bytes], { type: contentType }), filename);
+      continue;
+    }
+    data.append(key, String(value));
+  }
+  return data;
+}
+
+function mimeFor(filename) {
+  switch (extname(String(filename)).toLowerCase()) {
+    case '.png':
+      return 'image/png';
+    case '.jpg':
+    case '.jpeg':
+      return 'image/jpeg';
+    case '.gif':
+      return 'image/gif';
+    case '.webp':
+      return 'image/webp';
+    case '.txt':
+      return 'text/plain';
+    default:
+      return 'application/octet-stream';
+  }
 }
 
 function evaluate(response, expect) {
@@ -415,6 +465,18 @@ function evaluate(response, expect) {
   if (expect.msg !== undefined && json?.msg !== expect.msg) {
     errors.push(`msg 期望 ${expect.msg}，实际 ${json?.msg}`);
   }
+  if (expect.msg_contains) {
+    const actual = String(json?.msg ?? '');
+    for (const expected of Array.isArray(expect.msg_contains)
+      ? expect.msg_contains
+      : [expect.msg_contains]) {
+      if (!actual.includes(String(expected))) {
+        errors.push(
+          `msg 期望包含 ${JSON.stringify(expected)}，实际 ${JSON.stringify(actual)}`,
+        );
+      }
+    }
+  }
   if (expect.msg_nonempty && !String(json?.msg ?? '').trim()) {
     errors.push('msg 必须非空');
   }
@@ -435,6 +497,19 @@ function evaluate(response, expect) {
     const hit = rows.some((row) => subsetErrors(row, expect.rows_contains).length === 0);
     if (!hit) {
       errors.push(`rows 中未找到匹配 ${JSON.stringify(expect.rows_contains)} 的记录`);
+    }
+  }
+  if (expect.rows_contains_all) {
+    const rows = Array.isArray(json?.rows) ? json.rows : [];
+    for (const expected of expect.rows_contains_all) {
+      const hit = rows.some(
+        (row) => subsetErrors(row, expected).length === 0,
+      );
+      if (!hit) {
+        errors.push(
+          `rows 中未找到匹配 ${JSON.stringify(expected)} 的记录`,
+        );
+      }
     }
   }
   if (expect.rows_not_contains) {
@@ -537,6 +612,16 @@ function evaluate(response, expect) {
     const contentType = response.contentType.split(';')[0].trim();
     if (!expect.content_type_in.includes(contentType)) {
       errors.push(`Content-Type 期望 ${expect.content_type_in.join(' / ')}，实际 ${contentType || '<空>'}`);
+    }
+  }
+  if (expect.headers_contains) {
+    for (const [name, expected] of Object.entries(expect.headers_contains)) {
+      const actual = response.headers.get(name) ?? '';
+      if (!String(actual).includes(String(expected))) {
+        errors.push(
+          `响应头 ${name} 期望包含 ${JSON.stringify(expected)}，实际 ${JSON.stringify(actual)}`,
+        );
+      }
     }
   }
   if (expect.json_error_allowed && response.contentType.includes('json')) {

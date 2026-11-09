@@ -1,9 +1,10 @@
-# 本地一键启动：MySQL + Redis + 后端 + 前端
+# 本地一键启动：MySQL + Redis + MinIO + 后端 + 前端
 #
 # 用法见 deploy/README.md。前置：deploy/prepare.sh 已跑过（生成 build/app.jar 与 build/dist/）。
 #
 # 镜像全部走 REGISTRY 变量（默认 daocloud 公共镜像代理，因为本机到 Docker Hub 不通）。
 # 能直连 Docker Hub 时：export REGISTRY=docker.io/library
+# MinIO 镜像不在 library/ 命名空间，用 MINIO_IMAGE 单独覆盖（服务端镜像已自带 mc）。
 
 name: ai-work-platform
 
@@ -77,6 +78,44 @@ services:
       timeout: 3s
       retries: 20
 
+  # 对象存储测试服务：A-07（文件管理上传/下载）与 A-08（文件配置）走真实 S3 协议。
+  # 凭据与 sys_oss_config 默认项（ossConfigId=1）保持一致；仅用于本地/CI 测试栈。
+  minio:
+    image: ${MINIO_IMAGE:-quay.io/minio/minio}
+    container_name: awp-minio
+    environment:
+      TZ: Asia/Shanghai
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-aoyou}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-aoyou123}
+    command: ["server", "/data", "--console-address", ":9001"]
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+
+  # 一次性初始化：等待 MinIO 可用 → 建桶 → 开放匿名下载（默认桶权限=public）。
+  # 失败会随 compose up 暴露；重复执行由 --ignore-existing 保证幂等。
+  minio-init:
+    image: ${MINIO_IMAGE:-quay.io/minio/minio}
+    container_name: awp-minio-init
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-aoyou}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-aoyou123}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        until mc alias set awp http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" >/dev/null 2>&1; do
+          sleep 1
+        done
+        mc mb --ignore-existing awp/aoyou
+        mc anonymous set download awp/aoyou
+        echo "MinIO bucket aoyou ready"
+    depends_on:
+      - minio
+    restart: "no"
+
   backend:
     build:
       context: .
@@ -104,6 +143,8 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
 
   frontend:
     build:
@@ -123,3 +164,4 @@ services:
 volumes:
   mysql-data:
   redis-data:
+  minio-data:

@@ -1,0 +1,427 @@
+generation_id: gen-20261107-135525
+requirement_id: REQ-20261107-005
+spec_version: "1.0"
+spec_hash: 6cf2932cc3d0
+constraint_version: 77e727639c28
+allowlist_hash: 4d2d2e9f97f7
+model: deepseek-v4.1-flash
+prompt_version: claudemd-v1
+generated_at: 2026-11-07T13:55:25+08:00
+
+speckit:
+  feature_dir: specs/003-system-auxiliary
+  plan_hash: 3b5ad433db0e
+  tasks_hash: f1dae5efa9a9
+
+clarification_refs: [CLAR-011]
+reviewer: pending
+review_verdict: pending
+
+diff_scope:
+  - .github/workflows/ci-gate.yml
+  - clarifications/CLAR-011.md
+  - deploy/README.md
+  - deploy/docker-compose.yml
+  - frontend/apps/web-antdv-next/src/adapter/component/index.ts
+  - frontend/apps/web-antdv-next/src/adapter/form.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/logininfor/index.test.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/logininfor/index.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/logininfor/types.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/operlog/index.test.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/operlog/index.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/operlog/types.ts
+  - frontend/apps/web-antdv-next/src/api/system/common.test.ts
+  - frontend/apps/web-antdv-next/src/api/system/common.ts
+  - frontend/apps/web-antdv-next/src/api/system/config/index.test.ts
+  - frontend/apps/web-antdv-next/src/api/system/config/index.ts
+  - frontend/apps/web-antdv-next/src/api/system/config/types.ts
+  - frontend/apps/web-antdv-next/src/api/system/dict/index.test.ts
+  - frontend/apps/web-antdv-next/src/api/system/dict/index.ts
+  - frontend/apps/web-antdv-next/src/api/system/dict/types.ts
+  - frontend/apps/web-antdv-next/src/api/system/notice/index.test.ts
+  - frontend/apps/web-antdv-next/src/api/system/notice/index.ts
+  - frontend/apps/web-antdv-next/src/api/system/notice/types.ts
+  - frontend/apps/web-antdv-next/src/api/system/oss/config-types.ts
+  - frontend/apps/web-antdv-next/src/api/system/oss/config.test.ts
+  - frontend/apps/web-antdv-next/src/api/system/oss/config.ts
+  - frontend/apps/web-antdv-next/src/api/system/oss/index.test.ts
+  - frontend/apps/web-antdv-next/src/api/system/oss/index.ts
+  - frontend/apps/web-antdv-next/src/api/system/oss/types.ts
+  - frontend/apps/web-antdv-next/src/utils/system/id.test.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/logininfor/index.vue
+  - frontend/apps/web-antdv-next/src/views/monitor/logininfor/logininfor-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/logininfor/logininfor-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/operlog/components/operlog-detail-modal.vue
+  - frontend/apps/web-antdv-next/src/views/monitor/operlog/index.vue
+  - frontend/apps/web-antdv-next/src/views/monitor/operlog/operlog-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/operlog/operlog-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/system/config/components/config-form.vue
+  - frontend/apps/web-antdv-next/src/views/system/config/config-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/system/config/config-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/system/config/index.vue
+  - frontend/apps/web-antdv-next/src/views/system/dict/components/dict-data-form.vue
+  - frontend/apps/web-antdv-next/src/views/system/dict/components/dict-type-form.vue
+  - frontend/apps/web-antdv-next/src/views/system/dict/data.vue
+  - frontend/apps/web-antdv-next/src/views/system/dict/dict-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/system/dict/dict-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/system/dict/index.vue
+  - frontend/apps/web-antdv-next/src/views/system/notice/components/notice-form.vue
+  - frontend/apps/web-antdv-next/src/views/system/notice/index.vue
+  - frontend/apps/web-antdv-next/src/views/system/notice/legacy-notice-html.test.ts
+  - frontend/apps/web-antdv-next/src/views/system/notice/legacy-notice-html.ts
+  - frontend/apps/web-antdv-next/src/views/system/notice/notice-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/system/notice/notice-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/system/oss/components/oss-config-form.vue
+  - frontend/apps/web-antdv-next/src/views/system/oss/config.vue
+  - frontend/apps/web-antdv-next/src/views/system/oss/index.vue
+  - frontend/apps/web-antdv-next/src/views/system/oss/oss-config-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/system/oss/oss-config-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/system/oss/oss-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/system/oss/oss-page-logic.ts
+  - frontend/tests/e2e/helpers.ts
+  - frontend/tests/e2e/spec004-assertions.spec.ts
+  - frontend/tests/e2e/system-config.spec.ts
+  - frontend/tests/e2e/system-dict.spec.ts
+  - frontend/tests/e2e/system-logininfor.spec.ts
+  - frontend/tests/e2e/system-notice.spec.ts
+  - frontend/tests/e2e/system-operlog.spec.ts
+  - frontend/tests/e2e/system-oss-config.spec.ts
+  - frontend/tests/e2e/system-oss.spec.ts
+  - scripts/evals/http_probe.mjs
+  - scripts/evals/run_eval.py
+  - scripts/evals/seed_spec004.sh
+  - specs/003-system-auxiliary/checklists/requirements.md
+  - specs/003-system-auxiliary/contracts/backend-api-consumed.md
+  - specs/003-system-auxiliary/contracts/routes-and-permissions.md
+  - specs/003-system-auxiliary/contracts/ui-contracts.md
+  - specs/003-system-auxiliary/data-model.md
+  - specs/003-system-auxiliary/plan.md
+  - specs/003-system-auxiliary/quickstart.md
+  - specs/003-system-auxiliary/research.md
+  - specs/003-system-auxiliary/spec.md
+  - specs/003-system-auxiliary/tasks.md
+  - specs/SPEC-004-system-auxiliary.md
+  - specs/evals/REQ-20261107-005/README.md
+  - specs/evals/REQ-20261107-005/cases.yaml
+  - specs/evals/REQ-20261107-005/fixtures/spec004_upload.png
+  - specs/evals/REQ-20261107-005/fixtures/spec004_upload.txt
+  - trace/REQ-20261107-005.yaml
+
+assertion_map:
+  A-01: frontend/apps/web-antdv-next/src/views/system/dict/index.vue#L79
+  # A-01 其余落点：表头 #L149、类型删除 #L298、数据删除 #L337
+  A-02: frontend/apps/web-antdv-next/src/views/system/dict/data.vue#L65
+  # A-02 其余落点：隐藏页按 dictId 取类型 #L143
+  A-03: frontend/apps/web-antdv-next/src/views/system/config/index.vue#L66
+  # A-03 其余落点：删除 #L149、刷新缓存 #L171、导出 #L187
+  A-04: frontend/apps/web-antdv-next/src/views/system/notice/index.vue#L79
+  # A-04 其余落点：删除 #L194；内容 Tiptap 编辑器 components/notice-form.vue#L87
+  A-05: frontend/apps/web-antdv-next/src/views/monitor/operlog/index.vue#L92
+  # A-05 其余落点：删除 #L241；详情 JSON 回退 components/operlog-detail-modal.vue#L95
+  A-06: frontend/apps/web-antdv-next/src/views/monitor/logininfor/index.vue#L82
+  # A-06 其余落点：删除 #L216、解锁 #L265、导出 #L282
+  A-07: frontend/apps/web-antdv-next/src/views/system/oss/index.vue#L97
+  # A-07 其余落点：上传 #L181、下载 #L225、删除 #L207
+  A-08: frontend/apps/web-antdv-next/src/views/system/oss/config.vue#L62
+  # A-08 其余落点：删除 #L176、默认切换 #L189
+  A-09: frontend/apps/web-antdv-next/src/views/system/dict/index.vue#L421
+  # A-09 其余落点：删除入口 #L428、导出入口 #L434；隐藏页 data.vue#L252/#L259/#L265
+  A-10: frontend/apps/web-antdv-next/src/views/system/dict/index.vue#L79
+  # A-10 八个表头：dict/index #L79、dict/data #L65、config #L66、notice #L79、
+  # operlog #L92、logininfor #L82、oss #L97、oss/config #L62
+
+test_evidence:
+  executed_at: 2026-11-09T08:20:17+08:00
+  base_url: http://localhost:8080
+  total: 10
+  passed: 10
+  report: specs/evals/reports/REQ-20261107-005-20261109-082017.json
+  p0_coverage: 10/10
+
+# RED→GREEN 开发期证据（按用户故事追加；不替代 T078 的评测报告）。
+red_green_evidence:
+  - story: US1
+    task_ids: [T009, T010]
+    kind: unit
+    command: "cd frontend && pnpm vitest run --dom src/api/system/dict/index.test.ts src/views/system/dict/dict-page-logic.test.ts"
+    red:
+      observed: >-
+        实现前 2 个测试文件均因目标模块不存在而失败：
+        Failed to resolve import "./index"（T009）与 "./dict-page-logic"（T010）。
+      recorded_at: 2026-11-08（本会话实现前）
+    green:
+      observed: "Test Files 2 passed (2) / Tests 24 passed (24)"
+      recorded_at: 2026-11-08T10:44:35+08:00
+  - story: US1
+    task_ids: [T011, T019]
+    kind: e2e
+    command: "cd frontend && E2E_BACKEND_URL=http://127.0.0.1:8080 pnpm exec playwright test tests/e2e/system-dict.spec.ts"
+    red:
+      observed: >-
+        实现前 2 条用例失败：[data-panel="dict-type"] 元素不存在，
+        页面尚未实现。
+      recorded_at: 2026-11-08（本会话实现前）
+    green:
+      observed: >-
+        2 passed (1.2m)：双栏联动（A-01、A-10）24.7s；
+        隐藏字典数据页（A-02、A-10）19.2s。
+      recorded_at: 2026-11-08T10:46+08:00
+  - story: US2
+    task_ids: [T020, T021]
+    kind: unit
+    command: "cd frontend && pnpm vitest run --dom src/api/system/config/index.test.ts src/views/system/config/config-page-logic.test.ts"
+    red:
+      observed: >-
+        实现前 2 个测试文件均因目标模块不存在而失败：
+        Failed to resolve import "./index"（T020）与 "./config-page-logic"（T021）。
+      recorded_at: 2026-11-08（本会话实现前）
+    green:
+      observed: "Test Files 2 passed (2) / Tests 18 passed (18)"
+      recorded_at: 2026-11-08T10:55:18+08:00
+  - story: US2
+    task_ids: [T022, T028]
+    kind: e2e
+    command: "cd frontend && E2E_BACKEND_URL=http://127.0.0.1:8080 pnpm exec playwright test tests/e2e/system-config.spec.ts"
+    red:
+      observed: >-
+        实现前 1 条用例失败：thead 中“参数名称”表头不可见，页面尚未实现。
+      recorded_at: 2026-11-08（本会话实现前）
+    green:
+      observed: "1 passed (53.6s)：筛选/新增/修改/删除、内置参数删除被拒、刷新缓存（A-03、A-10）29.2s"
+      recorded_at: 2026-11-08T10:57+08:00
+  - story: US3
+    task_ids: [T029, T030, T031, T033, T034, T035, T036]
+    kind: unit
+    command: "cd frontend && pnpm vitest run --dom src/api/system/notice/index.test.ts src/views/system/notice/legacy-notice-html.test.ts src/views/system/notice/notice-page-logic.test.ts"
+    red:
+      observed: >-
+        实现前 T029/T031 两个测试文件因 "./index" 与 "./notice-page-logic"
+        不存在而加载失败；T030 归一化测试在移除 legacy-notice-html.ts 后
+        1 file failed / no tests（敏感度验证）。
+      recorded_at: 2026-11-08（本会话实现前）
+    green:
+      observed: "Test Files 3 passed (3) / Tests 20 passed (20)"
+      recorded_at: 2026-11-08T11:18:09+08:00
+  - story: US3
+    task_ids: [T032, T037, T038, T039]
+    kind: e2e
+    command: "cd frontend && E2E_BACKEND_URL=http://127.0.0.1:8080 pnpm exec playwright test tests/e2e/system-notice.spec.ts"
+    red:
+      observed: >-
+        移除公告页 index.vue 并重新构建后运行：thead“公告标题”不可见，
+        用例在 openNoticePage 断言处失败（element(s) not found）。
+      recorded_at: 2026-11-08T11:34+08:00
+    green:
+      observed: >-
+        1 passed (41.5s)：筛选/富文本回显/新增/修改状态/删除
+        （A-04、A-11、A-10）18.0s。
+      recorded_at: 2026-11-08T11:36+08:00
+  - story: US4
+    task_ids: [T040, T041, T043, T044, T045]
+    kind: unit
+    command: "cd frontend && pnpm vitest run --dom apps/web-antdv-next/src/api/monitor/operlog/index.test.ts apps/web-antdv-next/src/views/monitor/operlog/operlog-page-logic.test.ts"
+    red:
+      observed: >-
+        实现前 2 个测试文件均因目标模块不存在而失败：
+        Failed to resolve import "./index"（T040）与 "./operlog-page-logic"（T041）。
+      recorded_at: 2026-11-08（本会话实现前）
+    green:
+      observed: "Test Files 2 passed (2) / Tests 10 passed (10)"
+      recorded_at: 2026-11-08T12:00:12+08:00
+  - story: US4
+    task_ids: [T042, T046, T047, T048]
+    kind: e2e
+    command: "cd frontend && E2E_BACKEND_URL=http://127.0.0.1:8080 pnpm exec playwright test tests/e2e/system-operlog.spec.ts"
+    red:
+      observed: >-
+        实现前 1 条用例失败：thead“日志编号”表头不可见（element(s) not found，
+        60s 超时），操作日志页尚未实现。
+      recorded_at: 2026-11-08T12:03+08:00
+    green:
+      observed: >-
+        1 passed (56.5s)：按系统模块+操作人员筛选、详情 JSON 格式化、
+        导出 xlsx、删除后 total=0、操作时间升/降序切换
+        （A-05、A-10、A-18）21.5s。
+      recorded_at: 2026-11-08T12:07+08:00
+  - story: US5
+    task_ids: [T049, T050, T052, T053, T054]
+    kind: unit
+    command: "cd frontend && pnpm vitest run --dom apps/web-antdv-next/src/api/monitor/logininfor/index.test.ts apps/web-antdv-next/src/views/monitor/logininfor/logininfor-page-logic.test.ts"
+    red:
+      observed: >-
+        实现前 2 个测试文件均因目标模块不存在而失败：
+        Failed to resolve import "./index"（T049）与 "./logininfor-page-logic"（T050）。
+      recorded_at: 2026-11-08T12:10:07+08:00
+    green:
+      observed: "Test Files 2 passed (2) / Tests 11 passed (11)"
+      recorded_at: 2026-11-08T12:11:07+08:00
+  - story: US5
+    task_ids: [T051, T055, T056]
+    kind: e2e
+    command: "cd frontend && E2E_BACKEND_URL=http://127.0.0.1:8080 pnpm exec playwright test tests/e2e/system-logininfor.spec.ts"
+    red:
+      observed: >-
+        实现前 1 条用例失败：thead“访问编号”表头不可见（element(s) not found，
+        60s 超时），登录日志页尚未实现。
+      recorded_at: 2026-11-08T12:12+08:00
+    green:
+      observed: >-
+        1 passed (55.2s)：用户名称+失败状态筛选、单选解锁与确认、
+        导出 xlsx、删除后 total=0、0/1/2 条勾选时解锁可用性、
+        访问时间升/降序切换（A-06、A-15、A-10、A-18）24.8s。
+      recorded_at: 2026-11-08T12:31+08:00
+  - story: US6
+    task_ids: [T057, T058, T060, T061, T062]
+    kind: unit
+    command: "cd frontend && pnpm vitest run --dom src/api/system/oss/index.test.ts src/views/system/oss/oss-page-logic.test.ts"
+    red:
+      observed: >-
+        实现前 2 个测试文件均因目标模块不存在而失败：
+        Failed to resolve import "./index"（T057）与 "./oss-page-logic"（T058）。
+      recorded_at: 2026-11-08T12:42:43+08:00
+    green:
+      observed: "Test Files 2 passed (2) / Tests 14 passed (14)"
+      recorded_at: 2026-11-08T18:41:02+08:00
+  - story: US6
+    task_ids: [T059, T063, T064]
+    kind: e2e
+    command: "cd frontend && E2E_BACKEND_URL=http://127.0.0.1:8080 pnpm exec playwright test tests/e2e/system-oss.spec.ts"
+    red:
+      observed: >-
+        实现前 2 条用例失败：admin 用例在 openOssPage 等待“文件名”表头
+        60s 超时；E-20 用例登录 spec004_oss_limited 失败（账号不存在，
+        夹具尚未补种）。
+      recorded_at: 2026-11-08T12:49+08:00
+    green:
+      observed: >-
+        2 passed (1.1m)：真实 MinIO 上传 PNG/TXT、列表字段、预览开关
+        true/false 与 img/URL 切换（A-12）、下载 attachment、空文件拦截（E-19）、
+        勾选两条删除后 total=0、配置管理跳转（A-07、A-10）；
+        受限账号上传按钮不渲染且直连上传 403（E-20）。
+      recorded_at: 2026-11-08T18:40+08:00
+  - story: US7
+    task_ids: [T065, T066, T068, T069, T070, T071]
+    kind: unit
+    command: "cd frontend && pnpm vitest run --dom src/api/system/oss/config.test.ts src/views/system/oss/oss-config-page-logic.test.ts"
+    red:
+      observed: >-
+        实现前 2 个测试文件均因目标模块不存在而失败：
+        Cannot find module './config'（T065）与 './oss-config-page-logic'（T066）。
+      recorded_at: 2026-11-08T18:44:56+08:00
+    green:
+      observed: "Test Files 2 passed (2) / Tests 18 passed (18)"
+      recorded_at: 2026-11-08T19:46:50+08:00
+  - story: US7
+    task_ids: [T067, T072, T073]
+    kind: e2e
+    command: "cd frontend && E2E_BACKEND_URL=http://127.0.0.1:8080 pnpm exec playwright test tests/e2e/system-oss-config.spec.ts"
+    red:
+      observed: >-
+        移除 config.vue 并重新构建后运行：columnheader“配置key”不可见
+        （element(s) not found，60s 超时），菜单落到占位页，隐藏配置页尚未实现。
+      recorded_at: 2026-11-08T19:44:04+08:00
+    green:
+      observed: >-
+        1 passed (44.7s)：配置key/桶名称/是否默认筛选、新增（E-24 前端拦截）、
+        修改桶名称、切换默认（A-08）、拦截 changeStatus 失败回滚（A-16）、
+        内置删除原文“系统内置, 不可删除!”（E-23）、删除新增配置、
+        secretKey 仅出现在遮蔽输入且页面文本不含明文（E-31）、
+        表头四项与无占位页（A-10）。
+      recorded_at: 2026-11-08T19:46:25+08:00
+  - story: cross-cutting（/review E-15 修复）
+    task_ids: [T080]
+    kind: e2e
+    command: "cd frontend && E2E_BACKEND_URL=http://127.0.0.1:8080 pnpm exec playwright test tests/e2e/spec004-assertions.spec.ts"
+    red:
+      observed: >-
+        E-15 断言在旧构建上失败：参数设置导出返回 HTTP 200 + JSON 错误体时，
+        页面未展示后端 msg（getByText('模拟导出失败') 60s 内不可见）。
+        根因：downloadBlob 在响应已 resolve 后抛 Error(msg)，请求层全局提示不生效，
+        config/dict 三处导出 catch 为空。
+      recorded_at: 2026-11-08T22:10+08:00
+    green:
+      observed: >-
+        修复后 3 passed (2.1m)：A-09 受限账号、A-10/A-13/A-14/E-32 跨页断言、
+        E-15 导出错误体（参数设置与字典类型两个下载入口均展示后端 msg），
+        独立成测后大用例不再触顶 600s。
+      recorded_at: 2026-11-09T07:10+08:00
+
+history:
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      Spec Packet 初版生成（pending 签名）：断言化 specs/003-system-auxiliary/spec.md，
+      覆盖 8 个视图；10 条 P0 + 8 条 P1 + 34 条边界。CLAR-011 标记为范围变更失效，
+      client/tenant 不在本 Packet。评测集建立节点：签字后、实现启动前，期限 2026-11-21。
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      US1（T009–T019）完成：字典双栏与隐藏字典数据页实现；
+      单测 24/24、E2E 2/2 GREEN，RED→GREEN 证据见 red_green_evidence。
+    at: 2026-11-08T10:46+08:00
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      US2（T020–T028）完成：参数列表/筛选/CRUD/导出/刷新缓存与内置删除保护；
+      单测 18/18、E2E 1/1 GREEN，RED→GREEN 证据见 red_green_evidence。
+    at: 2026-11-08T10:58+08:00
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      US3（T029–T039）完成：公告列表/三项筛选/CRUD/状态变更为中文标签；
+      历史 ql-* 公告在进入 Tiptap 前归一化（align→内联样式、size→h2/h3），
+      脚本节点与事件属性剥离。单测 20/20、E2E 1/1 GREEN。
+    at: 2026-11-08T11:36+08:00
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      US4（T040–T048）完成：操作日志筛选/详情/导出/删除/清空/排序；
+      businessTypes 数组使用 repeat 序列化；operParam/jsonResult 合法 JSON
+      格式化、非法原文回退；详情不展示 tenantId 与堆栈。单测 10/10、
+      E2E 1/1 GREEN。
+    at: 2026-11-08T12:07+08:00
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      US5（T049–T056）完成：登录日志筛选/排序/批量删除/清空/导出/解锁；
+      解锁入口仅在恰好 1 条且用户名非空时可用，解锁后日志保留。
+      单测 11/11、E2E 1/1 GREEN。
+    at: 2026-11-08T12:31+08:00
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      US6（T057–T064）完成：文件列表/筛选/真实 MinIO 上传/下载/删除；
+      预览开关读 sys.oss.previewListResource，条件渲染缩略图，写入失败保持原值；
+      上传显式清空 JSON Content-Type 并放宽超时（真实上传约 14s）；
+      单测 14/14、E2E 2/2 GREEN。
+    at: 2026-11-08T18:41+08:00
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      US7（T065–T073）完成：隐藏文件配置页列表/筛选/CRUD/删除；
+      仅一条默认由后端 changeStatus 保证，页面乐观切换失败回滚；
+      内置配置删除展示后端原文；secretKey 仅进遮蔽输入，不渲染、不写 evidence。
+      单测 18/18、E2E 1/1 GREEN。
+    at: 2026-11-08T19:47:11+08:00
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      /review 发现并修复 E-15 缺陷：downloadBlob 在 HTTP 200 + JSON 错误体时
+      reject Error(msg)（请求已 resolve，全局拦截器不再弹提示），
+      config、dict 类型、dict 数据三处导出 catch 原本为空。补 message.error
+      展示后端 msg；新增独立 E-15 E2E 用例（原先并入大用例导致 600s 触顶）。
+      验证：ESLint 4 文件通过、pnpm build 成功、spec004-assertions 3/3 GREEN (2.1m)；
+      trace 同步 A-09 模板锚点（导出 catch 增加 2 行导致 +2）。
+    at: 2026-11-09T07:12+08:00
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      交付收口证据：全量 E2E 43/43 通过（16.1m，含此前偶发的菜单级联删除用例）；
+      单元 76 文件 606/606 通过；vue-tsc typecheck exit 0；
+      SPEC-004 评测 10/10（REQ-20261107-005-20261109-082017.json）；
+      ci-gate 门禁 1/2/4/5 PASS（门禁 5 全需求 8/8、16/16、13/13、10/10），
+      门禁 3 因外部 SPEC-005（REQ-20261108-006）缺 trace 而 FAIL，未伪造、未绕过；
+      复杂度 ESLint（≤15）exit 0；jscpd 全应用 4.74%（≤5%），本需求模块切片 6.37% 登记为改进项；
+      本地 Docker 栈 awp-frontend 已部署最新构建，容器内 index.html md5 与本地一致
+      （ac8a129c080017eaf15030edf4be75d6）。
+    at: 2026-11-09T08:55+08:00

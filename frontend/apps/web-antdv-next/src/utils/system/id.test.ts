@@ -23,4 +23,13 @@ describe('utils/system/id', () => {
     expect(normalizeIds(['2', 1, null, undefined, ''])).toEqual(['2', '1']);
     expect(normalizeIds(null)).toEqual([]);
   });
+
+  it('超过 2^53-1 的字符串 ID 原样往返（E-30）', () => {
+    // 2^53-1 = 9007199254740991；后一个值作为 number 会丢精度，必须保持字符串
+    const large = '9007199254740993';
+    expect(toIdKey(large)).toBe(large);
+    expect(normalizeIds([large])).toEqual([large]);
+    expect(sameId(large, large)).toBe(true);
+    expect(sameId(large, '9007199254740992')).toBe(false);
+  });
 });

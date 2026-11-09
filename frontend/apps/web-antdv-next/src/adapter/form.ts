@@ -19,6 +19,8 @@ async function initSetupVbenForm() {
         Checkbox: 'checked',
         Radio: 'checked',
         Switch: 'checked',
+        // VbenTiptap 通过 defineModel 暴露 v-model:modelValue
+        Tiptap: 'modelValue',
         Upload: 'fileList',
       },
     },

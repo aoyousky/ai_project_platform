@@ -1,0 +1,754 @@
+# REQ-20261107-005 系统管理辅助模块（SPEC-004 v1.0）
+#
+# HTTP 可观测部分；UI 专属行为（pageerror、表头、按钮不存在、富文本计算样式）
+# 由 frontend/tests/e2e/spec004-assertions.spec.ts 覆盖，并在 Polish 阶段接入。
+# 夹具由 scripts/evals/seed_spec004.sh 预置；A-08 结束前恢复 ossConfigId=1 为默认。
+spec_version: "1.0"
+
+cases:
+  # A-01 字典双栏：类型/数据列表、增改删、受保护类型删除失败
+  - id: TC-A01
+    assertion: A-01
+    auth: admin
+    input:
+      method: GET
+      path: /system/dict/type/list
+      query:
+        dictType: ${EVAL_SPEC004_DICT_TYPE}
+    expect:
+      status: 200
+      code: 200
+      total: 1
+      rows_contains:
+        dictId: ${EVAL_SPEC004_DICT_TYPE_ID}
+        dictName: ${EVAL_SPEC004_DICT_TYPE_NAME}
+        dictType: ${EVAL_SPEC004_DICT_TYPE}
+    verify:
+      - method: GET
+        path: /system/dict/data/list
+        query:
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+        expect:
+          status: 200
+          code: 200
+          total: 2
+      - method: POST
+        path: /system/dict/data
+        body:
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+          dictSort: 3
+          dictLabel: Spec004 新增标签
+          dictValue: spec004_value_c
+          cssClass: ''
+          listClass: default
+          remark: REQ-20261107-005
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/dict/data/list
+        query:
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+        capture:
+          DICT_DATA_NEW_ID: rows.2.dictCode
+        expect:
+          status: 200
+          code: 200
+          total: 3
+          rows_contains:
+            dictLabel: Spec004 新增标签
+      - method: PUT
+        path: /system/dict/data
+        body:
+          dictCode: ${DICT_DATA_NEW_ID}
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+          dictSort: 3
+          dictLabel: Spec004 新增标签-改
+          dictValue: spec004_value_c
+          cssClass: ''
+          listClass: default
+          remark: REQ-20261107-005
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/dict/data/list
+        query:
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+        expect:
+          status: 200
+          code: 200
+          total: 3
+          rows_contains:
+            dictCode: ${DICT_DATA_NEW_ID}
+            dictLabel: Spec004 新增标签-改
+      - method: DELETE
+        path: /system/dict/data/${DICT_DATA_NEW_ID}
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/dict/data/list
+        query:
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+        expect:
+          status: 200
+          code: 200
+          total: 2
+      - method: DELETE
+        path: /system/dict/type/${EVAL_SPEC004_DICT_TYPE_ID}
+        expect:
+          status: 200
+          code_not: 200
+          msg_contains: 已分配,不能删除
+      - method: GET
+        path: /system/dict/type/list
+        query:
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+        expect:
+          status: 200
+          code: 200
+          total: 1
+      - method: GET
+        path: /system/dict/data/list
+        query:
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+        expect:
+          status: 200
+          code: 200
+          total: 2
+
+  # A-02 隐藏字典数据页数据链路：类型详情 → 数据列表 → 修改 → 回读
+  - id: TC-A02
+    assertion: A-02
+    auth: admin
+    input:
+      method: GET
+      path: /system/dict/type/${EVAL_SPEC004_DICT_TYPE_ID}
+    expect:
+      status: 200
+      code: 200
+      json:
+        data:
+          dictId: ${EVAL_SPEC004_DICT_TYPE_ID}
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+    verify:
+      - method: GET
+        path: /system/dict/data/list
+        query:
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+        expect:
+          status: 200
+          code: 200
+          total: 2
+      - method: PUT
+        path: /system/dict/data
+        body:
+          dictCode: ${EVAL_SPEC004_DICT_DATA_A_ID}
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+          dictSort: 1
+          dictLabel: Spec004 标签一-已改
+          dictValue: spec004_value_a
+          cssClass: ''
+          listClass: primary
+          remark: REQ-20261107-005
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/dict/data/${EVAL_SPEC004_DICT_DATA_A_ID}
+        expect:
+          status: 200
+          code: 200
+          json:
+            data:
+              dictCode: ${EVAL_SPEC004_DICT_DATA_A_ID}
+              dictLabel: Spec004 标签一-已改
+      - method: GET
+        path: /system/dict/data/list
+        query:
+          dictType: ${EVAL_SPEC004_DICT_TYPE}
+        expect:
+          status: 200
+          code: 200
+          rows_contains:
+            dictCode: ${EVAL_SPEC004_DICT_DATA_A_ID}
+            dictLabel: Spec004 标签一-已改
+
+  # A-03 参数设置：筛选、增改删、内置参数删除失败、刷新缓存
+  - id: TC-A03
+    assertion: A-03
+    auth: admin
+    input:
+      method: GET
+      path: /system/config/list
+      query:
+        configName: ${EVAL_SPEC004_CONFIG_NAME}
+        configKey: ${EVAL_SPEC004_CONFIG_KEY}
+    expect:
+      status: 200
+      code: 200
+      total: 1
+      rows_contains:
+        configId: ${EVAL_SPEC004_CONFIG_ID}
+        configKey: ${EVAL_SPEC004_CONFIG_KEY}
+        configValue: spec004-value-a
+    verify:
+      - method: POST
+        path: /system/config
+        body:
+          configName: Spec004 新增参数
+          configKey: spec004.config.a03
+          configValue: a03-value
+          configType: N
+          remark: REQ-20261107-005
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/config/list
+        query:
+          configKey: spec004.config.a03
+        capture:
+          NEW_CONFIG_ID: rows.0.configId
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            configKey: spec004.config.a03
+      - method: PUT
+        path: /system/config
+        body:
+          configId: ${NEW_CONFIG_ID}
+          configName: Spec004 新增参数
+          configKey: spec004.config.a03
+          configValue: a03-value-updated
+          configType: N
+          remark: REQ-20261107-005
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/config/list
+        query:
+          configKey: spec004.config.a03
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            configId: ${NEW_CONFIG_ID}
+            configValue: a03-value-updated
+      - method: DELETE
+        path: /system/config/${NEW_CONFIG_ID}
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/config/list
+        query:
+          configKey: spec004.config.a03
+        expect:
+          status: 200
+          code: 200
+          total: 0
+      - method: GET
+        path: /system/config/list
+        query:
+          configKey: sys.oss.previewListResource
+        capture:
+          PREVIEW_CONFIG_ID: rows.0.configId
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            configKey: sys.oss.previewListResource
+            configType: Y
+      - method: DELETE
+        path: /system/config/${PREVIEW_CONFIG_ID}
+        expect:
+          status: 200
+          code_not: 200
+          msg_contains:
+            - 内置参数
+            - 不能删除
+      - method: GET
+        path: /system/config/list
+        query:
+          configKey: sys.oss.previewListResource
+        expect:
+          status: 200
+          code: 200
+          total: 1
+      - method: PUT
+        path: /system/config/updateByKey
+        body:
+          configKey: ${EVAL_SPEC004_CONFIG_KEY}
+          configValue: spec004-value-updated
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/config/configKey/${EVAL_SPEC004_CONFIG_KEY}
+        expect:
+          status: 200
+          code: 200
+          json:
+            data: spec004-value-updated
+      - method: DELETE
+        path: /system/config/refreshCache
+        expect:
+          status: 200
+          code: 200
+
+  # A-04 公告：筛选、详情回显、新增、状态同步、删除
+  - id: TC-A04
+    assertion: A-04
+    auth: admin
+    input:
+      method: GET
+      path: /system/notice/list
+      query:
+        noticeTitle: ${EVAL_SPEC004_NOTICE_TITLE}
+        noticeType: '1'
+        createByName: admin
+    expect:
+      status: 200
+      code: 200
+      total: 1
+      rows_contains:
+        noticeId: ${EVAL_SPEC004_NOTICE_ID}
+        noticeTitle: ${EVAL_SPEC004_NOTICE_TITLE}
+        noticeType: '1'
+        status: '0'
+    verify:
+      - method: GET
+        path: /system/notice/${EVAL_SPEC004_NOTICE_ID}
+        expect:
+          status: 200
+          code: 200
+          json:
+            data:
+              noticeId: ${EVAL_SPEC004_NOTICE_ID}
+              noticeType: '1'
+              status: '0'
+      - method: POST
+        path: /system/notice
+        body:
+          noticeTitle: Spec004 公告-A04
+          noticeType: '1'
+          noticeContent: <p>Spec004 A04 正文</p>
+          status: '0'
+          remark: REQ-20261107-005
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/notice/list
+        query:
+          noticeTitle: Spec004 公告-A04
+        capture:
+          NEW_NOTICE_ID: rows.0.noticeId
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            noticeTitle: Spec004 公告-A04
+      - method: GET
+        path: /system/notice/${NEW_NOTICE_ID}
+        expect:
+          status: 200
+          code: 200
+          json:
+            data:
+              noticeId: ${NEW_NOTICE_ID}
+              noticeContent: <p>Spec004 A04 正文</p>
+              status: '0'
+      - method: PUT
+        path: /system/notice
+        body:
+          noticeId: ${NEW_NOTICE_ID}
+          noticeTitle: Spec004 公告-A04
+          noticeType: '1'
+          noticeContent: <p>Spec004 A04 正文</p>
+          status: '1'
+          remark: REQ-20261107-005
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/notice/list
+        query:
+          noticeTitle: Spec004 公告-A04
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            noticeId: ${NEW_NOTICE_ID}
+            status: '1'
+      - method: DELETE
+        path: /system/notice/${NEW_NOTICE_ID}
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /system/notice/list
+        query:
+          noticeTitle: Spec004 公告-A04
+        expect:
+          status: 200
+          code: 200
+          total: 0
+
+  # A-05 操作日志：筛选、详情字段、删除、导出
+  - id: TC-A05
+    assertion: A-05
+    auth: admin
+    input:
+      method: GET
+      path: /monitor/operlog/list
+      query:
+        title: Spec004 操作
+        operName: spec004_operator
+    expect:
+      status: 200
+      code: 200
+      total_min: 1
+      rows_contains:
+        operId: ${EVAL_SPEC004_OPER_LOG_ID}
+        title: Spec004 操作
+        operName: spec004_operator
+        operParam: '{"key":"value"}'
+        jsonResult: '{"code":200,"msg":"操作成功"}'
+        status: 0
+        costTime: 123
+    verify:
+      - method: POST
+        path: /monitor/operlog/export
+        expect:
+          status: 200
+          body_nonempty: true
+          content_type_in:
+            - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+            - application/octet-stream
+      - method: DELETE
+        path: /monitor/operlog/${EVAL_SPEC004_OPER_LOG_ID}
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /monitor/operlog/list
+        query:
+          title: Spec004 操作
+          operName: spec004_operator
+        expect:
+          status: 200
+          code: 200
+          total: 0
+
+  # A-06 登录日志：筛选、解锁、删除、导出
+  - id: TC-A06
+    assertion: A-06
+    auth: admin
+    input:
+      method: GET
+      path: /monitor/logininfor/list
+      query:
+        userName: ${EVAL_SPEC004_LOGIN_USER}
+        status: '1'
+    expect:
+      status: 200
+      code: 200
+      total_min: 1
+      rows_contains:
+        infoId: ${EVAL_SPEC004_LOGININFOR_ID}
+        userName: ${EVAL_SPEC004_LOGIN_USER}
+        ipaddr: 127.0.0.1
+        loginLocation: 内网IP
+        browser: Chrome
+        os: Windows
+        status: '1'
+    verify:
+      - method: GET
+        path: /monitor/logininfor/unlock/${EVAL_SPEC004_LOGIN_USER}
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /monitor/logininfor/list
+        query:
+          userName: ${EVAL_SPEC004_LOGIN_USER}
+          status: '1'
+        expect:
+          status: 200
+          code: 200
+          total: 1
+      - method: DELETE
+        path: /monitor/logininfor/${EVAL_SPEC004_LOGININFOR_ID}
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /monitor/logininfor/list
+        query:
+          userName: ${EVAL_SPEC004_LOGIN_USER}
+          status: '1'
+        expect:
+          status: 200
+          code: 200
+          total: 0
+      - method: POST
+        path: /monitor/logininfor/export
+        expect:
+          status: 200
+          body_nonempty: true
+          content_type_in:
+            - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+            - application/octet-stream
+
+  # A-07 文件：multipart 上传 PNG/TXT、列表、下载、删除
+  - id: TC-A07
+    assertion: A-07
+    auth: admin
+    input:
+      method: POST
+      path: /resource/oss/upload
+      formData:
+        file:
+          path: specs/evals/REQ-20261107-005/fixtures/spec004_upload.png
+          contentType: image/png
+      capture:
+        OSS_PNG_ID: data.ossId
+    expect:
+      status: 200
+      code: 200
+      body_nonempty: true
+    verify:
+      # 同端点两次上传，避开后端 @RepeatSubmit 的 5 秒窗口
+      - wait: 5500
+      - method: POST
+        path: /resource/oss/upload
+        formData:
+          file:
+            path: specs/evals/REQ-20261107-005/fixtures/spec004_upload.txt
+            contentType: text/plain
+        capture:
+          OSS_TXT_ID: data.ossId
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /resource/oss/list
+        query:
+          originalName: spec004_upload
+        expect:
+          status: 200
+          code: 200
+          total: 2
+          rows_contains_all:
+            - originalName: spec004_upload.png
+              fileSuffix: .png
+              service: minio
+              createByName: admin
+            - originalName: spec004_upload.txt
+              fileSuffix: .txt
+              service: minio
+              createByName: admin
+      - method: GET
+        path: /resource/oss/download/${OSS_PNG_ID}
+        expect:
+          status: 200
+          body_nonempty: true
+          content_type_in:
+            - image/png
+            - application/octet-stream
+          headers_contains:
+            content-disposition: attachment
+      - method: DELETE
+        path: /resource/oss/${OSS_PNG_ID},${OSS_TXT_ID}
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /resource/oss/list
+        query:
+          originalName: spec004_upload
+        expect:
+          status: 200
+          code: 200
+          total: 0
+
+  # A-08 文件配置：列表、增改、唯一默认、内置删除文案、恢复默认
+  - id: TC-A08
+    assertion: A-08
+    auth: admin
+    input:
+      method: GET
+      path: /resource/oss/config/list
+      query:
+        configKey: ${EVAL_SPEC004_OSS_CONFIG_KEY}
+    expect:
+      status: 200
+      code: 200
+      total: 0
+    verify:
+      - method: POST
+        path: /resource/oss/config
+        body:
+          configKey: ${EVAL_SPEC004_OSS_CONFIG_KEY}
+          accessKey: spec004-access
+          secretKey: spec004-not-a-real-secret
+          bucketName: spec004-bucket
+          prefix: ''
+          endpoint: 127.0.0.1:9000
+          domain: ''
+          isHttps: N
+          status: '1'
+          region: ''
+          accessPolicy: '1'
+          remark: REQ-20261107-005
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /resource/oss/config/list
+        query:
+          configKey: ${EVAL_SPEC004_OSS_CONFIG_KEY}
+        capture:
+          NEW_OSS_CONFIG_ID: rows.0.ossConfigId
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            configKey: ${EVAL_SPEC004_OSS_CONFIG_KEY}
+            bucketName: spec004-bucket
+      - method: PUT
+        path: /resource/oss/config
+        body:
+          ossConfigId: ${NEW_OSS_CONFIG_ID}
+          configKey: ${EVAL_SPEC004_OSS_CONFIG_KEY}
+          accessKey: spec004-access
+          secretKey: spec004-not-a-real-secret
+          bucketName: spec004-bucket-2
+          prefix: ''
+          endpoint: 127.0.0.1:9000
+          domain: ''
+          isHttps: N
+          status: '1'
+          region: ''
+          accessPolicy: '1'
+          remark: REQ-20261107-005
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /resource/oss/config/list
+        query:
+          configKey: ${EVAL_SPEC004_OSS_CONFIG_KEY}
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            ossConfigId: ${NEW_OSS_CONFIG_ID}
+            bucketName: spec004-bucket-2
+      - method: PUT
+        path: /resource/oss/config/changeStatus
+        body:
+          ossConfigId: ${NEW_OSS_CONFIG_ID}
+          configKey: ${EVAL_SPEC004_OSS_CONFIG_KEY}
+          status: '0'
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /resource/oss/config/list
+        query:
+          status: '0'
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            configKey: ${EVAL_SPEC004_OSS_CONFIG_KEY}
+      - method: DELETE
+        path: /resource/oss/config/2
+        expect:
+          status: 200
+          code_not: 200
+          msg: 系统内置, 不可删除!
+      - method: GET
+        path: /resource/oss/config/2
+        expect:
+          status: 200
+          code: 200
+          json:
+            data:
+              ossConfigId: 2
+      - method: DELETE
+        path: /resource/oss/config/${NEW_OSS_CONFIG_ID}
+        expect:
+          status: 200
+          code: 200
+      - method: PUT
+        path: /resource/oss/config/changeStatus
+        body:
+          ossConfigId: 1
+          configKey: minio
+          status: '0'
+        expect:
+          status: 200
+          code: 200
+      - method: GET
+        path: /resource/oss/config/list
+        query:
+          status: '0'
+        expect:
+          status: 200
+          code: 200
+          total: 1
+          rows_contains:
+            ossConfigId: 1
+            configKey: minio
+
+  # A-09 受限账号：读成功，写接口 403
+  - id: TC-A09
+    assertion: A-09
+    auth: spec004Limited
+    input:
+      method: GET
+      path: /system/dict/type/list
+      query:
+        dictType: ${EVAL_SPEC004_DICT_TYPE}
+    expect:
+      status: 200
+      code: 200
+      total_min: 1
+    verify:
+      - method: POST
+        path: /system/dict/type
+        body:
+          dictName: Spec004 受限新增
+          dictType: spec004_limited_attempt
+          remark: REQ-20261107-005
+        expect:
+          status: 200
+          code: 403
+          msg: 没有访问权限，请联系管理员授权
+
+  # A-10 路由：8 个目标菜单由 getRouters 提供（精确地址与表头由 E2E 断言）
+  - id: TC-A10
+    assertion: A-10
+    auth: admin
+    input:
+      method: GET
+      path: /system/menu/getRouters
+    expect:
+      status: 200
+      code: 200
+      data_array_min: 1

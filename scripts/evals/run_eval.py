@@ -24,6 +24,9 @@
   EVAL_SPEC003_MENU_ADMIN_USER / _PASSWORD      默认 spec003_menu_admin / admin123
   EVAL_SPEC003_ROUTER_USER / _PASSWORD          默认 spec003_router / admin123（A-18）
   EVAL_SPEC003_ROUTER_TOKEN                     可选；提供后跳过路由账号登录
+  EVAL_SPEC004_LIMITED_USER / _PASSWORD         默认 spec004_limited / admin123（A-09）
+  EVAL_SPEC004_LIMITED_TOKEN                    可选；提供后跳过受限账号登录
+  EVAL_SPEC004_*_ID / _NAME                     固定夹具 ID/名称（与 seed_spec004.sh 对齐）
 """
 from __future__ import annotations
 
@@ -116,6 +119,27 @@ def build_env() -> dict[str, str]:
     env.setdefault("EVAL_SPEC003_ROLE_NAME", "Spec003 角色")
     env.setdefault("EVAL_SPEC003_DEPT_NAME", "Spec003 部门")
     env.setdefault("EVAL_SPEC003_MENU_NAME", "Spec003 目录")
+    # 固定夹具 ID/名称（与 scripts/evals/seed_spec004.sh 一致）
+    env.setdefault("EVAL_SPEC004_DICT_TYPE_ID", "900004000000000001")
+    env.setdefault("EVAL_SPEC004_DICT_TYPE", "spec004_dict_type")
+    env.setdefault("EVAL_SPEC004_DICT_TYPE_NAME", "Spec004 字典类型")
+    env.setdefault("EVAL_SPEC004_DICT_DATA_A_ID", "900004000000000002")
+    env.setdefault("EVAL_SPEC004_DICT_DATA_B_ID", "900004000000000003")
+    env.setdefault("EVAL_SPEC004_DICT_DATA_A_LABEL", "Spec004 标签一")
+    env.setdefault("EVAL_SPEC004_DICT_DATA_B_LABEL", "Spec004 标签二")
+    env.setdefault("EVAL_SPEC004_CONFIG_ID", "900004000000000004")
+    env.setdefault("EVAL_SPEC004_CONFIG_KEY", "spec004.config.key")
+    env.setdefault("EVAL_SPEC004_CONFIG_NAME", "Spec004 参数")
+    env.setdefault("EVAL_SPEC004_NOTICE_ID", "900004000000000005")
+    env.setdefault("EVAL_SPEC004_NOTICE_TITLE", "Spec004 公告")
+    env.setdefault("EVAL_SPEC004_OPER_LOG_ID", "900004000000000006")
+    env.setdefault("EVAL_SPEC004_OPER_NAME", "spec004_operator")
+    env.setdefault("EVAL_SPEC004_LOGININFOR_ID", "900004000000000007")
+    env.setdefault("EVAL_SPEC004_LOGIN_USER", "spec004_lock")
+    env.setdefault("EVAL_SPEC004_LIMITED_ROLE_ID", "900004000000000008")
+    env.setdefault("EVAL_SPEC004_LIMITED_USER_ID", "900004000000000009")
+    env.setdefault("EVAL_SPEC004_OSS_CONFIG_ID", "900004000000000010")
+    env.setdefault("EVAL_SPEC004_OSS_CONFIG_KEY", "spec004_oss_config")
     return env
 
 
@@ -187,12 +211,22 @@ def run_probe(cases: list[dict], env: dict[str, str]) -> list[dict] | None:
                     "EVAL_SPEC003_ROUTER_PASSWORD", "admin123"
                 ),
             },
+            # A-09：仅字典 list/query 权限，用于验证按钮不渲染与写接口 403
+            "spec004Limited": {
+                "username": env.get(
+                    "EVAL_SPEC004_LIMITED_USER", "spec004_limited"
+                ),
+                "password": env.get(
+                    "EVAL_SPEC004_LIMITED_PASSWORD", "admin123"
+                ),
+            },
         },
         "directTokens": {
             "admin": env.get("EVAL_TOKEN"),
             "limited": env.get("EVAL_NOACCESS_TOKEN"),
             "menuAdmin": env.get("EVAL_SPEC003_MENU_ADMIN_TOKEN"),
             "router": env.get("EVAL_SPEC003_ROUTER_TOKEN"),
+            "spec004Limited": env.get("EVAL_SPEC004_LIMITED_TOKEN"),
         },
         "cases": substitute(cases, env),
     }
