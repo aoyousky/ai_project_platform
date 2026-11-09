@@ -16,7 +16,7 @@ import {
   unlockLogininforApi,
 } from '#/api/monitor/logininfor';
 import { dictLabel, useDict } from '#/composables/use-dict';
-import { resolveOutOfRangePage } from '#/utils/system/pagination';
+import { createGridQuery } from '#/utils/system/grid';
 
 import {
   buildLogininforQuery,
@@ -149,32 +149,16 @@ const [LogininforGrid, logininforGridApi] = useVbenVxeGrid({
     proxyConfig: {
       sort: true,
       ajax: {
-        query: async (params: any, formValues: Record<string, any>) => {
-          // 列表重载会清空 vxe 勾选记录；同步清空按钮可用性状态
-          selectedRows.value = [];
-          const page = params.page;
-          const query = buildLogininforQuery(
-            formValues ?? {},
-            page,
-            params.sort ?? undefined,
-          );
-          const { rows, total } = await listLogininforApi(query);
-          // E-13：页码越界时回退到有效页，避免空页/NaN
-          const fallbackPage = resolveOutOfRangePage({
-            pageNum: page.currentPage,
-            pageSize: page.pageSize,
-            rowCount: rows.length,
-            total,
-          });
-          if (fallbackPage === null) {
-            return { items: rows, total };
-          }
-          const corrected = await listLogininforApi({
-            ...query,
-            pageNum: fallbackPage,
-          });
-          return { items: corrected.rows, total: corrected.total };
-        },
+        query: createGridQuery({
+          beforeQuery: () => {
+            selectedRows.value = [];
+            return true;
+          },
+          buildQuery: (values, page, sort) =>
+            buildLogininforQuery(values, page, sort),
+          fetch: listLogininforApi,
+          withSort: true,
+        }),
       },
     },
     rowConfig: { isHover: true, keyField: 'infoId' },

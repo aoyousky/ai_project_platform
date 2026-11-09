@@ -13,37 +13,21 @@ import type {
 } from '#/api/system/oss/config-types';
 
 import { z } from '#/adapter/form';
-import { removeEmptyParams } from '#/utils/system/query';
+import {
+  buildListQuery,
+  type PageParam,
+  trimmedOrNull,
+} from '#/utils/system/query';
 import { runStatusToggle } from '#/utils/system/status';
-
-interface PageParam {
-  currentPage: number;
-  pageSize: number;
-}
-
-function toPageParams(page?: PageParam) {
-  return page
-    ? { pageNum: page.currentPage, pageSize: page.pageSize }
-    : {};
-}
 
 /** 查询：搜索表单 + 分页；空白条件移除 */
 export function buildOssConfigQuery(
   formValues: Record<string, any>,
   page?: PageParam,
 ): OssConfigQuery {
-  return removeEmptyParams({
-    ...formValues,
-    ...toPageParams(page),
-  }) as OssConfigQuery;
-}
-
-function trimmedOrNull(value: unknown): null | string {
-  if (value === null || value === undefined) {
-    return null;
-  }
-  const text = String(value).trim();
-  return text === '' ? null : text;
+  return buildListQuery<OssConfigQuery>(formValues, page, undefined, {
+    withDateRange: false,
+  });
 }
 
 /** 状态展示：0=默认、1=非默认；未知值原样返回，不空白 */

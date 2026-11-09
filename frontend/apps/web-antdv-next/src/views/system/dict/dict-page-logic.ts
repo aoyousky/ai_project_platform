@@ -14,34 +14,20 @@ import type {
 } from '#/api/system/dict/types';
 
 import { clearDictCache } from '#/composables/use-dict';
-import { addDateRange, removeEmptyParams } from '#/utils/system/query';
-
-interface PageParam {
-  currentPage: number;
-  pageSize: number;
-}
-
-function toPageParams(page?: PageParam) {
-  return page
-    ? { pageNum: page.currentPage, pageSize: page.pageSize }
-    : {};
-}
+import {
+  buildListQuery,
+  type PageParam,
+  removeEmptyParams,
+  toPageParams,
+  trimmedOrNull,
+} from '#/utils/system/query';
 
 /** 左侧类型查询：搜索表单 + 日期范围 + 分页 */
 export function buildDictTypeQuery(
   formValues: Record<string, any>,
   page?: PageParam,
 ): DictTypeQuery {
-  const { dateRange, ...rest } = formValues ?? {};
-  return removeEmptyParams(
-    addDateRange(
-      {
-        ...rest,
-        ...toPageParams(page),
-      },
-      dateRange as [string, string] | undefined,
-    ),
-  ) as DictTypeQuery;
+  return buildListQuery<DictTypeQuery>(formValues, page);
 }
 
 /**
@@ -58,14 +44,6 @@ export function buildDictDataQuery(
     dictType,
     ...toPageParams(page),
   }) as DictDataQuery;
-}
-
-function trimmedOrNull(value: unknown): null | string {
-  if (value === null || value === undefined) {
-    return null;
-  }
-  const text = String(value).trim();
-  return text === '' ? null : text;
 }
 
 /** 类型表单值 → 提交体；空备注提交 `null`，编辑时补 `dictId` */

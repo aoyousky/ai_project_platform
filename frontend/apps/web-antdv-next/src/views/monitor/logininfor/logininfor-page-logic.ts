@@ -8,31 +8,11 @@ import type {
   LogininforQuery,
 } from '#/api/monitor/logininfor/types';
 
-import { addDateRange, removeEmptyParams } from '#/utils/system/query';
-
-interface PageParam {
-  currentPage: number;
-  pageSize: number;
-}
-
-interface SortParam {
-  field?: string;
-  order?: 'asc' | 'desc';
-}
-
-function toPageParams(page?: PageParam) {
-  return page
-    ? { pageNum: page.currentPage, pageSize: page.pageSize }
-    : {};
-}
-
-/** 表格排序 → 后端 `orderByColumn` / `isAsc`；缺字段时不发送 */
-function toSortParams(sort?: SortParam) {
-  if (!sort?.field || !sort?.order) {
-    return {};
-  }
-  return { isAsc: sort.order, orderByColumn: sort.field };
-}
+import {
+  buildListQuery,
+  type PageParam,
+  type SortParam,
+} from '#/utils/system/query';
 
 /**
  * 查询：日期范围进 `params`，空白条件移除；`status` 是字符串原样保留。
@@ -42,16 +22,7 @@ export function buildLogininforQuery(
   page?: PageParam,
   sort?: SortParam,
 ): LogininforQuery {
-  const { dateRange, ...rest } = formValues ?? {};
-  const query: Record<string, any> = {
-    ...rest,
-    ...toPageParams(page),
-    ...toSortParams(sort),
-  };
-
-  return removeEmptyParams(
-    addDateRange(query, dateRange as [string, string] | undefined),
-  ) as LogininforQuery;
+  return buildListQuery<LogininforQuery>(formValues, page, sort);
 }
 
 /** 恰好 1 条且有用户名才允许解锁（A-15 / E-16） */

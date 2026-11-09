@@ -20,7 +20,7 @@ import {
   refreshDictTypeCacheApi,
 } from '#/api/system/dict';
 import { clearDictCache } from '#/composables/use-dict';
-import { resolveOutOfRangePage } from '#/utils/system/pagination';
+import { createGridQuery } from '#/utils/system/grid';
 
 import DictDataForm from './components/dict-data-form.vue';
 import DictTypeForm from './components/dict-type-form.vue';
@@ -98,26 +98,10 @@ const [TypeGrid, typeGridApi] = useVbenVxeGrid({
     keepSource: true,
     proxyConfig: {
       ajax: {
-        query: async (params: any, formValues: Record<string, any>) => {
-          const page = params.page;
-          const query = buildDictTypeQuery(formValues ?? {}, page);
-          const { rows, total } = await getDictTypeListApi(query);
-          // E-25：页码越界时回退到最后一页
-          const fallbackPage = resolveOutOfRangePage({
-            pageNum: page.currentPage,
-            pageSize: page.pageSize,
-            rowCount: rows.length,
-            total,
-          });
-          if (fallbackPage === null) {
-            return { items: rows, total };
-          }
-          const corrected = await getDictTypeListApi({
-            ...query,
-            pageNum: fallbackPage,
-          });
-          return { items: corrected.rows, total: corrected.total };
-        },
+        query: createGridQuery({
+          buildQuery: (values, page) => buildDictTypeQuery(values, page),
+          fetch: getDictTypeListApi,
+        }),
       },
     },
     rowConfig: { isHover: true, keyField: 'dictId' },
@@ -176,35 +160,25 @@ const [DataGrid, dataGridApi] = useVbenVxeGrid({
     keepSource: true,
     proxyConfig: {
       ajax: {
-        query: async (params: any, formValues: Record<string, any>) => {
-          if (!selectedDictType.value) {
+        query: createGridQuery({
+          beforeQuery: () => {
+            if (selectedDictType.value) {
+              return true;
+            }
             dictDataCount.value = 0;
-            return { items: [], total: 0 };
-          }
-          const page = params.page;
-          const query = buildDictDataQuery(
-            formValues ?? {},
-            page,
-            selectedDictType.value.dictType,
-          );
-          const { rows, total } = await getDictDataListApi(query);
-          dictDataCount.value = total;
-          const fallbackPage = resolveOutOfRangePage({
-            pageNum: page.currentPage,
-            pageSize: page.pageSize,
-            rowCount: rows.length,
-            total,
-          });
-          if (fallbackPage === null) {
-            return { items: rows, total };
-          }
-          const corrected = await getDictDataListApi({
-            ...query,
-            pageNum: fallbackPage,
-          });
-          dictDataCount.value = corrected.total;
-          return { items: corrected.rows, total: corrected.total };
-        },
+            return false;
+          },
+          buildQuery: (values, page) =>
+            buildDictDataQuery(
+              values,
+              page,
+              selectedDictType.value?.dictType ?? '',
+            ),
+          fetch: getDictDataListApi,
+          onResult: (result) => {
+            dictDataCount.value = result.total;
+          },
+        }),
       },
     },
     rowConfig: { isHover: true, keyField: 'dictCode' },

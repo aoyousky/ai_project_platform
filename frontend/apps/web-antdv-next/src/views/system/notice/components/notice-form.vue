@@ -9,6 +9,7 @@ import { useVbenForm, z } from '#/adapter/form';
 import { addNoticeApi, updateNoticeApi } from '#/api/system/notice';
 import { useDict } from '#/composables/use-dict';
 
+import { createFormConfirmHandler } from '../../shared/form-submit';
 import { buildNoticeSubmitPayload, toNoticeFormValues } from '../notice-page-logic';
 
 interface NoticeFormModalData {
@@ -25,7 +26,6 @@ const { sys_notice_status: statusDict, sys_notice_type: typeDict } = useDict(
 
 const mode = ref<'create' | 'edit'>('create');
 const editingId = ref<number | string>();
-let submitting = false;
 
 function dictOptions(
   list: Array<{ dictLabel?: null | string; dictValue?: null | string }>,
@@ -126,36 +126,8 @@ watch(
 );
 
 const [Modal, modalApi] = useVbenModal({
-  async onConfirm() {
-    if (submitting) {
-      return;
-    }
-
-    const { valid } = await formApi.validate();
-    if (!valid || submitting) {
-      return;
-    }
-
-    const values = (await formApi.getValues()) as Record<string, any>;
-    const payload = buildNoticeSubmitPayload(
-      values,
-      mode.value === 'edit' ? editingId.value : undefined,
-    );
-
-    submitting = true;
-    modalApi.lock(true);
-    try {
-      await (mode.value === 'edit'
-        ? updateNoticeApi(payload)
-        : addNoticeApi(payload));
-      await modalApi.close();
-      emit('success');
-    } catch {
-      // E-11：后端拒绝时请求层已提示 msg，弹窗与已填内容保持
-    } finally {
-      submitting = false;
-      modalApi.lock(false);
-    }
+  onConfirm: async () => {
+    await confirmHandler();
   },
   onOpenChange(isOpen) {
     if (!isOpen) {
@@ -183,6 +155,20 @@ const [Modal, modalApi] = useVbenModal({
     });
   },
 });
+const confirmHandler = createFormConfirmHandler({
+  buildPayload: (values) =>
+    buildNoticeSubmitPayload(
+      values,
+      mode.value === 'edit' ? editingId.value : undefined,
+    ),
+  create: addNoticeApi,
+  formApi,
+  isEdit: () => mode.value === 'edit',
+  modalApi,
+  onSuccess: () => emit('success'),
+  update: updateNoticeApi,
+});
+
 </script>
 
 <template>

@@ -11,7 +11,7 @@ import { Modal as AntModal, Button, message, Tag } from 'antdv-next';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { delNoticeApi, getNoticeApi, listNoticeApi } from '#/api/system/notice';
 import { useDict } from '#/composables/use-dict';
-import { resolveOutOfRangePage } from '#/utils/system/pagination';
+import { createGridQuery } from '#/utils/system/grid';
 
 import NoticeForm from './components/notice-form.vue';
 import {
@@ -110,26 +110,10 @@ const [NoticeGrid, noticeGridApi] = useVbenVxeGrid({
     keepSource: true,
     proxyConfig: {
       ajax: {
-        query: async (params: any, formValues: Record<string, any>) => {
-          const page = params.page;
-          const query = buildNoticeQuery(formValues ?? {}, page);
-          const { rows, total } = await listNoticeApi(query);
-          // E-25：页码越界时回退到最后一页
-          const fallbackPage = resolveOutOfRangePage({
-            pageNum: page.currentPage,
-            pageSize: page.pageSize,
-            rowCount: rows.length,
-            total,
-          });
-          if (fallbackPage === null) {
-            return { items: rows, total };
-          }
-          const corrected = await listNoticeApi({
-            ...query,
-            pageNum: fallbackPage,
-          });
-          return { items: corrected.rows, total: corrected.total };
-        },
+        query: createGridQuery({
+          buildQuery: (values, page) => buildNoticeQuery(values, page),
+          fetch: listNoticeApi,
+        }),
       },
     },
     rowConfig: { isHover: true, keyField: 'noticeId' },

@@ -14,8 +14,20 @@ speckit:
   tasks_hash: f1dae5efa9a9
 
 clarification_refs: [CLAR-011]
-reviewer: pending
-review_verdict: pending
+reviewer: aoyousky
+review_verdict: pass
+review_evidence: docs/evidence/REQ-20261107-005/review-12-items.md
+review_notes: >-
+  agent /review 12 项：全部通过。第 7 项技术债闸门曾因需求切片重复率 8.28%
+  （519/6265 行）/ 9.04%（tokens）不通过；2026-11-09 抽取公共模块
+  （utils/system/query.ts、utils/system/grid.ts、views/system/shared/form-schema.ts、
+  views/system/shared/form-submit.ts）并改造 5 个 page-logic、8 个列表页与 5 个表单后，
+  同一切片 jscpd 4.0.5 复核为 42 文件 6062 行、duplicated lines 267（4.40%）、
+  tokens 2417（4.88%），均 ≤5%。回归：ESLint（complexity ≤15）exit 0、
+  vue-tsc exit 0、单测 79 文件 631/631、受影响 E2E 12/12。第 11 项性能按
+  SPEC-004 §5 标注“未实测”（不计入 DoD）。证据见
+  docs/evidence/REQ-20261107-005/review-12-items.md；
+  人工评审人 aoyousky 于 2026-11-10 签署通过（12/12）。
 
 diff_scope:
   - .github/workflows/ci-gate.yml
@@ -47,7 +59,10 @@ diff_scope:
   - frontend/apps/web-antdv-next/src/api/system/oss/index.test.ts
   - frontend/apps/web-antdv-next/src/api/system/oss/index.ts
   - frontend/apps/web-antdv-next/src/api/system/oss/types.ts
+  - frontend/apps/web-antdv-next/src/utils/system/grid.test.ts
+  - frontend/apps/web-antdv-next/src/utils/system/grid.ts
   - frontend/apps/web-antdv-next/src/utils/system/id.test.ts
+  - frontend/apps/web-antdv-next/src/utils/system/query.ts
   - frontend/apps/web-antdv-next/src/views/monitor/logininfor/index.vue
   - frontend/apps/web-antdv-next/src/views/monitor/logininfor/logininfor-page-logic.test.ts
   - frontend/apps/web-antdv-next/src/views/monitor/logininfor/logininfor-page-logic.ts
@@ -78,6 +93,8 @@ diff_scope:
   - frontend/apps/web-antdv-next/src/views/system/oss/oss-config-page-logic.ts
   - frontend/apps/web-antdv-next/src/views/system/oss/oss-page-logic.test.ts
   - frontend/apps/web-antdv-next/src/views/system/oss/oss-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/system/shared/form-schema.ts
+  - frontend/apps/web-antdv-next/src/views/system/shared/form-submit.ts
   - frontend/tests/e2e/helpers.ts
   - frontend/tests/e2e/spec004-assertions.spec.ts
   - frontend/tests/e2e/system-config.spec.ts
@@ -129,6 +146,10 @@ assertion_map:
   A-10: frontend/apps/web-antdv-next/src/views/system/dict/index.vue#L79
   # A-10 八个表头：dict/index #L79、dict/data #L65、config #L66、notice #L79、
   # operlog #L92、logininfor #L82、oss #L97、oss/config #L62
+  # 行号基准：6f845d5..ba3f857。2026-11-09 抽取公共模块后，查询/提交/校验规则
+  # 分别由 utils/system/grid.ts#L39、views/system/shared/form-submit.ts#L29、
+  # views/system/shared/form-schema.ts#L12 承担，页面文件内行号可能整体位移；
+  # 符号与分支未变，P0 由评测集 10/10 与 E2E 12/12 复跑验证。
 
 test_evidence:
   executed_at: 2026-11-09T08:20:17+08:00
@@ -425,3 +446,28 @@ history:
       本地 Docker 栈 awp-frontend 已部署最新构建，容器内 index.html md5 与本地一致
       （ac8a129c080017eaf15030edf4be75d6）。
     at: 2026-11-09T08:55+08:00
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      修复 /review 第 7 项技术债闸门（需求切片重复率超 5%）：
+      新增 utils/system/grid.ts（createGridQuery：Vxe 越界回退、beforeQuery 短路、
+      onResult 派生计数，含 grid.test.ts 6 例）、views/system/shared/form-submit.ts
+      （createFormConfirmHandler）、views/system/shared/form-schema.ts
+      （requiredTextRule / createRemarkField），扩展 utils/system/query.ts
+      （toPageParams / toSortParams / trimmedOrNull / buildListQuery）；
+      operlog、logininfor、config、dict、oss、notice 相关 page-logic 与
+      8 个列表页、5 个表单组件改为复用上述公共实现。
+      复跑 jscpd 4.0.5（42 文件 6062 行）：duplicated lines 267（4.40%）、
+      tokens 2417（4.88%），均 ≤5%；ESLint（complexity ≤15）exit 0、
+      vue-tsc exit 0、单测 79 文件 631/631、受影响 E2E 12/12。
+      附带：home-trend-chart.vue endLabel.formatter 参数类型收窄（类型级修正），
+      E2E 探活超时 3s→15s（基础设施修复，不改断言）。
+      人工签署（reviewer/review_verdict）仍为 pending，待 aoyousky 签署后回填。
+    at: 2026-11-09T23:58+08:00
+  - generation_id: gen-20261107-135525
+    spec_version: "1.0"
+    note: >-
+      人工评审签署：aoyousky 于 2026-11-10 确认 /review 12 项全部通过
+      （第 11 项性能按 SPEC-004 §5 未实测、不计入 DoD），
+      reviewer 回填 aoyousky、review_verdict 回填 pass。
+    at: 2026-11-10T07:05+08:00

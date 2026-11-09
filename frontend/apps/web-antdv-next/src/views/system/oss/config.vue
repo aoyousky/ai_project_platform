@@ -12,7 +12,7 @@ import {
   delOssConfigApi,
   listOssConfigApi,
 } from '#/api/system/oss/config';
-import { resolveOutOfRangePage } from '#/utils/system/pagination';
+import { createGridQuery } from '#/utils/system/grid';
 
 import OssConfigForm from './components/oss-config-form.vue';
 import {
@@ -116,26 +116,10 @@ const [OssConfigGrid, ossConfigGridApi] = useVbenVxeGrid({
     keepSource: true,
     proxyConfig: {
       ajax: {
-        query: async (params: any, formValues: Record<string, any>) => {
-          const page = params.page;
-          const query = buildOssConfigQuery(formValues ?? {}, page);
-          const { rows, total } = await listOssConfigApi(query);
-          // E-25：页码越界时回退到有效页
-          const fallbackPage = resolveOutOfRangePage({
-            pageNum: page.currentPage,
-            pageSize: page.pageSize,
-            rowCount: rows.length,
-            total,
-          });
-          if (fallbackPage === null) {
-            return { items: rows, total };
-          }
-          const corrected = await listOssConfigApi({
-            ...query,
-            pageNum: fallbackPage,
-          });
-          return { items: corrected.rows, total: corrected.total };
-        },
+        query: createGridQuery({
+          buildQuery: (values, page) => buildOssConfigQuery(values, page),
+          fetch: listOssConfigApi,
+        }),
       },
     },
     rowConfig: { isHover: true, keyField: 'ossConfigId' },

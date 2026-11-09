@@ -11,6 +11,7 @@ import {
   updateOssConfigApi,
 } from '#/api/system/oss/config';
 
+import { createFormConfirmHandler } from '../../shared/form-submit';
 import {
   buildOssConfigDefaults,
   buildOssConfigPayload,
@@ -28,7 +29,6 @@ const emit = defineEmits<{ success: [] }>();
 const mode = ref<'create' | 'edit'>('create');
 const editingId = ref<number | string>();
 const editingStatus = ref('1');
-let submitting = false;
 
 const [Form, formApi] = useVbenForm({
   commonConfig: { labelWidth: 110 },
@@ -37,38 +37,8 @@ const [Form, formApi] = useVbenForm({
 });
 
 const [Modal, modalApi] = useVbenModal({
-  async onConfirm() {
-    // E-32：连续点击只发一次请求
-    if (submitting) {
-      return;
-    }
-
-    const { valid } = await formApi.validate();
-    if (!valid || submitting) {
-      return;
-    }
-
-    const values = (await formApi.getValues()) as Record<string, any>;
-    const payload = buildOssConfigPayload(
-      values,
-      mode.value === 'edit' ? editingId.value : undefined,
-      mode.value === 'edit' ? editingStatus.value : '1',
-    );
-
-    submitting = true;
-    modalApi.lock(true);
-    try {
-      await (mode.value === 'edit'
-        ? updateOssConfigApi(payload)
-        : addOssConfigApi(payload));
-      await modalApi.close();
-      emit('success');
-    } catch {
-      // 后端 msg 由请求层统一提示；保持弹窗与已填内容（E-22/E-24）
-    } finally {
-      submitting = false;
-      modalApi.lock(false);
-    }
+  onConfirm: async () => {
+    await confirmHandler();
   },
   onOpenChange(isOpen) {
     if (!isOpen) {
@@ -92,6 +62,21 @@ const [Modal, modalApi] = useVbenModal({
     });
   },
 });
+const confirmHandler = createFormConfirmHandler({
+  buildPayload: (values) =>
+    buildOssConfigPayload(
+      values,
+      mode.value === 'edit' ? editingId.value : undefined,
+      mode.value === 'edit' ? editingStatus.value : '1',
+    ),
+  create: addOssConfigApi,
+  formApi,
+  isEdit: () => mode.value === 'edit',
+  modalApi,
+  onSuccess: () => emit('success'),
+  update: updateOssConfigApi,
+});
+
 </script>
 
 <template>

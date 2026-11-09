@@ -13,7 +13,7 @@ import {
   listOperLogApi,
 } from '#/api/monitor/operlog';
 import { dictLabel, useDict } from '#/composables/use-dict';
-import { resolveOutOfRangePage } from '#/utils/system/pagination';
+import { createGridQuery } from '#/utils/system/grid';
 
 import OperLogDetail from './components/operlog-detail-modal.vue';
 import {
@@ -160,30 +160,12 @@ const [OperLogGrid, operLogGridApi] = useVbenVxeGrid({
     proxyConfig: {
       sort: true,
       ajax: {
-        query: async (params: any, formValues: Record<string, any>) => {
-          const page = params.page;
-          const query = buildOperLogQuery(
-            formValues ?? {},
-            page,
-            params.sort ?? undefined,
-          );
-          const { rows, total } = await listOperLogApi(query);
-          // E-13：页码越界时回退到有效页，避免空页/NaN
-          const fallbackPage = resolveOutOfRangePage({
-            pageNum: page.currentPage,
-            pageSize: page.pageSize,
-            rowCount: rows.length,
-            total,
-          });
-          if (fallbackPage === null) {
-            return { items: rows, total };
-          }
-          const corrected = await listOperLogApi({
-            ...query,
-            pageNum: fallbackPage,
-          });
-          return { items: corrected.rows, total: corrected.total };
-        },
+        query: createGridQuery({
+          buildQuery: (values, page, sort) =>
+            buildOperLogQuery(values, page, sort),
+          fetch: listOperLogApi,
+          withSort: true,
+        }),
       },
     },
     rowConfig: { isHover: true, keyField: 'operId' },

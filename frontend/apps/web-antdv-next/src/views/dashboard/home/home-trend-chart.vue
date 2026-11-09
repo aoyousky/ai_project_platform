@@ -43,7 +43,7 @@ function render() {
         areaStyle: { opacity: 0.12 },
         data: values,
         endLabel: {
-          formatter: (params: { value?: number }) => String(params.value ?? 0),
+          formatter: (params: { value?: unknown }) => String(params.value ?? 0),
           show: lastIndex >= 0,
         },
         itemStyle: { color: primaryColor() },

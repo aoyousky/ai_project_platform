@@ -11,42 +11,18 @@ import type {
 } from '#/api/system/config/types';
 
 import { clearDictCache } from '#/composables/use-dict';
-import { addDateRange, removeEmptyParams } from '#/utils/system/query';
-
-interface PageParam {
-  currentPage: number;
-  pageSize: number;
-}
-
-function toPageParams(page?: PageParam) {
-  return page
-    ? { pageNum: page.currentPage, pageSize: page.pageSize }
-    : {};
-}
+import {
+  buildListQuery,
+  type PageParam,
+  trimmedOrNull,
+} from '#/utils/system/query';
 
 /** 查询：搜索表单 + 日期范围 + 分页；无分页参数时用于导出 */
 export function buildConfigQuery(
   formValues: Record<string, any>,
   page?: PageParam,
 ): ConfigQuery {
-  const { dateRange, ...rest } = formValues ?? {};
-  return removeEmptyParams(
-    addDateRange(
-      {
-        ...rest,
-        ...toPageParams(page),
-      },
-      dateRange as [string, string] | undefined,
-    ),
-  ) as ConfigQuery;
-}
-
-function trimmedOrNull(value: unknown): null | string {
-  if (value === null || value === undefined) {
-    return null;
-  }
-  const text = String(value).trim();
-  return text === '' ? null : text;
+  return buildListQuery<ConfigQuery>(formValues, page);
 }
 
 /**

@@ -21,7 +21,7 @@ import {
   listOssApi,
   uploadOssApi,
 } from '#/api/system/oss';
-import { resolveOutOfRangePage } from '#/utils/system/pagination';
+import { createGridQuery } from '#/utils/system/grid';
 
 import {
   buildOssQuery,
@@ -144,26 +144,10 @@ const [OssGrid, ossGridApi] = useVbenVxeGrid({
     keepSource: true,
     proxyConfig: {
       ajax: {
-        query: async (params: any, formValues: Record<string, any>) => {
-          const page = params.page;
-          const query = buildOssQuery(formValues ?? {}, page);
-          const { rows, total } = await listOssApi(query);
-          // E-25：页码越界时回退到有效页，避免空页/NaN
-          const fallbackPage = resolveOutOfRangePage({
-            pageNum: page.currentPage,
-            pageSize: page.pageSize,
-            rowCount: rows.length,
-            total,
-          });
-          if (fallbackPage === null) {
-            return { items: rows, total };
-          }
-          const corrected = await listOssApi({
-            ...query,
-            pageNum: fallbackPage,
-          });
-          return { items: corrected.rows, total: corrected.total };
-        },
+        query: createGridQuery({
+          buildQuery: (values, page) => buildOssQuery(values, page),
+          fetch: listOssApi,
+        }),
       },
     },
     rowConfig: { isHover: true, keyField: 'ossId' },

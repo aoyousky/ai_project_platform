@@ -9,6 +9,11 @@ import { useVbenForm, z } from '#/adapter/form';
 import { addConfigApi, updateConfigApi } from '#/api/system/config';
 
 import {
+  createRemarkField,
+  requiredTextRule,
+} from '../../shared/form-schema';
+import { createFormConfirmHandler } from '../../shared/form-submit';
+import {
   buildConfigSubmitPayload,
   toConfigFormValues,
 } from '../config-page-logic';
@@ -22,7 +27,6 @@ const emit = defineEmits<{ success: [] }>();
 
 const mode = ref<'create' | 'edit'>('create');
 const editingId = ref<number | string>();
-let submitting = false;
 
 const [Form, formApi] = useVbenForm({
   commonConfig: { labelWidth: 90 },
@@ -32,20 +36,14 @@ const [Form, formApi] = useVbenForm({
       componentProps: { maxlength: 100, placeholder: '请输入参数名称' },
       fieldName: 'configName',
       label: '参数名称',
-      rules: z
-        .string()
-        .min(1, '请输入参数名称')
-        .max(100, '参数名称不能超过 100 个字符'),
+      rules: requiredTextRule('参数名称'),
     },
     {
       component: 'Input',
       componentProps: { maxlength: 100, placeholder: '请输入参数键名' },
       fieldName: 'configKey',
       label: '参数键名',
-      rules: z
-        .string()
-        .min(1, '请输入参数键名')
-        .max(100, '参数键名不能超过 100 个字符'),
+      rules: requiredTextRule('参数键名'),
     },
     {
       component: 'Textarea',
@@ -56,10 +54,7 @@ const [Form, formApi] = useVbenForm({
       },
       fieldName: 'configValue',
       label: '参数键值',
-      rules: z
-        .string()
-        .min(1, '请输入参数键值')
-        .max(500, '参数键值不能超过 500 个字符'),
+      rules: requiredTextRule('参数键值', 500),
     },
     {
       component: 'RadioGroup',
@@ -75,47 +70,14 @@ const [Form, formApi] = useVbenForm({
       label: '系统内置',
       rules: z.string().min(1, '请选择是否系统内置'),
     },
-    {
-      component: 'Textarea',
-      componentProps: { placeholder: '请输入内容', rows: 3 },
-      fieldName: 'remark',
-      label: '备注',
-    },
+    createRemarkField(),
   ],
   showDefaultActions: false,
 });
 
 const [Modal, modalApi] = useVbenModal({
-  async onConfirm() {
-    if (submitting) {
-      return;
-    }
-
-    const { valid } = await formApi.validate();
-    if (!valid || submitting) {
-      return;
-    }
-
-    const values = (await formApi.getValues()) as Record<string, any>;
-    const payload = buildConfigSubmitPayload(
-      values,
-      mode.value === 'edit' ? editingId.value : undefined,
-    );
-
-    submitting = true;
-    modalApi.lock(true);
-    try {
-      await (mode.value === 'edit'
-        ? updateConfigApi(payload)
-        : addConfigApi(payload));
-      await modalApi.close();
-      emit('success');
-    } catch {
-      // 后端 msg 由请求层统一提示；保持弹窗与用户输入
-    } finally {
-      submitting = false;
-      modalApi.lock(false);
-    }
+  onConfirm: async () => {
+    await confirmHandler();
   },
   onOpenChange(isOpen) {
     if (!isOpen) {
@@ -151,6 +113,20 @@ const [Modal, modalApi] = useVbenModal({
     });
   },
 });
+const confirmHandler = createFormConfirmHandler({
+  buildPayload: (values) =>
+    buildConfigSubmitPayload(
+      values,
+      mode.value === 'edit' ? editingId.value : undefined,
+    ),
+  create: addConfigApi,
+  formApi,
+  isEdit: () => mode.value === 'edit',
+  modalApi,
+  onSuccess: () => emit('success'),
+  update: updateConfigApi,
+});
+
 </script>
 
 <template>

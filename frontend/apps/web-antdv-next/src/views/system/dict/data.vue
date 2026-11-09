@@ -16,7 +16,7 @@ import {
   getDictDataListApi,
   getDictTypeApi,
 } from '#/api/system/dict';
-import { resolveOutOfRangePage } from '#/utils/system/pagination';
+import { createGridQuery } from '#/utils/system/grid';
 
 import DictDataForm from './components/dict-data-form.vue';
 import {
@@ -92,32 +92,16 @@ const [DataGrid, dataGridApi] = useVbenVxeGrid({
     keepSource: true,
     proxyConfig: {
       ajax: {
-        query: async (params: any, formValues: Record<string, any>) => {
-          if (!pageContext.value) {
-            return { items: [], total: 0 };
-          }
-          const page = params.page;
-          const query = buildDictDataQuery(
-            formValues ?? {},
-            page,
-            pageContext.value.dictType,
-          );
-          const { rows, total } = await getDictDataListApi(query);
-          const fallbackPage = resolveOutOfRangePage({
-            pageNum: page.currentPage,
-            pageSize: page.pageSize,
-            rowCount: rows.length,
-            total,
-          });
-          if (fallbackPage === null) {
-            return { items: rows, total };
-          }
-          const corrected = await getDictDataListApi({
-            ...query,
-            pageNum: fallbackPage,
-          });
-          return { items: corrected.rows, total: corrected.total };
-        },
+        query: createGridQuery({
+          beforeQuery: () => pageContext.value !== null,
+          buildQuery: (values, page) =>
+            buildDictDataQuery(
+              values,
+              page,
+              pageContext.value?.dictType ?? '',
+            ),
+          fetch: getDictDataListApi,
+        }),
       },
     },
     rowConfig: { isHover: true, keyField: 'dictCode' },

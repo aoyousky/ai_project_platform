@@ -5,11 +5,17 @@ import { ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
-import { useVbenForm, z } from '#/adapter/form';
+import { useVbenForm } from '#/adapter/form';
 import { addDictDataApi, updateDictDataApi } from '#/api/system/dict';
 
 import {
+  createRemarkField,
+  requiredTextRule,
+} from '../../shared/form-schema';
+import { createFormConfirmHandler } from '../../shared/form-submit';
+import {
   buildDictDataSubmitPayload,
+  LIST_CLASS_OPTIONS,
   toDictDataFormValues,
 } from '../dict-page-logic';
 
@@ -23,7 +29,6 @@ const emit = defineEmits<{ success: [] }>();
 
 const mode = ref<'create' | 'edit'>('create');
 const editingId = ref<number | string>();
-let submitting = false;
 
 const [Form, formApi] = useVbenForm({
   commonConfig: { labelWidth: 90 },
@@ -43,20 +48,14 @@ const [Form, formApi] = useVbenForm({
       componentProps: { maxlength: 100, placeholder: '请输入字典标签' },
       fieldName: 'dictLabel',
       label: '字典标签',
-      rules: z
-        .string()
-        .min(1, '请输入字典标签')
-        .max(100, '字典标签不能超过 100 个字符'),
+      rules: requiredTextRule('字典标签'),
     },
     {
       component: 'Input',
       componentProps: { maxlength: 100, placeholder: '请输入字典键值' },
       fieldName: 'dictValue',
       label: '字典键值',
-      rules: z
-        .string()
-        .min(1, '请输入字典键值')
-        .max(100, '字典键值不能超过 100 个字符'),
+      rules: requiredTextRule('字典键值'),
     },
     {
       component: 'InputNumber',
@@ -76,61 +75,21 @@ const [Form, formApi] = useVbenForm({
       component: 'Select',
       componentProps: {
         allowClear: true,
-        options: [
-          { label: '默认', value: 'default' },
-          { label: '主要', value: 'primary' },
-          { label: '成功', value: 'success' },
-          { label: '信息', value: 'info' },
-          { label: '警告', value: 'warning' },
-          { label: '危险', value: 'danger' },
-        ],
+        options: [...LIST_CLASS_OPTIONS],
         placeholder: '请选择回显样式',
       },
       defaultValue: 'default',
       fieldName: 'listClass',
       label: '回显样式',
     },
-    {
-      component: 'Textarea',
-      componentProps: { placeholder: '请输入内容', rows: 3 },
-      fieldName: 'remark',
-      label: '备注',
-    },
+    createRemarkField(),
   ],
   showDefaultActions: false,
 });
 
 const [Modal, modalApi] = useVbenModal({
-  async onConfirm() {
-    if (submitting) {
-      return;
-    }
-
-    const { valid } = await formApi.validate();
-    if (!valid || submitting) {
-      return;
-    }
-
-    const values = (await formApi.getValues()) as Record<string, any>;
-    const payload = buildDictDataSubmitPayload(
-      values,
-      mode.value === 'edit' ? editingId.value : undefined,
-    );
-
-    submitting = true;
-    modalApi.lock(true);
-    try {
-      await (mode.value === 'edit'
-        ? updateDictDataApi(payload)
-        : addDictDataApi(payload));
-      await modalApi.close();
-      emit('success');
-    } catch {
-      // 后端 msg 由请求层统一提示；保持弹窗与用户输入
-    } finally {
-      submitting = false;
-      modalApi.lock(false);
-    }
+  onConfirm: async () => {
+    await confirmHandler();
   },
   onOpenChange(isOpen) {
     if (!isOpen) {
@@ -161,6 +120,20 @@ const [Modal, modalApi] = useVbenModal({
     });
   },
 });
+const confirmHandler = createFormConfirmHandler({
+  buildPayload: (values) =>
+    buildDictDataSubmitPayload(
+      values,
+      mode.value === 'edit' ? editingId.value : undefined,
+    ),
+  create: addDictDataApi,
+  formApi,
+  isEdit: () => mode.value === 'edit',
+  modalApi,
+  onSuccess: () => emit('success'),
+  update: updateDictDataApi,
+});
+
 </script>
 
 <template>

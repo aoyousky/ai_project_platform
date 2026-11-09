@@ -9,31 +9,11 @@ import type {
   OperLogQuery,
 } from '#/api/monitor/operlog/types';
 
-import { addDateRange, removeEmptyParams } from '#/utils/system/query';
-
-interface PageParam {
-  currentPage: number;
-  pageSize: number;
-}
-
-interface SortParam {
-  field?: string;
-  order?: 'asc' | 'desc';
-}
-
-function toPageParams(page?: PageParam) {
-  return page
-    ? { pageNum: page.currentPage, pageSize: page.pageSize }
-    : {};
-}
-
-/** 表格排序 → 后端 `orderByColumn` / `isAsc`；缺字段时不发送 */
-function toSortParams(sort?: SortParam) {
-  if (!sort?.field || !sort?.order) {
-    return {};
-  }
-  return { isAsc: sort.order, orderByColumn: sort.field };
-}
+import {
+  buildListQuery,
+  type PageParam,
+  type SortParam,
+} from '#/utils/system/query';
 
 /**
  * 查询：业务类型多选空数组不下发（E-14 同源），日期范围进 `params`。
@@ -43,25 +23,16 @@ export function buildOperLogQuery(
   page?: PageParam,
   sort?: SortParam,
 ): OperLogQuery {
-  const { businessTypes, dateRange, ...rest } = formValues ?? {};
+  const { businessTypes, ...rest } = formValues ?? {};
   const types = Array.isArray(businessTypes)
     ? businessTypes
         .map(Number)
         .filter((item) => Number.isInteger(item))
     : [];
-  const query: Record<string, any> = {
-    ...rest,
-    ...toPageParams(page),
-    ...toSortParams(sort),
-  };
+  const query =
+    types.length > 0 ? { ...rest, businessTypes: types } : rest;
 
-  if (types.length > 0) {
-    query.businessTypes = types;
-  }
-
-  return removeEmptyParams(
-    addDateRange(query, dateRange as [string, string] | undefined),
-  ) as OperLogQuery;
+  return buildListQuery<OperLogQuery>(query, page, sort);
 }
 
 /**

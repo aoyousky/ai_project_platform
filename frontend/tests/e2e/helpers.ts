@@ -30,8 +30,9 @@ export const APP_ENTRY_TIMEOUT = 60_000;
  */
 export async function isBackendUp(): Promise<boolean> {
   try {
+    // 冷启动/慢宿主上该端点实测 1.5–3s；3s 会导致整组用例被误判未起栈而 skip。
     const response = await fetch(`${BACKEND_URL}/auth/tenant/list`, {
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(15_000),
     });
     return response.ok;
   } catch {

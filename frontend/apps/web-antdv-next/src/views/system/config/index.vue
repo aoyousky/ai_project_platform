@@ -14,7 +14,7 @@ import {
   refreshConfigCacheApi,
 } from '#/api/system/config';
 import { clearDictCache } from '#/composables/use-dict';
-import { resolveOutOfRangePage } from '#/utils/system/pagination';
+import { createGridQuery } from '#/utils/system/grid';
 
 import ConfigForm from './components/config-form.vue';
 import {
@@ -87,26 +87,10 @@ const [ConfigGrid, configGridApi] = useVbenVxeGrid({
     keepSource: true,
     proxyConfig: {
       ajax: {
-        query: async (params: any, formValues: Record<string, any>) => {
-          const page = params.page;
-          const query = buildConfigQuery(formValues ?? {}, page);
-          const { rows, total } = await listConfigApi(query);
-          // E-25：页码越界时回退到最后一页
-          const fallbackPage = resolveOutOfRangePage({
-            pageNum: page.currentPage,
-            pageSize: page.pageSize,
-            rowCount: rows.length,
-            total,
-          });
-          if (fallbackPage === null) {
-            return { items: rows, total };
-          }
-          const corrected = await listConfigApi({
-            ...query,
-            pageNum: fallbackPage,
-          });
-          return { items: corrected.rows, total: corrected.total };
-        },
+        query: createGridQuery({
+          buildQuery: (values, page) => buildConfigQuery(values, page),
+          fetch: listConfigApi,
+        }),
       },
     },
     rowConfig: { isHover: true, keyField: 'configId' },
