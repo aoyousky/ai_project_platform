@@ -61,6 +61,48 @@ FRONTEND = REPO_ROOT / "frontend"
 NPX = shutil.which("npx") or shutil.which("npx.cmd") or "npx"
 PLACEHOLDER = re.compile(r"\$\{([A-Z0-9_]+)\}")
 
+# CLAR-015（2026-11-09 裁决 A）：SPEC-001 A-08 的“相对 main 零改动”只在
+# REQ-001 自身交付分支上成立；合并分支（如 005-home-workbench）包含其他
+# 需求的改动，按定义必然失败。合并分支运行时把该条显式标记为 N/A，
+# 不计入分母，也不写成 PASS——报告保留 n/a 字段与原因，供人工复核。
+NA_CASE_RULES = {
+    "REQ-20261101-001": {
+        "branch": "001-vben-frontend-replacement",
+        "assertions": {"A-08"},
+        "clarification": "CLAR-015",
+    },
+}
+
+
+def current_branch() -> str:
+    """当前 git 分支名；取不到时返回空串（此时不启用任何 N/A 规则）。"""
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return proc.stdout.strip() if proc.returncode == 0 else ""
+
+
+def na_reason(req_name: str, case: dict) -> str:
+    """命中 N/A 规则时返回原因，否则空串。"""
+    rule = NA_CASE_RULES.get(req_name)
+    if not rule:
+        return ""
+    if case.get("assertion") not in rule["assertions"]:
+        return ""
+    branch = current_branch()
+    if not branch or branch == rule["branch"]:
+        return ""
+    return (
+        f"{rule['clarification']}：该断言只在交付分支 {rule['branch']} 执行，"
+        f"当前分支 {branch} 标记 N/A（不计入分母）"
+    )
+
 # 各需求的澄清引用写入报告，便于回溯
 CLARIFICATION_REFS = {
     "REQ-20261103-002": {
@@ -475,6 +517,7 @@ def write_report(
 ) -> None:
     total = len(results)
     passed = sum(1 for item in results if item["passed"])
+    na = sum(1 for item in results if item.get("na"))
     report_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     report = {
@@ -485,6 +528,8 @@ def write_report(
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "total": total,
         "passed": passed,
+        "effective_total": total - na,
+        "na": na,
         "cases": results,
         "clarification_refs": CLARIFICATION_REFS.get(req_dir.name, {}),
     }
@@ -613,16 +658,27 @@ def main() -> int:
         offset += len(cases)
 
         print(f"== {req_dir.name} ==")
-        for item in chunk:
+        for case, item in zip(cases, chunk):
+            reason = na_reason(req_dir.name, case)
+            if reason:
+                item["passed"] = False
+                item["errors"] = []
+                item["na"] = True
+                item["na_reason"] = reason
+                print(f"[N/A] {item['id']} ({item['assertion']}) — {reason}")
+                continue
             status = "PASS" if item["passed"] else "FAIL"
             print(f"[{status}] {item['id']} ({item['assertion']}) {item['latency_ms']}ms")
             for error in item["errors"]:
                 print(f"       {error}")
         passed = sum(1 for item in chunk if item["passed"])
-        print(f"\n{passed}/{len(chunk)} 通过")
+        na = sum(1 for item in chunk if item.get("na"))
+        effective = len(chunk) - na
+        suffix = f"（{na} 条 N/A）" if na else ""
+        print(f"\n{passed}/{effective} 通过{suffix}")
         if args.report is not None:
             write_report(req_dir, doc, chunk, env, args.report)
-        if passed != len(chunk):
+        if passed != effective:
             failures += 1
         print()
 

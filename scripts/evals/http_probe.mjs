@@ -269,63 +269,75 @@ async function login(
         .catch(() => {});
     });
 
-    // 取码前先排队；若挂载时的 `/auth/code` 仍被限流（图片不渲染），
-    // 等窗口重置后整页重试。
-    const captchaImage = page.locator('img[alt="验证码"]');
-    for (let attempt = 0; attempt < 3; attempt++) {
-      await paceCaptcha();
-      await page.goto(frontendUrl, { waitUntil: 'domcontentloaded' });
-      await page.getByPlaceholder('请输入用户名').waitFor({ timeout: 30_000 });
+    // 就绪判据是「是否已拿到 /auth/code 的 uuid」，而不是验证码图片是否渲染：
+    // 图片只是页面就绪的信号，宿主机内存紧张时渲染可能 15s 以上不可见，但 uuid
+    // 一到手就能完成登录。慢宿主上页面还可能在填表后重挂载把表单重置，
+    // 表现为「点了登录却没有 /auth/login 请求」——整段重试一次并核对输入值。
+    const usernameInput = page.getByPlaceholder('请输入用户名');
+    const passwordInput = page.getByPlaceholder('密码');
+    const captchaInput = page.getByPlaceholder('验证码');
+    let lastError;
+
+    for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        await captchaImage.waitFor({ state: 'visible', timeout: 15_000 });
-        break;
-      } catch (error) {
-        if (attempt === 2) {
-          throw error;
+        let uuid = '';
+        await paceCaptcha();
+        await page.goto(frontendUrl, { waitUntil: 'domcontentloaded' });
+        await usernameInput.waitFor({ timeout: 30_000 });
+        for (let waited = 0; waited < 30_000 && !uuid; waited += 1_000) {
+          uuid = captchaUuids.at(-1) ?? '';
+          if (uuid) break;
+          await page.waitForTimeout(1_000);
         }
-        await page.waitForTimeout(15_000);
+        if (!uuid) {
+          throw new Error('登录页未返回验证码 uuid');
+        }
+        // 给可能的重复挂载留出落地时间，稳定后取最后一个（旧 uuid 已被覆盖）
+        let stableSince = Date.now();
+        let lastCount = captchaUuids.length;
+        while (Date.now() - stableSince < 1_500) {
+          await page.waitForTimeout(200);
+          if (captchaUuids.length !== lastCount) {
+            lastCount = captchaUuids.length;
+            stableSince = Date.now();
+          }
+        }
+        uuid = captchaUuids.at(-1) ?? '';
+
+        await usernameInput.fill(username);
+        await passwordInput.fill(password);
+        const code = readCaptcha(uuid, redisContainer, redisPassword);
+        await captchaInput.fill(code);
+        if ((await captchaInput.inputValue()) !== code) {
+          throw new Error('验证码输入在提交前被页面重置');
+        }
+
+        // 令牌直接从登录响应读取：生产构建里 Pinia 持久化是加密的，
+        // 从 localStorage 解不出来；响应体只在内存中使用，不写文件、不打印。
+        const loginResponse = page.waitForResponse(
+          (response) =>
+            response.url().endsWith('/auth/login') &&
+            response.request().method() === 'POST',
+          { timeout: 30_000 },
+        );
+        await page.locator('button[aria-label="login"]').click();
+        const body = await (await loginResponse).json();
+        if (body?.code !== 200) {
+          throw new Error(`登录失败：${body?.msg ?? '未知错误'}`);
+        }
+        const token = body?.data?.access_token ?? body?.data?.accessToken;
+        if (!token) {
+          throw new Error('登录响应未返回 access_token');
+        }
+        return token;
+      } catch (error) {
+        lastError = error;
+        if (attempt === 1) break;
+        await page.waitForTimeout(2_000);
       }
     }
-    await page.waitForTimeout(300);
 
-    let uuid = captchaUuids.at(-1);
-    if (!uuid) {
-      // 挂载请求被限流时图片不会渲染，此时才主动刷新一次
-      const captchaResponse = page.waitForResponse(
-        (response) =>
-          new URL(response.url()).pathname.endsWith('/auth/code') &&
-          response.request().method() === 'GET',
-      );
-      await captchaImage.click();
-      const captcha = await (await captchaResponse).json();
-      uuid = captcha?.data?.uuid;
-    }
-    if (!uuid) {
-      throw new Error('登录页未返回验证码 uuid');
-    }
-
-    await page.getByPlaceholder('请输入用户名').fill(username);
-    await page.getByPlaceholder('密码').fill(password);
-    await page.getByPlaceholder('验证码').fill(readCaptcha(uuid, redisContainer, redisPassword));
-
-    // 令牌直接从登录响应读取：生产构建里 Pinia 持久化是加密的，
-    // 从 localStorage 解不出来；响应体只在内存中使用，不写文件、不打印。
-    const loginResponse = page.waitForResponse(
-      (response) =>
-        response.url().endsWith('/auth/login') &&
-        response.request().method() === 'POST',
-      { timeout: 30_000 },
-    );
-    await page.locator('button[aria-label="login"]').click();
-    const body = await (await loginResponse).json();
-    if (body?.code !== 200) {
-      throw new Error(`登录失败：${body?.msg ?? '未知错误'}`);
-    }
-    const token = body?.data?.access_token ?? body?.data?.accessToken;
-    if (!token) {
-      throw new Error('登录响应未返回 access_token');
-    }
-    return token;
+    throw lastError instanceof Error ? lastError : new Error('未知登录失败');
   } finally {
     await context.close();
   }
