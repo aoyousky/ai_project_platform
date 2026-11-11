@@ -287,6 +287,16 @@ export async function loginWithCaptcha(
       if (body?.code !== 200) {
         throw new Error(`登录被拒绝：${JSON.stringify(body)}`);
       }
+      // 登录响应返回后前端才做跳转；若紧接着用 `gotoAppPath` 做整页/哈希
+      // 导航，后续一次 router push 会把目标路由覆盖回首页（E-10 偶发）。
+      await page
+        .waitForURL(
+          (url) =>
+            !url.pathname.includes('/auth/login') &&
+            !url.hash.includes('/auth/login'),
+          { timeout: APP_ENTRY_TIMEOUT },
+        )
+        .catch(() => {});
       return;
     } catch (error) {
       lastError = error;

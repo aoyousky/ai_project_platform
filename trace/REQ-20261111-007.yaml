@@ -1,0 +1,205 @@
+generation_id: gen-20261111-150707
+requirement_id: REQ-20261111-007
+spec_version: "1.0"
+spec_hash: aaa267adeaec
+constraint_version: 77e727639c28
+allowlist_hash: 4d2d2e9f97f7
+model: deepseek-v4.1-flash
+prompt_version: claudemd-v1
+generated_at: 2026-11-11T15:07:30+08:00
+
+speckit:
+  feature_dir: specs/007-system-monitor
+  plan_hash: d431ededddd2
+  tasks_hash: 1e5d7a7df1a0
+
+clarification_refs: []
+reviewer: aoyousky 2026-11-11
+review_verdict: pass
+review_evidence: docs/evidence/REQ-20261111-007/review-12-items.md
+review_notes: >-
+  agent /review 12 项：12/12 通过（证据见 review_evidence），人工签署
+  aoyousky 于 2026-11-11 确认，verdict = pass。签署口径：第 11 项性能接受
+  “未实测”（SPEC-007 §5，指标不进入 A-xx，不属 DoD）；仓库级 oxfmt 基线
+  失败（122 个既有文件）接受不在本需求修复，本需求文件已全绿；门禁首跑
+  因 REQ-20261103-002 遗留夹具导致 REQ-006 A-03 失败的事件如实记录，经用户
+  授权清理 96 条 `spec002_created_*` 账号后门禁 5/5 全绿。
+  范围核查：platform/ 与 frontend/packages/** 的 diff 为 0，package.json /
+  pnpm-lock 未改动；未新增权限码，仅使用后端既有 monitor:online:* 与
+  monitor:cache:list。
+
+diff_scope:
+  - docs/evidence/REQ-20261111-007/review-12-items.md
+  - frontend/apps/web-antdv-next/.env.development
+  - frontend/apps/web-antdv-next/.env.production
+  - frontend/apps/web-antdv-next/src/api/monitor/cache/index.test.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/cache/index.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/cache/types.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/online/index.test.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/online/index.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/online/types.ts
+  - frontend/apps/web-antdv-next/src/types/env.d.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/admin/index.vue
+  - frontend/apps/web-antdv-next/src/views/monitor/cache/cache-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/cache/cache-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/cache/components/cache-command-chart.vue
+  - frontend/apps/web-antdv-next/src/views/monitor/cache/components/cache-memory-chart.vue
+  - frontend/apps/web-antdv-next/src/views/monitor/cache/index.vue
+  - frontend/apps/web-antdv-next/src/views/monitor/components/external-console-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/components/external-console-logic.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/components/external-console.vue
+  - frontend/apps/web-antdv-next/src/views/monitor/online/index.vue
+  - frontend/apps/web-antdv-next/src/views/monitor/online/online-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/online/online-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/snailjob/index.vue
+  - frontend/tests/e2e/helpers.ts
+  - frontend/tests/e2e/spec007-assertions.spec.ts
+  - frontend/vitest.config.ts
+  - scripts/evals/run_eval.py
+  - scripts/evals/seed_spec007.sh
+  - specs/007-system-monitor/checklists/requirements.md
+  - specs/007-system-monitor/contracts/backend-api-consumed.md
+  - specs/007-system-monitor/contracts/routes-and-permissions.md
+  - specs/007-system-monitor/contracts/ui-contracts.md
+  - specs/007-system-monitor/data-model.md
+  - specs/007-system-monitor/plan.md
+  - specs/007-system-monitor/quickstart.md
+  - specs/007-system-monitor/research.md
+  - specs/007-system-monitor/spec.md
+  - specs/007-system-monitor/tasks.md
+  - specs/SPEC-007-system-monitor.md
+  - specs/evals/REQ-20261111-007/cases.yaml
+
+assertion_map:
+  A-01: frontend/apps/web-antdv-next/src/views/monitor/online/index.vue#L98
+  # A-01 其余落点：10 列表头 #L98-167；全量取数与 total=rows.length #L51-65
+  A-02: frontend/apps/web-antdv-next/src/views/monitor/online/online-page-logic.ts#L55
+  # A-02 其余落点：两参数同时下发 index.vue#L51-58；无匹配空态 index.vue#L168
+  A-03: frontend/apps/web-antdv-next/src/views/monitor/online/index.vue#L203
+  # A-03 其余落点：DELETE 路径编码 api/monitor/online/index.ts#L21-25
+  A-04: frontend/apps/web-antdv-next/src/views/monitor/online/index.vue#L221
+  # A-04 其余落点：逐条执行 online-page-logic.ts#L109-132；按钮 #L266-274
+  A-05: frontend/apps/web-antdv-next/src/views/monitor/online/online-page-logic.ts#L109
+  # A-05 其余落点：汇总文案 #L94-103；失败行保留由刷新数据决定 #L229-253
+  A-06: frontend/apps/web-antdv-next/src/views/monitor/cache/index.vue#L35
+  # A-06 其余落点：12 项标签 #L38-113；cache-db-size #L99-102；信息表 #L155
+  A-07: frontend/apps/web-antdv-next/src/views/monitor/cache/index.vue#L175
+  # A-07 其余落点：内存图容器 #L180；命令饼图 components/cache-command-chart.vue#L24-36
+  A-08: frontend/apps/web-antdv-next/src/views/monitor/admin/index.vue#L16
+  # A-08 其余落点：iframe 与高度 components/external-console.vue#L39-45；
+  # 外链 href components/external-console.vue#L28-37
+  A-09: frontend/apps/web-antdv-next/src/views/monitor/snailjob/index.vue#L16
+  # A-09 其余落点：与 A-08 共用 external-console.vue#L28-45
+  A-10: frontend/apps/web-antdv-next/src/views/monitor/online/index.vue#L41
+  # A-10 其余落点：AND 权限判定 #L41-49；批量按钮 #L267；单条按钮 #L286
+
+test_evidence:
+  executed_at: 2026-11-11T15:48:02+08:00
+  base_url: http://localhost:8080
+  frontend_url: http://localhost:5666
+  total: 10
+  passed: 10
+  report: specs/evals/reports/REQ-20261111-007-20261111-154802.json
+  p0_coverage: 10/10
+  source: "scripts/ci-gate.sh 门禁 5（全部需求目录，等价夹具）"
+
+# 边界 E-01～E-17 由同一 E2E 文件的 18 条用例覆盖（E-12/E-17 各含 Admin 与 SnailJob 两条；
+# E-04 由 online-page-logic.test.ts 的纯函数单测覆盖）。2026-11-11 在最终构建上 18/18 通过。
+boundary_evidence:
+  command: "cd frontend && E2E_MONITOR_ADMIN_URL=http://localhost:9090/admin/applications E2E_SNAILJOB_ADMIN_URL=http://localhost:8800/snail-job pnpm exec playwright test tests/e2e/spec007-assertions.spec.ts -g \"E-\""
+  total: 18
+  passed: 18
+  e04_unit: "frontend/apps/web-antdv-next/src/views/monitor/online/online-page-logic.test.ts（翻页只取数一次）"
+
+red_green_evidence:
+  - task_ids: [T013, T014, T015]
+    kind: unit
+    command: "cd frontend && pnpm exec vitest run --dom apps/web-antdv-next/src/views/monitor/online/online-page-logic.test.ts"
+    red:
+      observed: >-
+        E-04 断言原本没有对应实现：新增用例调用 loadCachedRows 时失败
+        `TypeError: loadCachedRows is not a function`。
+    green:
+      observed: "9 passed (9)：翻页复用全量行，取数调用次数 = 1。"
+      recorded_at: 2026-11-11T13:40+08:00
+
+test_summary:
+  unit:
+    command: "cd frontend && pnpm test:unit"
+    result: "Test Files 84 passed (84) / Tests 661 passed (661)"
+    recorded_at: 2026-11-11T14:13+08:00
+  coverage:
+    command: "cd frontend && pnpm test:coverage"
+    result: "exit 0；All files lines 89.33% / branches 77.21% / functions 90.18% / statements 89.31%（阈值 70%）"
+    recorded_at: 2026-11-11T14:16+08:00
+  typecheck:
+    command: "cd frontend && pnpm check:type"
+    result: "11 tasks successful（vue-tsc --noEmit exit 0）"
+    recorded_at: 2026-11-11T14:04+08:00
+  lint_changed_scope:
+    command: "pnpm exec oxfmt --check <SPEC-007 files> && pnpm exec eslint <SPEC-007 files> && pnpm exec oxlint <SPEC-007 files>"
+    result: "均 exit 0（21 个新增/修改文件；含 E2E spec）"
+    recorded_at: 2026-11-11T14:12+08:00
+
+history:
+  - generation_id: gen-20261111-150707
+    spec_version: "1.0"
+    note: >-
+      Spec Packet v1.0 由用户原话与 2026-11-11 范围裁决生成并签字（PM aoyousky、
+      业务签字 Jim Liu、架构评审 jiankui zhang）。范围：4 个视图；在线用户单条
+      强退 + 前端逐条批量；缓存监控仅基本信息与图表；Admin/SnailJob 内嵌官方控制台。
+      10 条 P0 断言、17 条边界；Spec Kit 文档（spec/plan/tasks/research/contracts/
+      quickstart）同步建立。
+  - generation_id: gen-20261111-150707
+    spec_version: "1.0"
+    note: >-
+      US1–US4（T008–T032）完成：在线用户列表/精确筛选/本地分页/单条与批量强退；
+      缓存监控 12 项信息与两张图表；Admin 与 SnailJob 共用 external-console 组件。
+      新增单测 30 例（api 5、page-logic 25）与 E2E 28 例（A 10 + 边界 18）。
+    at: 2026-11-11T13:40+08:00
+  - generation_id: gen-20261111-150707
+    spec_version: "1.0"
+    note: >-
+      E-04 补测（TDD）：先写“翻页只取数一次”用例并观察到 RED
+      （TypeError: loadCachedRows is not a function），再实现 loadCachedRows 并
+      在 online/index.vue 接入；GREEN 9/9。评测集 E-04 证据同步改为该单测。
+    at: 2026-11-11T13:40+08:00
+  - generation_id: gen-20261111-150707
+    spec_version: "1.0"
+    note: >-
+      交付收口复跑（最终构建后）：评测 10/10
+      （REQ-20261111-007-20261111-150707.json）；边界 E2E 18/18；
+      单测 84 文件 661/661；覆盖率 lines 89.33%、branches 77.21%（≥70%）；
+      vue-tsc exit 0；本需求文件 oxfmt/ESLint/oxlint 全部 exit 0。
+      仓库基线 `pnpm lint` 仍因 122 个既有文件的 oxfmt 差异失败（HEAD 版本
+      单独验证同样失败），未纳入本需求 diff，不伪造为通过。
+    at: 2026-11-11T15:15+08:00
+  - generation_id: gen-20261111-150707
+    spec_version: "1.0"
+    note: >-
+      第一次 `bash scripts/ci-gate.sh`：门禁 1–4 通过，门禁 5 在
+      REQ-20261108-006 A-03 失败（`deptDistribution[4]` 为「Spec002 部门」
+      而非「人力资源部」）。根因是共享测试库积压 96 条 REQ-20261103-002
+      评测遗留账号 `spec002_created_*`（2026-11-03～2026-11-11 15:15，
+      全部挂在「Spec002 部门」，最新一条由本次门禁的 REQ-002 评测创建），
+      使该部门 98 人与「人力资源部」98 人打平并挤掉 Top5 第 5 名。
+      与 SPEC-007 代码无关。经用户授权（2026-11-11）删除这 96 条遗留账号
+      及其角色/岗位关联；未修改任何评测断言、种子脚本或 specs/ 文件。
+    at: 2026-11-11T15:35+08:00
+  - generation_id: gen-20261111-150707
+    spec_version: "1.0"
+    note: >-
+      夹具清理后重跑门禁：`== 门禁全部通过 ==`（5/5，exit 0）。
+      门禁 1 禁词、门禁 2 条数（007：断言 10 / 异常 17）、门禁 3 溯源、
+      门禁 4 Spec Kit 关联均 PASS；门禁 5 依次通过 REQ-001/002/003/005/007，
+      再以 SLA 覆盖重启后端后通过 REQ-006。本需求评测 10/10
+      （REQ-20261111-007-20261111-154802.json，generated_at
+      2026-11-11T07:48:02Z）。
+    at: 2026-11-11T16:00+08:00
+  - generation_id: gen-20261111-150707
+    spec_version: "1.0"
+    note: >-
+      人工签署：aoyousky 于 2026-11-11 确认 /review 12 项（verdict = pass）。
+      签署口径：第 11 项性能接受“未实测”；仓库 oxfmt 基线失败不在本需求修复；
+      夹具清理事件如实留档。reviewer / review_verdict 已回填。
+    at: 2026-11-11T16:05+08:00

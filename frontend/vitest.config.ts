@@ -39,10 +39,12 @@ export default defineConfig({
       // 适配层与系统管理业务逻辑是本次的覆盖对象；框架层 packages/** 不计入。
       include: [
         'apps/web-antdv-next/src/api/core/**',
+        'apps/web-antdv-next/src/api/monitor/**',
         'apps/web-antdv-next/src/api/system/**',
         'apps/web-antdv-next/src/composables/**',
         'apps/web-antdv-next/src/directives/**',
         'apps/web-antdv-next/src/utils/system/**',
+        'apps/web-antdv-next/src/views/monitor/**',
         'apps/web-antdv-next/src/views/system/**',
       ],
       // `.vue` 只做装配，纯逻辑在 `*-logic.ts` / `*-schema.ts` 中单测覆盖

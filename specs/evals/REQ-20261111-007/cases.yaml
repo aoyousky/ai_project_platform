@@ -1,0 +1,112 @@
+spec_version: "1.0"
+# REQ-20261111-007（SPEC-007 系统监控模块前端交付）评测用例。
+#
+# 本需求是纯前端交付，可观测面全部在浏览器 DOM 或纯函数单测。因此 P0 用例只声明
+# `e2e:` 证据，由 `scripts/evals/run_eval.py` 以 `-g "<断言编号>"` 精确执行对应用例；
+# 不发送 HTTP 探针（在线会话由用例内真实登录创建，seed_spec007.sh 只建账号与权限）。
+#
+# E2E 用例文件：frontend/tests/e2e/spec007-assertions.spec.ts
+#
+# 边界用例（E-xx）说明：共享执行器 `specs/evals/run.py` 的 SPEC_ROW 只识别带优先级的
+# 三列断言行（`| A-xx | Pn |`），SPEC-007 §3 的边界表是两列格式；`specs/` 只读，
+# 故 E-xx 不能作为 `cases:` 条目。它们仍由同一个 E2E 文件中的 `E-xx` 用例执行，
+# 证据在 boundary_evidence 中逐条列出，并在 `python scripts/evals/run_eval.py`
+# 之外的完整 E2E 运行中验证。
+
+cases:
+  - id: TC-A01
+    assertion: A-01
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec007-assertions.spec.ts}
+    expect: {e2e: "A-01"}
+    e2e: {spec: tests/e2e/spec007-assertions.spec.ts, grep: A-01}
+
+  - id: TC-A02
+    assertion: A-02
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec007-assertions.spec.ts}
+    expect: {e2e: "A-02"}
+    e2e: {spec: tests/e2e/spec007-assertions.spec.ts, grep: A-02}
+
+  - id: TC-A03
+    assertion: A-03
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec007-assertions.spec.ts}
+    expect: {e2e: "A-03"}
+    e2e: {spec: tests/e2e/spec007-assertions.spec.ts, grep: A-03}
+
+  - id: TC-A04
+    assertion: A-04
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec007-assertions.spec.ts}
+    expect: {e2e: "A-04"}
+    e2e: {spec: tests/e2e/spec007-assertions.spec.ts, grep: A-04}
+
+  - id: TC-A05
+    assertion: A-05
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec007-assertions.spec.ts}
+    expect: {e2e: "A-05"}
+    e2e: {spec: tests/e2e/spec007-assertions.spec.ts, grep: A-05}
+
+  - id: TC-A06
+    assertion: A-06
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec007-assertions.spec.ts}
+    expect: {e2e: "A-06"}
+    e2e: {spec: tests/e2e/spec007-assertions.spec.ts, grep: A-06}
+
+  - id: TC-A07
+    assertion: A-07
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec007-assertions.spec.ts}
+    expect: {e2e: "A-07"}
+    e2e: {spec: tests/e2e/spec007-assertions.spec.ts, grep: A-07}
+
+  - id: TC-A08
+    assertion: A-08
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec007-assertions.spec.ts}
+    expect: {e2e: "A-08"}
+    e2e: {spec: tests/e2e/spec007-assertions.spec.ts, grep: A-08}
+
+  - id: TC-A09
+    assertion: A-09
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec007-assertions.spec.ts}
+    expect: {e2e: "A-09"}
+    e2e: {spec: tests/e2e/spec007-assertions.spec.ts, grep: A-09}
+
+  - id: TC-A10
+    assertion: A-10
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec007-assertions.spec.ts}
+    expect: {e2e: "A-10"}
+    e2e: {spec: tests/e2e/spec007-assertions.spec.ts, grep: A-10}
+
+# ---------------------------------------------------------------------------
+# 边界证据：每条 E-xx 对应上面 E2E 文件中标题包含该编号的真实用例。
+# 由 `pnpm --filter @vben/web-antdv-next test:e2e`（或 Playwright 全量运行）执行。
+# ---------------------------------------------------------------------------
+boundary_evidence:
+  spec: tests/e2e/spec007-assertions.spec.ts
+  cases:
+  - {id: E-01, grep: E-01}
+  - {id: E-02, grep: E-02}
+  - {id: E-03, grep: E-03}
+  # E-04（12 条本地分页，翻页不产生额外请求）由纯函数单测证明。
+  - {id: E-04, unit: apps/web-antdv-next/src/views/monitor/online/online-page-logic.test.ts, grep: 翻页只取数一次}
+  - {id: E-05, grep: E-05}
+  - {id: E-06, grep: E-06}
+  - {id: E-07, grep: E-07}
+  - {id: E-08, grep: E-08}
+  - {id: E-09, grep: E-09}
+  - {id: E-10, grep: E-10}
+  - {id: E-11, grep: E-11}
+  # E-12 / E-17 各有两个页面用例（Admin 与 SnailJob），两条都必须通过。
+  - {id: E-12, grep: E-12}
+  - {id: E-13, grep: E-13}
+  - {id: E-14, grep: E-14}
+  - {id: E-15, grep: E-15}
+  - {id: E-16, grep: E-16}
+  - {id: E-17, grep: E-17}

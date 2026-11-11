@@ -145,6 +145,14 @@ def build_env() -> dict[str, str]:
     env.setdefault("EVAL_BASE_URL", "http://localhost:8080")
     env.setdefault("EVAL_FRONTEND_URL", "http://localhost:5666")
     env.setdefault("EVAL_RUN_ID", str(int(datetime.now(timezone.utc).timestamp())))
+    # SPEC-007 A-08/A-09：外部控制台地址属于“评测环境设置”，由夹具提供；
+    # 应用源码与测试断言不得硬编码默认值（SPEC-007 §4.3）。
+    env.setdefault(
+        "E2E_MONITOR_ADMIN_URL", "http://localhost:9090/admin/applications"
+    )
+    env.setdefault(
+        "E2E_SNAILJOB_ADMIN_URL", "http://localhost:8800/snail-job"
+    )
     # 固定夹具 ID（与 scripts/evals/seed_spec002.sh 一致）
     env.setdefault("EVAL_DEPT_ID", "900000000000000001")
     env.setdefault("EVAL_USER_ID", "900000000000000002")
@@ -570,6 +578,9 @@ def main() -> int:
     ledger_path.write_text("[]", encoding="utf-8")
     env["EVAL_CAPTCHA_LEDGER"] = str(ledger_path)
     os.environ["E2E_CAPTCHA_LEDGER"] = str(ledger_path)
+    # Playwright 子进程继承 os.environ；评测环境地址必须由夹具注入（SPEC-007 §4.3）。
+    for key in ("E2E_MONITOR_ADMIN_URL", "E2E_SNAILJOB_ADMIN_URL"):
+        os.environ.setdefault(key, env[key])
 
     # E2E 产物按运行隔离：Playwright 启动时会清空 outputDir，并发评测若共用
     # 固定目录会互删 trace（`browserContext.close: ENOENT ...recording1.trace`）。
