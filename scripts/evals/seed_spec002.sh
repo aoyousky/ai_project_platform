@@ -23,6 +23,14 @@ SET @pwd := (SELECT password FROM sys_user WHERE user_id = 1);
 DELETE FROM sys_user_role WHERE user_id IN (${USER_ID}, ${LIMITED_USER_ID}, ${DELETE_USER_ID});
 DELETE FROM sys_user_post WHERE user_id IN (${USER_ID}, ${LIMITED_USER_ID}, ${DELETE_USER_ID});
 DELETE FROM sys_user WHERE user_id IN (${USER_ID}, ${LIMITED_USER_ID}, ${DELETE_USER_ID});
+-- TC-A02/A-03 每次评测都会用 EVAL_RUN_ID 新建 spec002_created_<runId> 账号；
+-- 建在 DEPT_ID 下且评测后不删除，会持续抬高「Spec002 部门」人数，
+-- 最终挤掉 REQ-006 首页 Top5 第 5 名（人力资源部 98）。此处按前缀清理。
+DELETE FROM sys_user_role WHERE user_id IN
+  (SELECT user_id FROM sys_user WHERE user_name LIKE 'spec002_created_%');
+DELETE FROM sys_user_post WHERE user_id IN
+  (SELECT user_id FROM sys_user WHERE user_name LIKE 'spec002_created_%');
+DELETE FROM sys_user WHERE user_name LIKE 'spec002_created_%';
 DELETE FROM sys_role WHERE role_id IN (${ROLE_ID}, ${LIMITED_ROLE_ID});
 DELETE FROM sys_dept WHERE dept_id = ${DEPT_ID};
 
