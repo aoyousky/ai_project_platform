@@ -78,6 +78,59 @@
   返回 502（真实上游失败），不再是 SPA 兜底的假 200；控制台启动后即可正常嵌入。
   部署到其他环境只需改 `proxy_pass`，不改前端或运行时配置。
 
+## A 执行：官方控制台部署与内嵌验证（2026-11-12）
+
+CLAR-016 裁决为先执行 A（部署缺口）。本仓库内置两个控制台服务端，无需改前端代码。
+
+### 构建与启动
+
+- 构建（不跳过前端，仅后端两模块）：
+
+  ```bash
+  cd platform
+  mvn -B -q -pl aoyou-extend/aoyou-monitor-admin,aoyou-extend/aoyou-snailjob-server \
+    -am -DskipTests -Pdev package
+  ```
+
+  产物：`aoyou-monitor-admin/target/aoyou-monitor-admin.jar`（46.9 MB）、
+  `aoyou-snailjob-server/target/aoyou-snailjob-server.jar`（104.9 MB）。
+- 数据库：导入 `platform/script/sql/ry_job.sql`，本地 `aoyou` 库新增 23 张 `sj_*` 表。
+- 启动（宿主机进程，端口与前端配置一致）：
+  - `java -jar aoyou-monitor-admin.jar` → `:9090`，context-path `/admin`，9.4s 启动
+  - `java -jar aoyou-snailjob-server.jar --spring.datasource.url=jdbc:mysql://127.0.0.1:3307/aoyou ...`
+    → `:8800`，context-path `/snail-job`，17.7s 启动
+  - 两个 jar 均位于 `target/`（已 gitignore），启动日志在 `deploy/build/*.log`（已 gitignore）。
+
+### nginx 修复：代理整个 context-path
+
+- 原配置只代理 `^~ /admin/applications`，但 Spring Boot Admin 的登录页
+  `/admin/login`、静态资源 `/admin/assets/*`、接口 `/admin/*` 都在同一 context-path 下；
+  只代理入口会让登录页仍被 SPA 兜底成 `index.html`（表现为 iframe 里是本系统首页）。
+- 改为 `location ^~ /admin/ { proxy_pass http://host.docker.internal:9090; ... }`，
+  `/snail-job` 因为前缀覆盖 `/snail-job/*` 无需调整。
+- `^~` 必须保留，否则静态资源正则会截走控制台 `assets/*.js`；已验证通过反代可取到
+  `text/javascript`。
+
+### 验证结果
+
+| 检查 | 结果 |
+|---|---|
+| `http://localhost/admin/applications` | 302 → `/admin/login`（Location 仍是 `http://localhost/...`，未跳出同源） |
+| `http://localhost/admin/login` | 200，`<title>Aoyou-Vue-Plus服务监控中心</title>` |
+| `http://localhost/snail-job` | 302 → `/snail-job/` → 200 |
+| `http://localhost/snail-job/` | 200，`<title>登录 \| Snail Job</title>` |
+| 嵌入限制 | 两个控制台均无 `X-Frame-Options` / CSP，允许同源 iframe |
+| iframe 实际内容 | 临时 Playwright 用例（不入库，验证后已删除）登录 admin 后读取 iframe 内 `title`：Admin 监控命中 `/服务监控中心/`，任务调度中心命中 `/Snail Job/` —— 不再是系统首页 |
+| 全量回归 | 部署栈（`E2E_BASE_URL=http://localhost`，控制台地址为相对路径）跑 `spec007-assertions.spec.ts`：**28 passed (9.8m)，exit 0**；A-08/A-09 在控制台可达后仍通过 |
+
+### 不在 A 范围（需 B 或单独部署裁决）
+
+- 本地 compose 仍以 `--spring.boot.admin.client.enabled=false`、`--snail-job.enabled=false`
+  启动后端，因此 Admin 监控里目前只有两个控制台自身注册的实例，**看不到平台后端**。
+- `sj_group_config` 只有 `ruoyi_group`，而后端配置的组名是 `aoyou_group`；
+  接续任务执行前需要在 SnailJob 后台建组或改配置。
+- 两个控制台目前是宿主机进程，未纳入 compose；容器/机器重启后需手工再启动。
+
 ## 附：B1 夹具修复验证（同日）
 
 - `seed_spec002.sh` 增加 `spec002_created_%` 清理后执行：
