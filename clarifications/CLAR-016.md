@@ -29,3 +29,9 @@
 - 裁决：**A 先执行，B 随后执行**（2026-11-12，用户口头裁决，Agent 记录）
 - A 部分：按部署缺口处理——启动本仓库内置的官方控制台（`aoyou-monitor-admin` :9090、`aoyou-snailjob-server` :8800），保留已加的 `^~` 同源反代；不改前端代码、不改 SPEC-007 判定口径。
 - B 部分：需升版 Spec Packet：**是**。B 的实现以签字后的新版本为准，版本号由升版动作确定（待 PM 与业务方签字，Agent 不自行升格）。B 与现有「禁改 `platform/`、不新增权限码、不新增依赖」约束存在冲突，升版时必须同步裁决这三条约束是否放开，否则 B 无法交付。
+- B 的具体裁决（2026-11-12，用户选择）：
+  - 数据来源：**前端直连官方控制台同源 REST API**（SBA 3.5.8 `/admin/*`、SnailJob 1.10.0 `/snail-job/*`），不改 `platform/`；
+  - 范围：**最小可用集**（Admin：应用列表、实例健康、环境/配置、日志；任务：任务列表、执行记录、手动执行/重试/停止）；
+  - 权限码：**复用** `monitor:admin:list` 与 `monitor:snailjob:list`，不新增；
+  - 交付形式：**新建独立 REQ**，建议编号 `REQ-20261112-008`。
+  - 草稿：`specs/_drafts/REQ-20261112-008-admin-snailjob-native.md`（status: draft，待签字）。
