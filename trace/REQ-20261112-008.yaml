@@ -215,3 +215,13 @@ history:
       未删除 Redis 共享数据、未改断言/评测资产；复测登录成功后复跑门禁 11/11，
       EXIT=0，报告 REQ-20261112-008-20261113-085022.json。
     at: 2026-11-13T08:50:31+08:00
+  - generation_id: gen-20261112-191531
+    spec_version: "1.0"
+    note: >-
+      交付前只读运行核验：生产产物 md5 与 awp-frontend 容器内文件一致（入口
+      /jse/index-index-CgSN2Qzd.js），admin/snailjob 视图字符串均在部署包内；
+      同源 /admin/login 200、/admin/applications 401（未登录）、/snail-job/ 200。
+      宿主重启后控制台原进程已退出，本轮手工拉起 :9090/:8800。未改代码/断言/
+      评测资产；部署缺口（控制台未入 compose、后端两个客户端开关为 disabled、
+      SnailJob 组名）已记入 UAT 证据。
+    at: 2026-11-13T21:30+08:00

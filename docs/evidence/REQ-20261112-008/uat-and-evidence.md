@@ -80,6 +80,27 @@
 仅把该成功提示改为按范围输出（单需求模式打印「本次交付需求 REQ-…」），门禁逻辑与范围判定
 未再改动。全量日志另存 `ci-gate-full-mode.log`（gitignored）。
 
+### 2026-11-13 交付前运行核验（部署产物与控制台恢复）
+
+在不改动任何代码/评测资产的前提下，对“用户实际打开的系统”做了一次只读核验：
+
+| 检查 | 命令/方法 | 结果 |
+|---|---|---|
+| 产物包含 SPEC-008 视图 | `grep -l "admin-app-list" dist/js/*.js` / `grep -l "snailjob_token" dist/js/*.js` | 命中 `admin-DshQ7EZK.js`、`snailjob-CIHiDqwu.js` |
+| 容器部署的即本机最终产物 | `md5sum` 对比本机 dist 与 `awp-frontend:/usr/share/nginx/html/js/...` | 一致（admin `d0a442563bfd0d730c559efb3b41c4f8`）；入口均为 `/jse/index-index-CgSN2Qzd.js` |
+| 同源控制台路由 | `curl http://localhost/...` | `/admin/login` 200；`/admin/applications` 401（未登录，预期）；`/snail-job/` 200；`/` 200；`:8080` 200 |
+| 官方控制台进程 | 宿主机 `java -jar`（A 阶段同一方式） | 宿主重启后原进程已退出，本轮手工拉起：`:9090` / `:8800` 均 200（`deploy/build/monitor-admin.log`、`snailjob-server.log`，gitignored） |
+| 生产预览 `:5666` | `curl` | 000（未启动，不影响容器 `:80` 入口） |
+
+核验同时确认的既有部署缺口（A 阶段已记录，非本需求代码问题，不属 SPEC-008 断言范围）：
+
+- 两个控制台是宿主机进程、未纳入 compose，机器重启后需手工再启动；
+- compose 后端以 `--spring.boot.admin.client.enabled=false`、`--snail-job.enabled=false` 启动，
+  Admin 监控的应用列表只含控制台自身注册的实例，任务调度中心暂无业务执行节点；
+- `sj_group_config` 仍为 `ruoyi_group`（后端配置组名为 `aoyou_group`），接续任务执行前需建组或改配置。
+
+本轮仅做运行核验与文档记录，未改代码、未改断言/评测/夹具。
+
 ### 说明
 
 - SnailJob 未启动/未登录时的降级行为由 E2E 夹具（`page.route`）覆盖，不依赖外部控制台进程；
