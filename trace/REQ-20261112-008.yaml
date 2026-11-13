@@ -99,14 +99,14 @@ assertion_map:
   # userpassword 不渲染 admin/index.vue#L224-L230
 
 test_evidence:
-  executed_at: 2026-11-13T08:50:31+08:00
+  executed_at: 2026-11-13T22:50:49+08:00
   base_url: http://localhost:8080
   frontend_url: http://localhost:5666
   total: 11
   passed: 11
-  report: specs/evals/reports/REQ-20261112-008-20261113-085022.json
+  report: specs/evals/reports/REQ-20261112-008-20261113-225049.json
   p0_coverage: 11/11
-  source: "门禁 5（单需求模式）python scripts/evals/run_eval.py --req REQ-20261112-008；2026-11-12 独立复跑报告 REQ-20261112-008-20261112-191531.json 亦为 11/11"
+  source: "门禁 5（单需求模式）python scripts/evals/run_eval.py --req REQ-20261112-008；2026-11-13 08:50 与 2026-11-12 19:15 复跑报告亦为 11/11"
 
 boundary_evidence:
   command: "cd frontend && E2E_REUSE_SERVER=1 E2E_BASE_URL=http://localhost:5666 pnpm exec playwright test tests/e2e/spec008-assertions.spec.ts --reporter=line"
