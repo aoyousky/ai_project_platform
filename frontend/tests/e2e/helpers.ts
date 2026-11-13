@@ -64,7 +64,9 @@ export function readCaptchaCode(uuid: string): string {
   if (!code) {
     // 空串说明该 uuid 在 Redis 中不存在（已过期或被上一次提交消费）。
     // 直接返回会让表单校验拦下请求，表现为“停在登录页”而看不出原因。
-    throw new Error(`验证码 uuid=${uuid} 在 Redis 中没有对应明文（已过期或被消费）`);
+    throw new Error(
+      `验证码 uuid=${uuid} 在 Redis 中没有对应明文（已过期或被消费）`,
+    );
   }
   return code;
 }
@@ -179,9 +181,7 @@ export async function reserveCaptchaSlot(page: Page): Promise<void> {
 async function paceCaptcha(page: Page): Promise<void> {
   for (;;) {
     const now = Date.now();
-    const log = readLedger().filter(
-      (at) => now - at <= CAPTCHA_WINDOW_MS,
-    );
+    const log = readLedger().filter((at) => now - at <= CAPTCHA_WINDOW_MS);
     if (log.length < CAPTCHA_BUDGET) {
       log.push(now);
       if (CAPTCHA_LEDGER) {
@@ -191,7 +191,8 @@ async function paceCaptcha(page: Page): Promise<void> {
       }
       return;
     }
-    await page.waitForTimeout(log[0]! + CAPTCHA_WINDOW_MS - now + 500);
+    const oldest = log[0] ?? now;
+    await page.waitForTimeout(oldest + CAPTCHA_WINDOW_MS - now + 500);
   }
 }
 
@@ -315,13 +316,74 @@ export async function loginWithCaptcha(
  * （`.env.production`，E2E 跑 preview）。直接 `page.goto('/system/dept')`
  * 在 hash 模式下会落到首页，故按当前地址推断模式后拼接目标 URL。
  */
+/**
+ * 当前视图是否仍停在首页仪表盘（面包屑末项为“首页”）。
+ * 用于识别“hash 已指向目标、但动态路由尚未注册导致视图没切换”的启动期竞态。
+ */
+async function isHomeView(page: Page): Promise<boolean> {
+  try {
+    const breadcrumb = page.getByRole('navigation', { name: 'breadcrumb' });
+    if ((await breadcrumb.count()) === 0) {
+      return false;
+    }
+    const text =
+      (await breadcrumb.first().textContent({ timeout: 2000 })) ?? '';
+    // 首页仪表盘的面包屑只有“首页”一项；其他页面至少还有目标页标题。
+    return text.replaceAll(/\s+/g, '') === '首页';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 等侧栏菜单渲染出子菜单项：菜单由后端 `getRouters` 生成，子项存在即说明动态
+ * 路由已注册。启动屏提示是 1.5s 的临时消息，比菜单加载短，不能作为就绪信号。
+ */
+async function waitForMenuRoutes(page: Page): Promise<void> {
+  const items = page.getByRole('menuitem');
+  const deadline = Date.now() + 20_000;
+  while (Date.now() < deadline) {
+    if ((await items.count()) > 3) {
+      return;
+    }
+    await page.waitForTimeout(200);
+  }
+}
+
 export async function gotoAppPath(page: Page, path: string): Promise<void> {
   const url = new URL(page.url());
-  const target = url.hash.startsWith('#/')
-    ? `${url.origin}/#${path}`
-    : `${url.origin}${path}`;
-  await page.goto(target);
-  await waitForAppReady(page);
+  const hashMode = url.hash.startsWith('#/');
+  const origin = url.origin;
+  const target = hashMode ? `${origin}/#${path}` : `${origin}${path}`;
+  // 整页加载后菜单路由仍在注册时，应用的启动导航会覆盖本次跳转：可能把 hash
+  // 拉回 `#/index`，也可能 hash 已指向目标但视图仍停在首页（实测 A-08/E-17
+  // 偶发）。仅在“落到首页”时重试：保持目标地址做一次整页 reload，让路由在
+  // 初始导航里解析（此时动态路由已注册）；落到 403/404 或重定向目标时不重试。
+  // 断言与超时预算不变。
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await waitForMenuRoutes(page);
+    await page.goto(target);
+    await waitForAppReady(page);
+    if (attempt === 2 || path.startsWith('/index')) {
+      return;
+    }
+    const current = new URL(page.url());
+    const atTarget = hashMode
+      ? current.hash === `#${path}`
+      : current.pathname === path;
+    if (atTarget && !(await isHomeView(page))) {
+      return;
+    }
+    if (!atTarget && !(await isHomeView(page))) {
+      return;
+    }
+    if (!atTarget) {
+      // hash 被启动导航拉回首页：重新指向目标，随后的 reload 才能落到目标路由。
+      await page.goto(target).catch(() => {});
+    }
+    await page.reload();
+    await waitForAppReady(page);
+  }
 }
 
 /**
@@ -333,9 +395,7 @@ export async function gotoAppPath(page: Page, path: string): Promise<void> {
  */
 export async function waitForAppReady(page: Page): Promise<void> {
   const bootScreen = page.getByText('加载菜单中').first();
-  await bootScreen
-    .waitFor({ state: 'visible', timeout: 3000 })
-    .catch(() => {});
+  await bootScreen.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
   await bootScreen.waitFor({ state: 'hidden', timeout: APP_ENTRY_TIMEOUT });
 }
 

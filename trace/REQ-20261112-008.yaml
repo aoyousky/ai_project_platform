@@ -1,0 +1,217 @@
+generation_id: gen-20261112-191531
+requirement_id: REQ-20261112-008
+spec_version: "1.0"
+spec_hash: e28474d7222e
+constraint_version: 77e727639c28
+allowlist_hash: 4d2d2e9f97f7
+model: deepseek-v4.1-flash
+prompt_version: claudemd-v1
+generated_at: 2026-11-12T19:30:00+08:00
+
+speckit: null
+
+clarification_refs: [CLAR-016]
+reviewer: pending
+review_verdict: pending
+review_evidence: docs/evidence/REQ-20261112-008/review-12-items.md
+review_notes: >-
+  agent /review 12 项自检完成：12/12 通过（第 11 项性能按 SPEC-008 §5 口径标注
+  “未实测”，不进入 A-xx、不计入 DoD）。评测 11/11（REQ-20261112-008-20261112-191531.json），
+  SPEC-008 E2E 21/21，SPEC-007 回归 28/28，单测 88 文件 687 用例，覆盖率
+  lines 89.73% / branches 77.25%（阈值 70%），vue-tsc exit 0，本需求文件
+  oxfmt/ESLint/oxlint exit 0；/spec-check PASS（2 项 N/A：无 speckit_feature、
+  无 spec.md/FR-xxx）。人工签署待 PM aoyousky 与业务方 Jim Liu 复核，故
+  reviewer/review_verdict = pending，未声称 pass。
+  范围核查：platform/、frontend/packages/**、package.json、pnpm-lock.yaml、
+  pnpm-workspace.yaml 的 diff 均为 0；执行期间 pnpm 自动向 pnpm-workspace.yaml
+  catalog 追加三条既有依赖（crypto-js/jsencrypt/@types/crypto-js，均已在
+  apps/web-antdv-next/package.json 声明，非本需求新增），已 git checkout 还原。
+  测试设施披露：frontend/tests/e2e/helpers.ts 的 gotoAppPath 增加启动期菜单路由
+  就绪等待与“落到首页则整页 reload 重试”，解决动态路由注册竞态导致的 SPEC-007
+  A-08/E-17 偶发失败；未改任何断言、超时预算或评测用例。SPEC-008 E2E 文件另做
+  两处 no-await-expression-member 风格重构（仅提取 await 结果到局部变量），
+  随后全量复跑 21/21。
+  文档状态：用户已于 2026-11-12 确认 SPEC-008 不再是草稿。升格提交中已移除
+  front-matter 的 status: draft 与 version 0.1，改为 version 1.0 并补齐三方签字；
+  L17–L18 横幅为“本文不是**草稿**，可以作为交付依据”。此前证据中“仍留有草稿
+  横幅”的表述与文件实际内容不符，已按文件现况更正（specs/ 内容未再修改）。
+  门禁 5 范围优化（用户 2026-11-12 指示）：默认只评测本次交付需求（按分支号 008
+  匹配 specs/evals/REQ-20261112-008），全量回归改为上线前人工执行
+  CI_GATE_FULL_EVAL=1；改造未触碰断言、评测用例、夹具、登录逻辑与超时预算。
+  改造后门禁 5/5 PASS（EXIT=0，2026-11-13 08:50，报告
+  REQ-20261112-008-20261113-085022.json，11/11；2026-11-12 23:31 首轮单需求
+  门禁亦 5/5 PASS、11/11）。改造前四次全量尝试的失败点均为其他需求
+  （REQ-007 / REQ-002）的取令牌瞬时波动；2026-11-13 宿主休眠恢复后曾出现
+  Redis 旧会话导致登录 500，已在不删除共享数据的前提下复跑通过，详见
+  docs/evidence/REQ-20261112-008/uat-and-evidence.md。
+
+diff_scope:
+  - docs/evidence/REQ-20261112-008/review-12-items.md
+  - docs/evidence/REQ-20261112-008/uat-and-evidence.md
+  - frontend/apps/web-antdv-next/src/api/monitor/admin/admin-api.test.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/admin/index.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/snailjob/index.ts
+  - frontend/apps/web-antdv-next/src/api/monitor/snailjob/snailjob-api.test.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/admin/admin-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/admin/admin-page-logic.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/admin/index.vue
+  - frontend/apps/web-antdv-next/src/views/monitor/snailjob/index.vue
+  - frontend/apps/web-antdv-next/src/views/monitor/snailjob/snailjob-page-logic.test.ts
+  - frontend/apps/web-antdv-next/src/views/monitor/snailjob/snailjob-page-logic.ts
+  - frontend/tests/e2e/helpers.ts
+  - frontend/tests/e2e/spec008-assertions.spec.ts
+  # 门禁 5 范围优化：默认只评测当前交付需求，全量回归改为上线前人工触发
+  # （用户 2026-11-12 指示；未改断言/用例/夹具/超时）
+  - scripts/ci-gate.sh
+  # SPEC 由 specs/_drafts/REQ-20261112-008-admin-snailjob-native.md 升格重命名
+  - specs/SPEC-008-admin-snailjob-native.md
+  - specs/evals/REQ-20261112-008/cases.yaml
+
+assertion_map:
+  A-01: frontend/apps/web-antdv-next/src/views/monitor/admin/index.vue#L196
+  # A-01 其余落点：应用行 #L209；状态列 #L213；行映射 admin-page-logic.ts#L51-L59
+  A-02: frontend/apps/web-antdv-next/src/views/monitor/admin/index.vue#L213
+  # A-02 其余落点：响应解包 src/api/monitor/admin/index.ts#L114-L122
+  A-03: frontend/apps/web-antdv-next/src/views/monitor/admin/index.vue#L233
+  # A-03 其余落点：环境表 #L278-L294；请求 api/monitor/admin/index.ts#L124-L136；
+  # 200 条上限与脱敏 admin-page-logic.ts#L107-L120
+  A-04: frontend/apps/web-antdv-next/src/views/monitor/admin/index.vue#L241
+  # A-04 其余落点：日志 <pre> #L348-L353；text/plain 读取 api/monitor/admin/index.ts#L138-L148；
+  # 末尾 200 行 admin-page-logic.ts#L133-L142
+  A-05: frontend/apps/web-antdv-next/src/views/monitor/admin/index.vue#L173
+  # A-05 其余落点：登录提示 #L175；/admin/login 链接 #L180；401/403 判定
+  # src/api/monitor/admin/index.ts#L88-L95
+  A-06: frontend/apps/web-antdv-next/src/views/monitor/snailjob/index.vue#L311
+  # A-06 其余落点：任务行/状态 #L325-L338；列表请求 src/api/monitor/snailjob/index.ts#L182-L191
+  A-07: frontend/apps/web-antdv-next/src/views/monitor/snailjob/index.vue#L341
+  # A-07 其余落点：执行记录表 #L418-L465；任务请求 src/api/monitor/snailjob/index.ts#L193-L201
+  A-08: frontend/apps/web-antdv-next/src/views/monitor/snailjob/index.vue#L348
+  # A-08 其余落点：确认框 #L371-L395；trigger 请求 src/api/monitor/snailjob/index.ts#L203-L209；
+  # 成功 toast #L295-L301
+  A-09: frontend/apps/web-antdv-next/src/views/monitor/snailjob/index.vue#L441
+  # A-09 其余落点：stop 请求 src/api/monitor/snailjob/index.ts#L211-L216；
+  # canStop 仅 RUNNING snailjob-page-logic.ts#L32-L34
+  A-10: frontend/apps/web-antdv-next/src/views/monitor/snailjob/index.vue#L452
+  # A-10 其余落点：retry 请求 src/api/monitor/snailjob/index.ts#L218-L223；
+  # canRetry 仅 FAIL snailjob-page-logic.ts#L37-L39
+  A-11: frontend/apps/web-antdv-next/src/views/monitor/admin/admin-page-logic.ts#L36
+  # A-11 其余落点：敏感键判定 #L90-L94；环境/日志脱敏 #L107-L120、#L126-L130；
+  # userpassword 不渲染 admin/index.vue#L224-L230
+
+test_evidence:
+  executed_at: 2026-11-13T08:50:31+08:00
+  base_url: http://localhost:8080
+  frontend_url: http://localhost:5666
+  total: 11
+  passed: 11
+  report: specs/evals/reports/REQ-20261112-008-20261113-085022.json
+  p0_coverage: 11/11
+  source: "门禁 5（单需求模式）python scripts/evals/run_eval.py --req REQ-20261112-008；2026-11-12 独立复跑报告 REQ-20261112-008-20261112-191531.json 亦为 11/11"
+
+boundary_evidence:
+  command: "cd frontend && E2E_REUSE_SERVER=1 E2E_BASE_URL=http://localhost:5666 pnpm exec playwright test tests/e2e/spec008-assertions.spec.ts --reporter=line"
+  total: 21
+  passed: 21
+  e01_e02_e03: "spec008-assertions.spec.ts:242 / :254 / :271"
+  e04_unit: "admin-page-logic.test.ts:80（末尾 200 行）；A-04 E2E 另以 250 行夹具验证"
+  e05_e06: "spec008-assertions.spec.ts:698 / :716（直达 404 且不请求控制台）"
+  e07_unit: "admin-api.test.ts:91（30s AbortController 超时文案）"
+  e08_e09_e10: "spec008-assertions.spec.ts:562 / :584 / :616"
+  e11_admin_e11_snailjob: "spec008-assertions.spec.ts:294 / :668；admin-api.test.ts:57；snailjob-api.test.ts:126"
+  e12: "spec008-assertions.spec.ts:645"
+  spec007_regression: "spec007-assertions.spec.ts 28/28（含 A-08/E-17 外部控制台用例）"
+
+red_green_evidence:
+  - kind: unit
+    command: "cd frontend && pnpm exec vitest run apps/web-antdv-next/src/views/monitor/admin/admin-page-logic.test.ts"
+    red:
+      observed: >-
+        脱敏/截断用例先于实现编写；首次运行报 `Failed to resolve import`
+        （admin-page-logic 模块尚不存在），用例无法解析，为 RED。
+    green:
+      observed: >-
+        实现 maskPropertySources / maskLogLine / tailLines 后 6 个用例全部通过：
+        令牌值显示 `Bearer ***` / `SNAIL-JOB-AUTH: ***`，未命中敏感词的行原样保留
+        （admin-page-logic.test.ts:87）。
+      recorded_at: 2026-11-12T13:40+08:00
+  - kind: unit
+    command: "cd frontend && pnpm exec vitest run apps/web-antdv-next/src/views/monitor/snailjob/snailjob-page-logic.test.ts"
+    red:
+      observed: >-
+        状态映射与停止/重试可用性用例同样先于实现编写；首次运行报
+        `Failed to resolve import`（snailjob-page-logic 模块尚不存在），为 RED。
+    green:
+      observed: "实现 TASK_STATUS_TEXT / canStop / canRetry 后 4 个用例全部通过。"
+      recorded_at: 2026-11-12T13:45+08:00
+
+test_summary:
+  unit:
+    command: "cd frontend && pnpm test:coverage"
+    result: "Test Files 88 passed (88) / Tests 687 passed (687)；lines 89.73% / branches 77.25% / functions 91.2% / statements 89.69%（阈值 70%）"
+    recorded_at: 2026-11-12T17:24:42+08:00
+  typecheck:
+    command: "cd frontend && pnpm check:type"
+    result: "11 tasks successful（vue-tsc --noEmit exit 0）"
+    recorded_at: 2026-11-12T18:28:44+08:00
+  lint_changed_scope:
+    command: "pnpm exec oxfmt --check <12 files> && pnpm exec eslint <12 files> && pnpm exec oxlint <12 files>"
+    result: "均 exit 0（11 个新增/修改源码与测试文件 + tests/e2e/helpers.ts）"
+    recorded_at: 2026-11-12T18:35+08:00
+  e2e:
+    spec008_result: "21 passed (17.3m)"
+    spec008_recorded_at: 2026-11-12T18:58:25+08:00
+    spec007_result: "28 passed (30.3m)"
+    spec007_recorded_at: 2026-11-12T16:58:27+08:00
+
+history:
+  - generation_id: gen-20261112-191531
+    spec_version: "1.0"
+    note: >-
+      SPEC-008 v1.0 由用户在“先 A 后 B”裁决后确认并签字（PM aoyousky、
+      业务 Jim Liu、架构复核 jiankui zhang，2026-11-12），从
+      specs/_drafts/REQ-20261112-008-admin-snailjob-native.md 升格重命名。
+      范围：前端直连同源官方控制台 REST API；复用 monitor:admin:list /
+      monitor:snailjob:list；不新增依赖/权限码/菜单；不改 platform/。
+      11 条 P0 断言、12 条边界。
+    at: 2026-11-12T09:50+08:00
+  - generation_id: gen-20261112-191531
+    spec_version: "1.0"
+    note: >-
+      实现完成：admin 原生页（应用列表/实例环境/日志/登录提示）与 snailjob
+      原生页（任务列表/执行记录/执行/停止/重试/登录会话），API 模块
+      30s 超时、非 JSON 与 5001 处理，纯逻辑模块（脱敏、截断、状态映射），
+      单测 4 文件与 E2E spec008 21 例；评测集 11 例。
+    at: 2026-11-12T16:50+08:00
+  - generation_id: gen-20261112-191531
+    spec_version: "1.0"
+    note: >-
+      回归期发现 SPEC-007 A-08/E-17 偶发失败，根因是整页加载后动态路由尚未
+      注册、启动导航覆盖 hash。修复方式仅为测试导航 helper 增加菜单就绪等待与
+      落到首页时 reload 重试，不改断言与超时；随后 A-08/E-17 定向 6/6、
+      SPEC-007 全量 28/28 通过。
+    at: 2026-11-12T17:30+08:00
+  - generation_id: gen-20261112-191531
+    spec_version: "1.0"
+    note: >-
+      最终代码验收：REQ-008 评测 11/11（REQ-20261112-008-20261112-191531.json）；
+      SPEC-008 E2E 21/21（17.3m）；SPEC-007 回归 28/28（30.3m）；单测 687/687，
+      覆盖率 lines 89.73% / branches 77.25%；vue-tsc 与 oxfmt/ESLint/oxlint
+      exit 0；/spec-check PASS。
+    at: 2026-11-12T19:15+08:00
+  - generation_id: gen-20261112-191531
+    spec_version: "1.0"
+    note: >-
+      门禁 5 按用户指示改为默认单需求范围（scripts/ci-gate.sh）；改造后
+      bash scripts/ci-gate.sh 5/5 PASS，EXIT=0，REQ-20261112-008 评测 11/11
+      （REQ-20261112-008-20261112-233138.json）。全量回归改为上线前人工触发
+      CI_GATE_FULL_EVAL=1；改造前四次全量尝试失败于其他需求取令牌波动。
+    at: 2026-11-12T23:31+08:00
+  - generation_id: gen-20261112-191531
+    spec_version: "1.0"
+    note: >-
+      2026-11-13 宿主休眠导致 Docker 栈停止；恢复后首轮门禁 5/11，根因为 Redis
+      残留历史门禁临时密钥签发的旧会话，admin 登录触发 Sa-Token 单端踢除时
+      JWT 签名解析失败返回 500（另有 ERR_NETWORK_IO_SUSPENDED 宿主挂起）。
+      未删除 Redis 共享数据、未改断言/评测资产；复测登录成功后复跑门禁 11/11，
+      EXIT=0，报告 REQ-20261112-008-20261113-085022.json。
+    at: 2026-11-13T08:50:31+08:00

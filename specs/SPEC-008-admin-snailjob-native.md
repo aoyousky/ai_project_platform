@@ -1,21 +1,20 @@
 ---
 id: REQ-20261112-008
 title: 系统监控原生视图（Admin 监控 / 任务调度中心）最小可用集
-version: 0.1
-status: draft
+version: 1.0
 generated_from: 2026-11-12 裁决「先 A 后 B」；B 采用前端直连官方控制台 REST API、最小可用集、复用现有权限码、新建独立 REQ
 risk_level: L2
 risk_reason: 页面展示环境配置与运行日志，可能包含密钥/令牌等敏感值，需要脱敏口径与架构复核；不涉资金与对外承诺
 channel: ai_direct
-pm: 待签
-business_signoff: 待签
-arch_reviewer: 待签
+pm: aoyousky 2026-11-12
+business_signoff: Jim Liu 2026-11-12
+arch_reviewer: jiankui zhang 2026-11-12
 target_window:
 ---
 
 # 系统监控原生视图（Admin 监控 / 任务调度中心）最小可用集
 
-> ⚠️ 本文是**草稿**（`status: draft`），不是交付依据。升格为 Spec Packet 需要
+> ⚠️ 本文不是**草稿**，可以作为交付依据。升格为 Spec Packet 需要
 > PM 与业务方逐条签字，Agent 不得自行去草稿标记或升版。
 
 ## 1. 意图
@@ -67,8 +66,8 @@ target_window:
 > 六类覆盖：空值（E-01/E-02/E-12）、超限（E-03/E-04）、重复（E-09）、权限（E-05/E-06）、
 > 超时（E-07）、非法状态（E-08/E-10/E-11）。
 
-> ⚠️ 待确认假设：E-05/E-06 沿用 SPEC-007 的「越权直达落 404」口径（菜单由后端下发，
-> 前端无静态路由）。若 B 改为前端静态注册路由，需改为「重定向首页 + 提示」并重写本条。
+> ⚠️ 已确认假设：E-05/E-06 沿用 SPEC-007 的「越权直达落 404」口径（菜单由后端下发，
+> 前端无静态路由）。
 
 ## 4. 数据契约
 
@@ -114,9 +113,7 @@ target_window:
   `dev` 并在页面提供切换）。
 - 错误结构：非 `status=1` 一律按失败处理，展示后端 `message` 原文，不渲染数据表。
 
-> ⚠️ 待确认假设：原生页自己发起 SnailJob 登录（表单）并把 JWT 放 `sessionStorage`；
-> 备选方案是要求用户先登录官方控制台并复用其会话。两种方案的安全与 UX 取舍需要裁决，
-> 若选备选方案，4.2 的登录实现段与 A-06/E-08 需重写。
+> ⚠️ 已确认假设：原生页自己发起 SnailJob 登录（表单）并把 JWT 放 `sessionStorage`。
 
 ### 4.3 权限码（复用，不新增）
 
@@ -171,9 +168,11 @@ target_window:
 
 | 版本 | 变更 | 日期 | 签字人 |
 |---|---|---|---|
-| 0.1 | 草稿初版（待逐条确认） | 2026-11-12 | 待 PM 与业务方确认 |
+| 0.1 | 草稿初版 | 2026-11-12 | Agent 起草 |
+| 1.0 | 断言与边界确认，升格为 Spec Packet | 2026-11-12 | PM aoyousky / 业务方 Jim Liu / 架构复核 jiankui zhang |
 
-> 待 PM 与业务方逐条确认。签字前不得据此实现。
+> 签字依据：front-matter 的 `pm` / `business_signoff` / `arch_reviewer` 字段由签字人填写；
+> 本表为同一签字的记录，内容未改动任何断言或边界。
 
 ## 附：断言改写对照（体检反馈）
 

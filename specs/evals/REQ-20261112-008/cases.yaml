@@ -1,0 +1,92 @@
+spec_version: "1.0"
+# REQ-20261112-008（SPEC-008 原生 Admin 监控 / 任务调度中心）评测用例。
+#
+# 纯前端交付，可观测面在浏览器 DOM 与纯函数单测；控制台 REST API 由 E2E 内
+# `page.route` 提供夹具，不依赖外部控制台进程。每条 P0 断言声明 `e2e:` 证据，
+# 由 `scripts/evals/run_eval.py` 以 `-g "<断言编号>"` 精确执行对应用例。
+#
+# E2E 用例文件：frontend/tests/e2e/spec008-assertions.spec.ts
+#
+# 边界用例（E-xx）：SPEC-008 §3 是两列格式，共享执行器 `specs/evals/run.py` 的
+# SPEC_ROW 只识别带优先级的三列断言行（`specs/` 只读，不为此改格式）；E-xx 由同一
+# E2E 文件中的 `E-xx` 用例与 `admin-page-logic.test.ts` / `admin-api.test.ts` 覆盖，
+# 证据逐条写入 trace 的 boundary_evidence。
+
+cases:
+  - id: TC-A01
+    assertion: A-01
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec008-assertions.spec.ts}
+    expect: {e2e: "A-01"}
+    e2e: {spec: tests/e2e/spec008-assertions.spec.ts, grep: A-01}
+
+  - id: TC-A02
+    assertion: A-02
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec008-assertions.spec.ts}
+    expect: {e2e: "A-02"}
+    e2e: {spec: tests/e2e/spec008-assertions.spec.ts, grep: A-02}
+
+  - id: TC-A03
+    assertion: A-03
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec008-assertions.spec.ts}
+    expect: {e2e: "A-03"}
+    e2e: {spec: tests/e2e/spec008-assertions.spec.ts, grep: A-03}
+
+  - id: TC-A04
+    assertion: A-04
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec008-assertions.spec.ts}
+    expect: {e2e: "A-04"}
+    e2e: {spec: tests/e2e/spec008-assertions.spec.ts, grep: A-04}
+
+  - id: TC-A05
+    assertion: A-05
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec008-assertions.spec.ts}
+    expect: {e2e: "A-05"}
+    e2e: {spec: tests/e2e/spec008-assertions.spec.ts, grep: A-05}
+
+  - id: TC-A06
+    assertion: A-06
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec008-assertions.spec.ts}
+    expect: {e2e: "A-06"}
+    e2e: {spec: tests/e2e/spec008-assertions.spec.ts, grep: A-06}
+
+  - id: TC-A07
+    assertion: A-07
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec008-assertions.spec.ts}
+    expect: {e2e: "A-07"}
+    e2e: {spec: tests/e2e/spec008-assertions.spec.ts, grep: A-07}
+
+  - id: TC-A08
+    assertion: A-08
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec008-assertions.spec.ts}
+    expect: {e2e: "A-08"}
+    e2e: {spec: tests/e2e/spec008-assertions.spec.ts, grep: A-08}
+
+  - id: TC-A09
+    assertion: A-09
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec008-assertions.spec.ts}
+    expect: {e2e: "A-09"}
+    e2e: {spec: tests/e2e/spec008-assertions.spec.ts, grep: A-09}
+
+  - id: TC-A10
+    assertion: A-10
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec008-assertions.spec.ts}
+    expect: {e2e: "A-10"}
+    e2e: {spec: tests/e2e/spec008-assertions.spec.ts, grep: A-10}
+
+  # A-11 的脱敏断言在 A-03 用例内（标题含“（A-11）”），grep 命中同一标题。
+  - id: TC-A11
+    assertion: A-11
+    probe: false
+    input: {method: E2E, path: frontend/tests/e2e/spec008-assertions.spec.ts}
+    expect: {e2e: "A-11"}
+    e2e: {spec: tests/e2e/spec008-assertions.spec.ts, grep: A-11}

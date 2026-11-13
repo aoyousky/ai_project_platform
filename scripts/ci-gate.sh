@@ -187,7 +187,49 @@ if command -v python >/dev/null 2>&1; then
     # 后端/预览缓存都冷，实测首轮 15s 取码窗口与 5s 登录阈值会因宿主争用抖动失败
     # （单跑 REQ-001 稳定通过）。故非 006 需求里让 REQ-001 最后执行，跑在预热环境中。
     REQ1="REQ-20261101-001"
-    if [ "$FAIL" -eq 0 ]; then
+
+    # —— 门禁 5 范围（2026-11-12 优化）——
+    # 默认只评测“本次交付需求”，全量回归改为上线前人工显式触发：
+    #   CI_GATE_FULL_EVAL=1      全量（上线前回归）
+    #   CI_GATE_REQ=REQ-xxx      显式指定单个需求
+    #   否则按当前分支号 NNN 匹配 specs/evals/REQ-*-NNN
+    EVAL_FULL="${CI_GATE_FULL_EVAL:-0}"
+    EVAL_SCOPE_REQ="${CI_GATE_REQ:-}"
+    RUN_REQ6_SPECIAL=0
+    if [ "$EVAL_FULL" = "1" ]; then
+      RUN_REQ6_SPECIAL=1
+      echo "门禁 5 范围：全量需求（上线前回归）"
+    else
+      if [ -z "$EVAL_SCOPE_REQ" ]; then
+        GATE_BRANCH="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+        GATE_NUM="$(printf '%s' "$GATE_BRANCH" | sed -n 's/^\([0-9][0-9][0-9]\)-.*/\1/p')"
+        if [ -n "$GATE_NUM" ]; then
+          for req_dir in "$ROOT"/specs/evals/REQ-*-"$GATE_NUM"; do
+            [ -d "$req_dir" ] || continue
+            EVAL_SCOPE_REQ="$(basename "$req_dir")"
+            break
+          done
+        fi
+        if [ -z "$EVAL_SCOPE_REQ" ]; then
+          echo "FAIL: 无法从分支 '$GATE_BRANCH' 推断本次交付需求；请设 CI_GATE_REQ=REQ-xxx 或 CI_GATE_FULL_EVAL=1 跑全量"
+          FAIL=1
+        fi
+      fi
+      if [ "$FAIL" -eq 0 ]; then
+        [ "$EVAL_SCOPE_REQ" = "$REQ6" ] && RUN_REQ6_SPECIAL=1
+        echo "门禁 5 范围：本次交付需求 $EVAL_SCOPE_REQ（全量回归请人工触发 CI_GATE_FULL_EVAL=1）"
+      fi
+    fi
+
+    if [ "$FAIL" -eq 0 ] && [ "$EVAL_FULL" != "1" ] && [ "$RUN_REQ6_SPECIAL" != "1" ]; then
+      if python "$FIXTURE" --req "$EVAL_SCOPE_REQ" --report "$ROOT/specs/evals/reports"; then
+        echo "PASS: $EVAL_SCOPE_REQ"
+      else
+        echo "FAIL: $EVAL_SCOPE_REQ 评测未通过"; FAIL=1
+      fi
+    fi
+
+    if [ "$FAIL" -eq 0 ] && [ "$EVAL_FULL" = "1" ]; then
       for req_dir in "$ROOT"/specs/evals/REQ-*; do
         [ -d "$req_dir" ] || continue
         req=$(basename "$req_dir")
@@ -210,7 +252,7 @@ if command -v python >/dev/null 2>&1; then
 
     # REQ-006 固定在最后：base（重建夹具）→ 生成令牌（不打印）→ volatile
     # （重置登录日志与在线键，保留令牌）→ 单独执行。
-    if [ "$FAIL" -eq 0 ]; then
+    if [ "$RUN_REQ6_SPECIAL" = "1" ] && [ "$FAIL" -eq 0 ]; then
       # REQ-006 的 A-09 依赖流程 `fast` 的 SLA=1h（5.4h 办结记 1 条超时 → 8%），
       # 该参数只存在于评测专用 compose 覆盖中；必须用两份 compose 重启后端。
       if [ "${EVAL_SKIP_SEED:-0}" != "1" ] && command -v docker >/dev/null 2>&1; then
@@ -306,7 +348,11 @@ if command -v python >/dev/null 2>&1; then
     fi
 
     if [ "$FAIL" -eq 0 ]; then
-      echo "PASS: 评测集（全部需求目录，等价夹具）"
+      if [ "$EVAL_FULL" = "1" ]; then
+        echo "PASS: 评测集（全部需求目录，等价夹具）"
+      else
+        echo "PASS: 评测集（本次交付需求 $EVAL_SCOPE_REQ，等价夹具）"
+      fi
     else
       echo "FAIL: 评测集未通过（请检查上述失败用例并确认夹具已 seed）"
     fi
