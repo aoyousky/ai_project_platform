@@ -41,7 +41,8 @@ cases:
     probe: false
     input: {method: shell, path: "specs/evals/REQ-20261114-010/check.py", cmd: "python specs/evals/REQ-20261114-010/check.py a03"}
     expect: {exit_code: 0}
-    shell: {cmd: "python specs/evals/REQ-20261114-010/check.py a03", timeout: 180, expect_empty: false}
+    # 后端冷启（seed 重启）计入等待，注册判定仍为 ready 后 60s。
+    shell: {cmd: "python specs/evals/REQ-20261114-010/check.py a03", timeout: 360, expect_empty: false}
 
   - id: TC-A04
     assertion: A-04

@@ -171,24 +171,34 @@ def a02() -> None:
 
 # --- A-03 ---------------------------------------------------------------
 def a03() -> None:
+    """口径同 SPEC-010 §5：backend ready 后 60 秒内完成 SBA 注册并 UP。
+
+    门禁 5 的 seed 脚本会重启后端（冷启动约 80–112s），所以先等后端自己 ready
+    （上限 240s，属于启动等待而非放宽断言），再用 60s 窗口判定注册。
+    """
     creds = env()
     auth = base64.b64encode(
         f"{creds['MONITOR_ADMIN_USERNAME']}:{creds['MONITOR_ADMIN_PASSWORD']}"
         .encode()).decode()
-    deadline = time.time() + 120
+    ready_by = time.time() + 240
+    while http_code("http://localhost:8080/auth/tenant/list") not in (200, 401, 403):
+        if time.time() > ready_by:
+            raise SystemExit("FAIL A-03: 后端 240s 内未就绪（/auth/tenant/list 不可达）")
+        time.sleep(5)
+    registered_by = time.time() + 60
     while True:
         code = http_code(FRONT + "/admin/applications", auth=auth)
         if code == 200:
-            status, apps = http_json(FRONT + "/admin/applications",
-                                     headers={"Authorization": "Basic " + auth})
+            _, apps = http_json(FRONT + "/admin/applications",
+                                headers={"Authorization": "Basic " + auth})
             hits = [app for app in apps
                     if app.get("name") == "aoyou-server" and app.get("status") == "UP"]
             if hits:
-                print("PASS A-03: aoyou-server status=UP")
+                print("PASS A-03: 后端 ready 后 60s 内 aoyou-server status=UP")
                 return
-        if time.time() > deadline:
-            raise SystemExit(f"FAIL A-03: HTTP {code}，未找到 aoyou-server UP 实例")
-        time.sleep(5)
+        if time.time() > registered_by:
+            raise SystemExit(f"FAIL A-03: HTTP {code}，后端 ready 后 60s 内未注册 aoyou-server UP")
+        time.sleep(3)
 
 
 # --- A-04 ---------------------------------------------------------------
