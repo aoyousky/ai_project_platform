@@ -1,0 +1,38 @@
+generation_id: gen-20261114-233134
+requirement_id: REQ-20261114-009
+spec_version: "1.0"
+spec_hash: 5ea3c2c5466d
+constraint_version: 77e727639c28
+allowlist_hash: 4d2d2e9f97f7
+model: deepseek-v4.1-flash
+prompt_version: claudemd-v1
+generated_at: 2026-11-14T23:31:34+08:00
+
+speckit: null
+
+clarification_refs: []
+
+reviewer: pending
+review_verdict: pending
+
+diff_scope: []
+
+# 开发期映射：目标文件已确定；行号在实现完成后补齐（禁止编造行号）。
+# A-05 为防越界断言（评测用例/断言 diff 必须为 0），无实现位置，
+# 由 diff 对比证明；schema 的不可映射标记被门禁 3 禁止，
+# 故以 verification 形式记录，完成评审时复核。
+assertion_map:
+  A-01: scripts/ci-gate.sh
+  A-02: scripts/evals/run_eval.py
+  A-03: scripts/evals/http_probe.mjs
+  A-04: scripts/evals/run_eval.py
+  A-05: verification:diff-check（评测用例与断言 diff 必须为 0，无实现位置）
+  A-06: scripts/ci-gate.sh
+  A-07: scripts/evals/run_eval.py
+
+# 未执行评测集（specs/evals/REQ-20261114-009 尚未建立），按 CLAR-003 开发期豁免留空。
+test_evidence:
+
+history:
+  - at: 2026-11-14T23:31:34+08:00
+    event: "SPEC-009 v1.0 签字移入 specs/；创建开发期 trace 骨架，实现尚未开始"
