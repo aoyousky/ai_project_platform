@@ -1,0 +1,15 @@
+ARG REGISTRY=docker.m.daocloud.io/library
+FROM ${REGISTRY}/eclipse-temurin:17-jre
+
+LABEL org.opencontainers.image.title="ai-work-platform-snailjob-server"
+LABEL org.opencontainers.image.description="SnailJob 1.10.0 调度中心（context-path /snail-job，由 deploy/prepare.sh 产出的 snailjob-server.jar）"
+
+ENV TZ=Asia/Shanghai \
+    JAVA_OPTS="-XX:MaxRAMPercentage=75"
+
+WORKDIR /app
+COPY build/snailjob-server.jar /app/app.jar
+
+EXPOSE 8800 17888
+
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar \"$@\"", "--"]

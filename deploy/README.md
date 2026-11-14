@@ -22,6 +22,8 @@ cd deploy
 cp .env.example .env
 # 必填：编辑 .env，把 SA_TOKEN_JWT_SECRET 设成随机值
 #   export SA_TOKEN_JWT_SECRET=$(openssl rand -hex 32)
+# 必填：设置两个官方控制台的管理员口令（缺失时 compose 直接报错，E-03）
+#   MONITOR_ADMIN_USERNAME=...  MONITOR_ADMIN_PASSWORD=...
 
 ./prepare.sh                              # 产出 build/app.jar 与 build/dist/
 docker compose up -d --build              # 起 MySQL/Redis/MinIO/后端/前端；minio-init 建桶
@@ -39,11 +41,14 @@ docker compose up -d --build              # 起 MySQL/Redis/MinIO/后端/前端�
 | redis | 6379 | 6379 | 密码 `REDIS_PASSWORD` |
 | minio (S3) | 9000 | 9000 | 桶 `aoyou`，由 `minio-init` 创建 |
 | minio (console) | 9001 | 9001 | 本地调试用，不对外 |
+| monitor-admin (SBA) | 9090 | 9090 | context-path `/admin`；口令来自 `MONITOR_ADMIN_*` 环境变量 |
+| snailjob-server | 8800 | 8800 | context-path `/snail-job`；调度端口 17888 仅容器网络内可达 |
 
 ## 验证
 
 ```bash
-# 1. 容器状态：mysql / redis 应为 healthy
+# 1. 容器状态：mysql / redis / monitor-admin / snailjob-server 应为 healthy
+#    （db-init、minio-init 是一次性任务，退出码 0 属正常）
 docker compose ps
 
 # 2. 页面能打开
@@ -52,7 +57,16 @@ curl -I http://localhost/
 # 3. 后端接口通（验证码接口，无需登录）
 curl -s http://localhost/prod-api/auth/code | head -c 200
 
-# 4. 数据库表已建（首次启动会执行 db/migrations/sql 下的 V1/V2）
+# 4. 官方控制台同源可达（SPEC-010）：/admin/login 200、/admin/applications 未登录 401、/snail-job/ 200
+curl -s -o /dev/null -w '%{http_code}
+' http://localhost/admin/login
+curl -s -o /dev/null -w '%{http_code}
+' http://localhost/admin/applications
+curl -s -o /dev/null -w '%{http_code}
+' http://localhost/snail-job/
+
+# 5. 数据库表已建（首次启动会执行 db/migrations/sql 下的 V1/V2，
+#    并按需导入 platform/script/sql/ry_job.sql 与 deploy/sql/snailjob-seed.sql）
 docker exec awp-mysql mysql -uroot -proot -e \
   "select count(*) as tables_count from information_schema.tables where table_schema='aoyou';"
 ```
@@ -69,6 +83,8 @@ docker compose down -v       # 连数据卷一起删（下次启动会重新初�
 | 现象 | 原因 / 处理 |
 |---|---|
 | `docker compose` 报 `SA_TOKEN_JWT_SECRET` 缺失 | `.env` 没填该值。这是刻意的（红线 R3），不要加默认值绕过 |
+| `docker compose` 报 `MONITOR_ADMIN_USERNAME/PASSWORD` 缺失 | 控制台口令只能由环境变量注入（SPEC-010 E-03），不要写进 compose 或仓库 |
+| 9090/8800 提示 `port is already allocated` | 旧的手工 `java -jar` 控制台还在跑：先停掉宿主进程（E-02） |
 | `pull access denied` / 超时 | 镜像源不可用，换 `REGISTRY` |
 | 端口 80 被占用 | 改 `docker-compose.yml` 里 frontend 的 `ports`，如 `"8081:80"` |
 | 后端起不来，日志显示连不上数据库 | 等 mysql healthy 再起；首次初始化约 30–60 秒 |

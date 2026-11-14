@@ -41,21 +41,49 @@ services:
     container_name: awp-db-init
     environment:
       MYSQL_PWD: ${MYSQL_ROOT_PASSWORD:-root}
+      # SnailJob 控制台登录账号：与 SBA 共用控制台口令变量（§5 口令来自环境变量）。
+      MONITOR_ADMIN_USERNAME: ${MONITOR_ADMIN_USERNAME:?请先设置 MONITOR_ADMIN_USERNAME}
+      MONITOR_ADMIN_PASSWORD: ${MONITOR_ADMIN_PASSWORD:?请先设置 MONITOR_ADMIN_PASSWORD}
     volumes:
       - ../db/migrations/sql:/sql:ro
+      # SnailJob 表与平台调度组种子（SPEC-010 E-01 / A-04 / A-06）：
+      # 表结构取自 platform/script/sql/ry_job.sql，组/任务种子来自 deploy/sql。
+      - ../platform/script/sql/ry_job.sql:/sql-jobs/ry_job.sql:ro
+      - ./sql:/sql-seed:ro
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
         set -e
-        if mysql --default-character-set=utf8mb4 -hmysql -uroot -N -e \
-             "select 1 from information_schema.tables where table_schema='aoyou' and table_name='sys_user'" | grep -q 1; then
-          echo "数据库已初始化，跳过"
-          exit 0
+        has_table() {
+          mysql --default-character-set=utf8mb4 -hmysql -uroot -N -e \
+            "select 1 from information_schema.tables where table_schema='aoyou' and table_name='$$1'" | grep -q 1
+        }
+        if has_table sys_user; then
+          echo "业务表已初始化，跳过 V*.sql"
+        else
+          for f in $$(ls /sql/V*.sql | sort -V); do
+            echo "=> $$f"
+            mysql --default-character-set=utf8mb4 -hmysql -uroot aoyou < "$$f"
+          done
         fi
-        for f in $$(ls /sql/V*.sql | sort -V); do
-          echo "=> $$f"
-          mysql --default-character-set=utf8mb4 -hmysql -uroot aoyou < "$$f"
-        done
+        # SnailJob 表：缺失即导入；导入失败（SQL 报错）会让 db-init 非 0 退出。
+        if has_table sj_group_config; then
+          echo "SnailJob 表已存在，跳过 ry_job.sql"
+        else
+          echo "=> 导入 SnailJob 表 /sql-jobs/ry_job.sql"
+          mysql --default-character-set=utf8mb4 -hmysql -uroot aoyou < /sql-jobs/ry_job.sql
+        fi
+        # 组 aoyou_group 与测试任务种子：幂等，重建环境后可复现（E-11）。
+        echo "=> 应用 SnailJob 组/任务种子 /sql-seed/snailjob-seed.sql"
+        mysql --default-character-set=utf8mb4 -hmysql -uroot aoyou < /sql-seed/snailjob-seed.sql
+        # SnailJob 控制台账号口令：口令只来自环境变量，经 SHA2 落库（表中不存明文）。
+        # 走 stdin 而非 -e，避免口令出现在进程参数里；按唯一键 username 幂等更新。
+        echo "=> 同步 SnailJob 控制台账号（口令不回显）"
+        mysql --default-character-set=utf8mb4 -hmysql -uroot aoyou <<SQL
+        INSERT INTO sj_system_user (username, password, role)
+        VALUES ('$$MONITOR_ADMIN_USERNAME', SHA2('$$MONITOR_ADMIN_PASSWORD', 256), 2)
+        ON DUPLICATE KEY UPDATE password = VALUES(password), role = 2;
+        SQL
         echo "初始化完成"
     depends_on:
       mysql:
@@ -116,6 +144,62 @@ services:
       - minio
     restart: "no"
 
+  # Spring Boot Admin 控制台（SPEC-010 A-01/A-02/A-03）：context-path /admin，宿主机 9090。
+  # 管理员口令只从环境变量注入；compose 层缺失即报错，容器不会以空口令启动（E-03）。
+  monitor-admin:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor-admin
+      args:
+        REGISTRY: ${REGISTRY:-docker.m.daocloud.io/library}
+    image: awp/monitor-admin:local
+    container_name: awp-monitor-admin
+    environment:
+      TZ: Asia/Shanghai
+      MONITOR_ADMIN_USERNAME: ${MONITOR_ADMIN_USERNAME:?请先设置 MONITOR_ADMIN_USERNAME}
+      MONITOR_ADMIN_PASSWORD: ${MONITOR_ADMIN_PASSWORD:?请先设置 MONITOR_ADMIN_PASSWORD}
+    ports:
+      - "9090:9090"
+    healthcheck:
+      # JRE 镜像不带 curl，用 bash 的 /dev/tcp 探活；页面返回 401 也算端口就绪。
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9090'"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 20s
+
+  # SnailJob 调度中心（SPEC-010 A-01/A-02/A-04/A-05/A-06）：context-path /snail-job，宿主机 8800。
+  snailjob-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.snailjob-server
+      args:
+        REGISTRY: ${REGISTRY:-docker.m.daocloud.io/library}
+    image: awp/snailjob-server:local
+    container_name: awp-snailjob-server
+    environment:
+      TZ: Asia/Shanghai
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/aoyou?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      # 控制台自身也向 SBA 注册（沿用 platform 配置口径），口令同一来源。
+      SPRING_BOOT_ADMIN_CLIENT_URL: http://monitor-admin:9090/admin
+      SPRING_BOOT_ADMIN_CLIENT_USERNAME: ${MONITOR_ADMIN_USERNAME:?请先设置 MONITOR_ADMIN_USERNAME}
+      SPRING_BOOT_ADMIN_CLIENT_PASSWORD: ${MONITOR_ADMIN_PASSWORD:?请先设置 MONITOR_ADMIN_PASSWORD}
+    ports:
+      - "8800:8800"
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8800'"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 20s
+
   backend:
     build:
       context: .
@@ -134,10 +218,20 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-aoyou123}
+      # SBA 客户端：开关由环境变量注入（§4），容器内部走 compose 服务名。
+      SPRING_BOOT_ADMIN_CLIENT_ENABLED: ${SPRING_BOOT_ADMIN_CLIENT_ENABLED:-true}
+      SPRING_BOOT_ADMIN_CLIENT_URL: http://monitor-admin:9090/admin
+      SPRING_BOOT_ADMIN_CLIENT_USERNAME: ${MONITOR_ADMIN_USERNAME:?请先设置 MONITOR_ADMIN_USERNAME}
+      SPRING_BOOT_ADMIN_CLIENT_PASSWORD: ${MONITOR_ADMIN_PASSWORD:?请先设置 MONITOR_ADMIN_PASSWORD}
+      # A-03 要求实例名固定 aoyou-server（不依赖 spring.application.name）。
+      SPRING_BOOT_ADMIN_CLIENT_INSTANCE_NAME: aoyou-server
+      # SnailJob 执行器：开关由环境变量注入；组名唯一合法值 aoyou_group（§4）。
+      SNAIL_JOB_ENABLED: ${SNAIL_JOB_ENABLED:-true}
+      SNAIL_JOB_GROUP: aoyou_group
+      SNAIL_JOB_SERVER_HOST: snailjob-server
+      SNAIL_JOB_SERVER_PORT: "17888"
     ports:
       - "8080:8080"
-    # SnailJob 调度中心本次不部署，关掉客户端避免反复重连
-    command: ["--snail-job.enabled=false", "--spring.boot.admin.client.enabled=false"]
     depends_on:
       db-init:
         condition: service_completed_successfully
@@ -145,6 +239,10 @@ services:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
+      monitor-admin:
+        condition: service_healthy
+      snailjob-server:
+        condition: service_healthy
 
   frontend:
     build:
@@ -160,6 +258,8 @@ services:
       - "80:80"
     depends_on:
       - backend
+      - monitor-admin
+      - snailjob-server
 
 volumes:
   mysql-data:

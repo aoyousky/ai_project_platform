@@ -1,4 +1,4 @@
-generation_id: gen-20261114-233134
+generation_id: gen-20261115-011335
 requirement_id: REQ-20261114-010
 spec_version: "1.0"
 spec_hash: fbdeb177f52b
@@ -6,34 +6,74 @@ constraint_version: 77e727639c28
 allowlist_hash: 4d2d2e9f97f7
 model: deepseek-v4.1-flash
 prompt_version: claudemd-v1
-generated_at: 2026-11-14T23:31:34+08:00
+generated_at: 2026-11-15T01:13:35+08:00
 
 speckit: null
 
-clarification_refs: []
+clarification_refs: [CLAR-018]
 
 reviewer: pending
 review_verdict: pending
+review_evidence: docs/evidence/REQ-20261114-010/review-12-items.md
 
-diff_scope: []
+diff_scope:
+  - deploy/.env.example
+  - deploy/README.md
+  - deploy/docker-compose.yml
+  - deploy/nginx/default.conf
+  - deploy/prepare.sh
+  - platform/aoyou-extend/aoyou-monitor-admin/src/main/resources/application.yml
+  - platform/aoyou-extend/aoyou-snailjob-server/src/main/resources/application-dev.yml
+  - deploy/Dockerfile.monitor-admin            # 新增
+  - deploy/Dockerfile.snailjob-server           # 新增
+  - deploy/sql/snailjob-seed.sql                # 新增
+  - specs/evals/REQ-20261114-010/cases.yaml     # 新增（评测集）
+  - specs/evals/REQ-20261114-010/check.py       # 新增（评测取证脚本）
 
-# 开发期映射：目标文件已确定；行号在实现完成后补齐（禁止编造行号）。
-# A-08 为防越界断言（frontend/apps/** 与 SPEC-008 diff 必须为 0、无新增权限码），
-# 无实现位置，由 diff 对比证明；schema 的不可映射标记被门禁 3 禁止，
-# 故以 verification 形式记录，完成评审时复核。
+# 行号取 2026-11-15 工作树实测位置；A-08 为防越界断言，由 diff 对比证明。
 assertion_map:
-  A-01: deploy/docker-compose.yml
-  A-02: deploy/nginx/default.conf
-  A-03: platform/aoyou-admin/src/main/resources/application-dev.yml
-  A-04: platform/script/sql/ry_job.sql
-  A-05: platform/aoyou-admin/src/main/resources/application-dev.yml
-  A-06: platform/aoyou-admin/src/main/resources/application-dev.yml
-  A-07: deploy/docker-compose.yml
+  A-01: deploy/docker-compose.yml#L149,L172          # monitor-admin / snailjob-server 常驻服务定义
+  A-02: deploy/nginx/default.conf#L36-L52            # resolver + /admin/ 与 /snail-job 反代
+  A-03: deploy/docker-compose.yml#L221-L227          # 后端 SBA 客户端 enabled/url/instance=aoyou-server
+  A-04: deploy/sql/snailjob-seed.sql#L8-L16          # aoyou_group 幂等种子（组数量恒为 1）
+  A-05: deploy/docker-compose.yml#L229-L232          # SNAIL_JOB_ENABLED/GROUP/SERVER_HOST/PORT
+  A-06: deploy/sql/snailjob-seed.sql#L18-L34         # aoyou-demo-job 可手动触发的测试任务
+  A-07: deploy/nginx/default.conf#L36-L52            # Docker DNS resolver + 变量 proxy_pass（restart 后无陈旧 IP）
   A-08: verification:diff-check（frontend/apps/** 与 SPEC-008 diff 必须为 0，无实现位置）
 
-# 未执行评测集（specs/evals/REQ-20261114-010 尚未建立），按 CLAR-003 开发期豁免留空。
 test_evidence:
+  executed_at: 2026-11-15T01:13:35+08:00
+  base_url: "http://localhost（nginx :80；控制台 :9090/:8800 直连，shell 取证）"
+  total: 8
+  passed: 8
+  report: specs/evals/reports/REQ-20261114-010-20261115-011827.json
+  p0_coverage: 8/8
+
+# E-xx 边界核对（实测见 clarifications/CLAR-018.md）。五项与上游控制台行为冲突，
+# 在 CLAR-018 裁决前不得据此宣称完成。
+boundary_evidence:
+  E-01: deploy/docker-compose.yml#L57-L75（has_table + 导入失败即非 0 退出；实测 db-init 首次导入成功）
+  E-02: 未实测（需占用 9090/8800；compose 由 Docker 端口分配报错，配置层无自定义处理）
+  E-03: deploy/docker-compose.yml#L45-L46,L159-L160（`${VAR:?...}` 缺失即 compose 报错并指出变量名，不回显口令）
+  E-04: 未实测（需停 MySQL；控制台 healthcheck 见 #L164-L168 / #L196-L200）
+  E-05: ✗ 与上游冲突（实测 HTTP 200 + status=0 "job can not be null."，无 GROUP_NOT_FOUND）
+  E-06: 由 A-02 覆盖（/admin/applications 未登录 401，实测）
+  E-07: ✗ 与上游冲突（停 backend 后触发返回 200/status=1，20 秒后批次转 4=FAIL）
+  E-08: ✗ 与上游冲突（连续两次触发各产生 1 条记录，接口无幂等键）
+  E-09: deploy/nginx/default.conf#L36-L52（变量 proxy_pass 直连服务名，容器崩溃即 502；未实测崩溃态）
+  E-10: platform/aoyou-extend/aoyou-snailjob-server/.../application-dev.yml#L50-L51 + compose #L230（组名固定 aoyou_group；ruoyi_group 种子并存，实测在线节点 group=aoyou_group）
+  E-11: deploy/sql/snailjob-seed.sql（按唯一键幂等）+ db-init 账号同步（SHA2 落库）；本次栈即由该脚本从零初始化
+  E-12: ✗ 与上游冲突（三个构建产物与上游 class 均无 SBA_REGISTER_FAILED 字符串）
+  E-13: △ 字段名不符（实测返回 data:[]，Spec 写 rows=[]）
+  E-14: ✗ 与上游冲突（11 次触发全部 200/status=1，无 429/TOO_MANY_TRIGGERS）
+  E-15: ✗ 与上游冲突（停止 SUCCESS 批次返回 200/status=1，记录仍为 status=3，无 409/ILLEGAL_STATE）
 
 history:
   - at: 2026-11-14T23:31:34+08:00
     event: "SPEC-010 v1.0 签字移入 specs/；创建开发期 trace 骨架，实现尚未开始"
+  - at: 2026-11-15T01:13:35+08:00
+    event: "实现完成：compose 编排两控制台 + nginx 反代 + 种子/账号初始化；评测集 8/8 通过（报告 REQ-20261114-010-20261115-011335.json）"
+  - at: 2026-11-15T01:30:00+08:00
+    event: "门禁 5/5 PASS（EXIT=0，报告 REQ-20261114-010-20261115-011827.json，8/8）"
+  - at: 2026-11-15T01:45:00+08:00
+    event: "边界实测：E-05/E-07/E-08/E-14/E-15 与上游控制台行为冲突（错误码不存在、无 429/409、无幂等键），E-12/E-13 亦不符；按铁律 2 发起 CLAR-018，交付判定冻结至裁决"

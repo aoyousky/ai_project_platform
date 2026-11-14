@@ -8,12 +8,23 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD="$ROOT/deploy/build"
 mkdir -p "$BUILD"
 
-echo "== 1/2 后端：打包 aoyou-admin =="
+echo "== 1/3 后端：打包 aoyou-admin =="
 mvn -f "$ROOT/platform/pom.xml" -pl aoyou-admin -am package -DskipTests -q
 cp "$ROOT/platform/aoyou-admin/target/aoyou-admin.jar" "$BUILD/app.jar"
 echo "   -> $BUILD/app.jar ($(du -h "$BUILD/app.jar" | cut -f1))"
 
-echo "== 2/2 前端：生产构建 =="
+echo "== 2/3 控制台：打包 monitor-admin 与 snailjob-server =="
+# SPEC-010：两个官方控制台由 compose 编排，不再手工 java -jar。
+mvn -f "$ROOT/platform/pom.xml" \
+  -pl aoyou-extend/aoyou-monitor-admin,aoyou-extend/aoyou-snailjob-server -am package -DskipTests -q
+cp "$ROOT/platform/aoyou-extend/aoyou-monitor-admin/target/aoyou-monitor-admin.jar" \
+   "$BUILD/monitor-admin.jar"
+cp "$ROOT/platform/aoyou-extend/aoyou-snailjob-server/target/aoyou-snailjob-server.jar" \
+   "$BUILD/snailjob-server.jar"
+echo "   -> $BUILD/monitor-admin.jar ($(du -h "$BUILD/monitor-admin.jar" | cut -f1))"
+echo "   -> $BUILD/snailjob-server.jar ($(du -h "$BUILD/snailjob-server.jar" | cut -f1))"
+
+echo "== 3/3 前端：生产构建 =="
 # frontend/ 是 pnpm workspace（Vben monorepo），锁文件只有 pnpm-lock.yaml。
 (
   cd "$ROOT/frontend"

@@ -1,0 +1,17 @@
+ARG REGISTRY=docker.m.daocloud.io/library
+FROM ${REGISTRY}/eclipse-temurin:17-jre
+
+LABEL org.opencontainers.image.title="ai-work-platform-monitor-admin"
+LABEL org.opencontainers.image.description="Spring Boot Admin 3.5.8 控制台（context-path /admin，由 deploy/prepare.sh 产出的 monitor-admin.jar）"
+
+ENV TZ=Asia/Shanghai \
+    JAVA_OPTS="-XX:MaxRAMPercentage=75"
+
+WORKDIR /app
+COPY build/monitor-admin.jar /app/app.jar
+
+EXPOSE 9090
+
+# 控制台管理员口令只从环境变量注入（SPEC-010 §4 / E-03）：变量缺失时
+# Spring 占位符解析失败，容器直接退出，日志只打印变量名，不打印口令值。
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar \"$@\"", "--"]

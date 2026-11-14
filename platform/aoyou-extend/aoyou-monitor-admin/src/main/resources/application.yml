@@ -13,8 +13,10 @@ logging:
 spring:
   security:
     user:
-      name: @monitor.username@
-      password: @monitor.password@
+      # SPEC-010 §4 / E-03：控制台管理员口令只从环境变量注入，缺失即启动失败；
+      # 变量名出现在失败日志里，口令值不打印。
+      name: ${MONITOR_ADMIN_USERNAME}
+      password: ${MONITOR_ADMIN_PASSWORD}
   boot:
     admin:
       ui:
@@ -47,5 +49,5 @@ spring.boot.admin.client:
     metadata:
       username: ${spring.boot.admin.client.username}
       userpassword: ${spring.boot.admin.client.password}
-  username: @monitor.username@
-  password: @monitor.password@
+  username: ${MONITOR_ADMIN_USERNAME}
+  password: ${MONITOR_ADMIN_PASSWORD}

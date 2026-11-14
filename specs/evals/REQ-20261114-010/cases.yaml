@@ -1,0 +1,79 @@
+spec_version: "1.0"
+# REQ-20261114-010（SPEC-010 控制台编排化）评测用例。
+#
+# 断言对象是**运行态编排**：compose 服务状态、nginx 反代状态码、SBA 实例注册、
+# SnailJob 组/执行器/触发记录、restart 自恢复、diff 边界。因此全部用 `shell:` 用例，
+# 由 `specs/evals/REQ-20261114-010/check.py <a0N>` 以退出码判定（0=通过）。
+#
+# 前置：栈已 `docker compose -f deploy/docker-compose.yml up -d` 起好。
+# 依赖的环境变量（MONITOR_ADMIN_*、MYSQL_ROOT_PASSWORD）只从 `deploy/.env` 读，
+# 用例内不回显口令，也不写回任何文件。
+#
+# 断言与子命令一一对应：
+#   A-01 a01 服务 Running + 控制台 healthy（120s 内）
+#   A-02 a02 200/401/200（进入 /admin 与 /snail-job）
+#   A-03 a03 SBA 实例列表 name=aoyou-server status=UP
+#   A-04 a04 sj_group_config 中 aoyou_group 恰为 1
+#   A-05 a05 aoyou_group 在线执行器 ≥ 1
+#   A-06 a06 触发一次 → 60s 内 status=3 且记录数 = 触发次数
+#   A-07 a07 compose restart 后 120s 内恢复 200/401/200
+#   A-08 a08 frontend/apps 与 SPEC-008 diff=0、无新增权限码
+#
+# A-07 会重启整个栈（约 45s 恢复），故设为单需求串行末尾用例；本评测集不做并发。
+
+cases:
+  - id: TC-A01
+    assertion: A-01
+    probe: false
+    input: {method: shell, path: "specs/evals/REQ-20261114-010/check.py", cmd: "python specs/evals/REQ-20261114-010/check.py a01"}
+    expect: {exit_code: 0}
+    shell: {cmd: "python specs/evals/REQ-20261114-010/check.py a01", timeout: 180, expect_empty: false}
+
+  - id: TC-A02
+    assertion: A-02
+    probe: false
+    input: {method: shell, path: "specs/evals/REQ-20261114-010/check.py", cmd: "python specs/evals/REQ-20261114-010/check.py a02"}
+    expect: {exit_code: 0}
+    shell: {cmd: "python specs/evals/REQ-20261114-010/check.py a02", timeout: 180, expect_empty: false}
+
+  - id: TC-A03
+    assertion: A-03
+    probe: false
+    input: {method: shell, path: "specs/evals/REQ-20261114-010/check.py", cmd: "python specs/evals/REQ-20261114-010/check.py a03"}
+    expect: {exit_code: 0}
+    shell: {cmd: "python specs/evals/REQ-20261114-010/check.py a03", timeout: 180, expect_empty: false}
+
+  - id: TC-A04
+    assertion: A-04
+    probe: false
+    input: {method: shell, path: "specs/evals/REQ-20261114-010/check.py", cmd: "python specs/evals/REQ-20261114-010/check.py a04"}
+    expect: {exit_code: 0}
+    shell: {cmd: "python specs/evals/REQ-20261114-010/check.py a04", timeout: 120, expect_empty: false}
+
+  - id: TC-A05
+    assertion: A-05
+    probe: false
+    input: {method: shell, path: "specs/evals/REQ-20261114-010/check.py", cmd: "python specs/evals/REQ-20261114-010/check.py a05"}
+    expect: {exit_code: 0}
+    shell: {cmd: "python specs/evals/REQ-20261114-010/check.py a05", timeout: 120, expect_empty: false}
+
+  - id: TC-A06
+    assertion: A-06
+    probe: false
+    input: {method: shell, path: "specs/evals/REQ-20261114-010/check.py", cmd: "python specs/evals/REQ-20261114-010/check.py a06"}
+    expect: {exit_code: 0}
+    shell: {cmd: "python specs/evals/REQ-20261114-010/check.py a06", timeout: 180, expect_empty: false}
+
+  - id: TC-A07
+    assertion: A-07
+    probe: false
+    input: {method: shell, path: "specs/evals/REQ-20261114-010/check.py", cmd: "python specs/evals/REQ-20261114-010/check.py a07"}
+    expect: {exit_code: 0}
+    shell: {cmd: "python specs/evals/REQ-20261114-010/check.py a07", timeout: 420, expect_empty: false}
+
+  - id: TC-A08
+    assertion: A-08
+    probe: false
+    input: {method: shell, path: "specs/evals/REQ-20261114-010/check.py", cmd: "python specs/evals/REQ-20261114-010/check.py a08"}
+    expect: {exit_code: 0}
+    shell: {cmd: "python specs/evals/REQ-20261114-010/check.py a08", timeout: 120, expect_empty: false}
