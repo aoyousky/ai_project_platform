@@ -230,11 +230,23 @@ if command -v python >/dev/null 2>&1; then
     fi
 
     if [ "$FAIL" -eq 0 ] && [ "$EVAL_FULL" = "1" ]; then
+      # 全量模式需求间冷却：各需求评测连续登录同一共享 IP，后端 /auth/code
+      # 限流 10 次/60 秒，相邻需求首个用例会取不到验证码 uuid（REQ-003 TC-A18
+      # 曾因此失败）。冷却只改调度，不改断言/用例/夹具/超时；可用
+      # CI_GATE_EVAL_COOLDOWN=0 关闭。
+      EVAL_COOLDOWN="${CI_GATE_EVAL_COOLDOWN:-60}"
+      echo "全量模式：需求间冷却 ${EVAL_COOLDOWN}s（CI_GATE_EVAL_COOLDOWN 可覆盖）"
+      EVAL_FIRST=1
       for req_dir in "$ROOT"/specs/evals/REQ-*; do
         [ -d "$req_dir" ] || continue
         req=$(basename "$req_dir")
         [ "$req" = "$REQ6" ] && continue
         [ "$req" = "$REQ1" ] && continue
+        if [ "$EVAL_FIRST" = "1" ]; then
+          EVAL_FIRST=0
+        else
+          sleep "$EVAL_COOLDOWN"
+        fi
         if python "$FIXTURE" --req "$req" --report "$ROOT/specs/evals/reports"; then
           echo "PASS: $req"
         else
@@ -242,6 +254,7 @@ if command -v python >/dev/null 2>&1; then
         fi
       done
       if [ "$FAIL" -eq 0 ]; then
+        if [ "$EVAL_FIRST" = "0" ]; then sleep "$EVAL_COOLDOWN"; fi
         if python "$FIXTURE" --req "$REQ1" --report "$ROOT/specs/evals/reports"; then
           echo "PASS: $REQ1"
         else

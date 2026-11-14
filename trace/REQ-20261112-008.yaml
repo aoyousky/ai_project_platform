@@ -11,17 +11,24 @@ generated_at: 2026-11-12T19:30:00+08:00
 speckit: null
 
 clarification_refs: [CLAR-016]
-reviewer: pending
-review_verdict: pending
+reviewer: aoyousky
+review_verdict: 通过
 review_evidence: docs/evidence/REQ-20261112-008/review-12-items.md
+human_signoff:
+  signed_by: aoyousky
+  role: PM
+  signed_at: 2026-11-14
+  verdict: 通过
+  basis: "用户在会话中明确给出验收结论“通过”；业务方 Jim Liu 与架构 jiankui zhang 的 SPEC v1.0 签字见 specs/SPEC-008-admin-snailjob-native.md §9"
 review_notes: >-
   agent /review 12 项自检完成：12/12 通过（第 11 项性能按 SPEC-008 §5 口径标注
   “未实测”，不进入 A-xx、不计入 DoD）。评测 11/11（REQ-20261112-008-20261112-191531.json），
   SPEC-008 E2E 21/21，SPEC-007 回归 28/28，单测 88 文件 687 用例，覆盖率
   lines 89.73% / branches 77.25%（阈值 70%），vue-tsc exit 0，本需求文件
   oxfmt/ESLint/oxlint exit 0；/spec-check PASS（2 项 N/A：无 speckit_feature、
-  无 spec.md/FR-xxx）。人工签署待 PM aoyousky 与业务方 Jim Liu 复核，故
-  reviewer/review_verdict = pending，未声称 pass。
+  无 spec.md/FR-xxx）。人工验收已于 2026-11-14 由 PM aoyousky 给出“通过”结论
+  （human_signoff），据此回写 reviewer/review_verdict；业务方与架构的 SPEC v1.0
+  签字见 SPEC-008 §9，不在此重复代签。
   范围核查：platform/、frontend/packages/**、package.json、pnpm-lock.yaml、
   pnpm-workspace.yaml 的 diff 均为 0；执行期间 pnpm 自动向 pnpm-workspace.yaml
   catalog 追加三条既有依赖（crypto-js/jsencrypt/@types/crypto-js，均已在
@@ -37,7 +44,9 @@ review_notes: >-
   横幅”的表述与文件实际内容不符，已按文件现况更正（specs/ 内容未再修改）。
   门禁 5 范围优化（用户 2026-11-12 指示）：默认只评测本次交付需求（按分支号 008
   匹配 specs/evals/REQ-20261112-008），全量回归改为上线前人工执行
-  CI_GATE_FULL_EVAL=1；改造未触碰断言、评测用例、夹具、登录逻辑与超时预算。
+  CI_GATE_FULL_EVAL=1；2026-11-14 经用户授权又为全量模式增加需求间 60s 冷却
+  （CI_GATE_EVAL_COOLDOWN），理由为 /auth/code 10 次/60 秒共享 IP 限流；
+  两处改造均只调调度，未触碰断言、评测用例、夹具、登录逻辑与超时预算。
   改造后门禁 5/5 PASS（EXIT=0，2026-11-13 08:50，报告
   REQ-20261112-008-20261113-085022.json，11/11；2026-11-12 23:31 首轮单需求
   门禁亦 5/5 PASS、11/11）。改造前四次全量尝试的失败点均为其他需求
@@ -99,14 +108,14 @@ assertion_map:
   # userpassword 不渲染 admin/index.vue#L224-L230
 
 test_evidence:
-  executed_at: 2026-11-13T22:50:49+08:00
+  executed_at: 2026-11-14T21:36:32+08:00
   base_url: http://localhost:8080
   frontend_url: http://localhost:5666
   total: 11
   passed: 11
-  report: specs/evals/reports/REQ-20261112-008-20261113-225049.json
+  report: specs/evals/reports/REQ-20261112-008-20261114-213632.json
   p0_coverage: 11/11
-  source: "门禁 5（单需求模式）python scripts/evals/run_eval.py --req REQ-20261112-008；2026-11-13 08:50 与 2026-11-12 19:15 复跑报告亦为 11/11"
+  source: "门禁 5（单需求模式）在冷却改动后的最终树复跑 11/11；同日全量门禁 r1/r2/r3 中 REQ-008 亦均为 11/11"
 
 boundary_evidence:
   command: "cd frontend && E2E_REUSE_SERVER=1 E2E_BASE_URL=http://localhost:5666 pnpm exec playwright test tests/e2e/spec008-assertions.spec.ts --reporter=line"
@@ -225,3 +234,29 @@ history:
       评测资产；部署缺口（控制台未入 compose、后端两个客户端开关为 disabled、
       SnailJob 组名）已记入 UAT 证据。
     at: 2026-11-13T21:30+08:00
+  - generation_id: gen-20261112-191531
+    spec_version: "1.0"
+    note: >-
+      人工验收：用户在会话中明确确认“通过”（2026-11-14），据此回写
+      reviewer=aoyousky、review_verdict=通过，并新增 human_signoff 段。
+      未代签业务方/架构意见；SPEC v1.0 三方签字以 §9 为准。同日执行上线前
+      全量回归（CI_GATE_FULL_EVAL=1），结果见 UAT 证据执行表。
+    at: 2026-11-14T15:00+08:00
+  - generation_id: gen-20261112-191531
+    spec_version: "1.0"
+    note: >-
+      Redis 旧会话清理（经用户授权）：删除 spec007_online/limited（userId
+      900007000000000011/012）的 online_tokens 4 项，另删两条
+      Authorization:login:session:sys_user:... 会话列表与残留 3 个 token 项；
+      未删 admin 与 spec007_no_monitor。清理后 A-01/A-10 定向 2/2、REQ-007 全量
+      10/10 通过；未改断言/用例/夹具。
+    at: 2026-11-14T15:35+08:00
+  - generation_id: gen-20261112-191531
+    spec_version: "1.0"
+    note: >-
+      全量门禁三轮均 EXIT=1（r1/r2/r3）。REQ-008 每轮 11/11。失败点均为其他需求
+      的环境问题：REQ-007 旧会话登录 500（已清理恢复）、REQ-003 TC-A18 因
+      /auth/code 10 次/60 秒共享 IP 限流（单例隔离通过）、r3 REQ-007 A-07
+      Playwright 1800s 超时。全量模式按用户授权增加需求间 60s 冷却
+      （CI_GATE_EVAL_COOLDOWN，仅调度）；对 REQ-003 无效。未声称全量通过。
+    at: 2026-11-14T21:26+08:00
