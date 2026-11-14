@@ -218,9 +218,15 @@ def a03() -> None:
         if code == 200:
             _, apps = http_json(FRONT + "/admin/applications",
                                 headers={"Authorization": "Basic " + auth})
-            seen = [f"{a.get('name')}={a.get('status')}" for a in apps]
-            hits = [app for app in apps
-                    if app.get("name") == "aoyou-server" and app.get("status") == "UP"]
+            # A-03 判的是「实例列表里 name=aoyou-server 且 status=UP」：
+            # 必须看 instances[].statusInfo.status，不能看应用级聚合状态——
+            # 旧容器实例被标记 OFFLINE/RESTRICTED 时聚合状态会掩盖新实例的 UP。
+            seen = [f"{(i.get('registration') or {}).get('name')}="
+                    f"{((i.get('statusInfo') or {}).get('status'))}"
+                    for a in apps for i in (a.get("instances") or [])]
+            hits = [i for a in apps for i in (a.get("instances") or [])
+                    if (i.get("registration") or {}).get("name") == "aoyou-server"
+                    and ((i.get("statusInfo") or {}).get("status")) == "UP"]
             if hits:
                 delay = backend_registration_delay()
                 check(delay >= 0 and delay <= 60,

@@ -42,11 +42,11 @@ assertion_map:
   A-08: verification:diff-check（frontend/apps/** 与 SPEC-008 diff 必须为 0，无实现位置）
 
 test_evidence:
-  executed_at: 2026-11-15T01:13:35+08:00
+  executed_at: 2026-11-15T01:57:02+08:00
   base_url: "http://localhost（nginx :80；控制台 :9090/:8800 直连，shell 取证）"
   total: 8
   passed: 8
-  report: specs/evals/reports/REQ-20261114-010-20261115-011827.json
+  report: specs/evals/reports/REQ-20261114-010-20261115-015702.json
   p0_coverage: 8/8
 
 # E-xx 边界核对（实测见 clarifications/CLAR-018.md）。五项与上游控制台行为冲突，
@@ -77,3 +77,5 @@ history:
     event: "门禁 5/5 PASS（EXIT=0，报告 REQ-20261114-010-20261115-011827.json，8/8）"
   - at: 2026-11-15T01:45:00+08:00
     event: "边界实测：E-05/E-07/E-08/E-14/E-15 与上游控制台行为冲突（错误码不存在、无 429/409、无幂等键），E-12/E-13 亦不符；按铁律 2 发起 CLAR-018，交付判定冻结至裁决"
+  - at: 2026-11-15T01:57:02+08:00
+    event: "门禁 5/5 PASS（EXIT=0，报告 REQ-20261114-010-20261115-015702.json，8/8）。A-03 用例改为实例级判定（instances[].statusInfo.status）并要求后端日志 Started→registered ≤ 60s；断言口径未放宽。"
