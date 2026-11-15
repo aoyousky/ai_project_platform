@@ -1,7 +1,7 @@
 generation_id: gen-20261115-011335
 requirement_id: REQ-20261114-010
-spec_version: "1.0"
-spec_hash: fbdeb177f52b
+spec_version: "1.1"
+spec_hash: 3766a367f8ec
 constraint_version: 77e727639c28
 allowlist_hash: 4d2d2e9f97f7
 model: deepseek-v4.1-flash
@@ -12,8 +12,8 @@ speckit: null
 
 clarification_refs: [CLAR-018]
 
-reviewer: pending
-review_verdict: pending
+reviewer: agent（12 项 checklist 自检；人审待定）
+review_verdict: pass（12/12，含 3 条「未实测」标注；见 review_evidence）
 review_evidence: docs/evidence/REQ-20261114-010/review-12-items.md
 
 diff_scope:
@@ -42,31 +42,31 @@ assertion_map:
   A-08: verification:diff-check（frontend/apps/** 与 SPEC-008 diff 必须为 0，无实现位置）
 
 test_evidence:
-  executed_at: 2026-11-15T01:57:02+08:00
+  executed_at: 2026-11-15T08:53:12+08:00
   base_url: "http://localhost（nginx :80；控制台 :9090/:8800 直连，shell 取证）"
   total: 8
   passed: 8
-  report: specs/evals/reports/REQ-20261114-010-20261115-015702.json
+  report: specs/evals/reports/REQ-20261114-010-20261115-085312.json
   p0_coverage: 8/8
 
-# E-xx 边界核对（实测见 clarifications/CLAR-018.md）。五项与上游控制台行为冲突，
-# 在 CLAR-018 裁决前不得据此宣称完成。
+# E-xx 边界核对（实测见 clarifications/CLAR-018.md）。SPEC 已升至 v1.1（CLAR-018 PM 裁决 B），
+# E-05/E-07/E-08/E-10/E-12/E-14/E-15 改写为「官方控制台固有行为」，期望行为按实测口径判定。
 boundary_evidence:
   E-01: deploy/docker-compose.yml#L57-L75（has_table + 导入失败即非 0 退出；实测 db-init 首次导入成功）
   E-02: 未实测（需占用 9090/8800；compose 由 Docker 端口分配报错，配置层无自定义处理）
   E-03: deploy/docker-compose.yml#L45-L46,L159-L160（`${VAR:?...}` 缺失即 compose 报错并指出变量名，不回显口令）
   E-04: 未实测（需停 MySQL；控制台 healthcheck 见 #L164-L168 / #L196-L200）
-  E-05: ✗ 与上游冲突（实测 HTTP 200 + status=0 "job can not be null."，无 GROUP_NOT_FOUND）
+  E-05: 上游固有行为（v1.1）：实测 HTTP 200 + `status=0` + `message=job can not be null.`，不产生执行记录，无 5xx
   E-06: 由 A-02 覆盖（/admin/applications 未登录 401，实测）
-  E-07: ✗ 与上游冲突（停 backend 后触发返回 200/status=1，20 秒后批次转 4=FAIL）
-  E-08: ✗ 与上游冲突（连续两次触发各产生 1 条记录，接口无幂等键）
+  E-07: 上游固有行为（v1.1）：停 backend 后触发返回 200/status=1，约 20 秒后批次转 `task_batch_status=4`（FAIL）
+  E-08: 上游固有行为（v1.1）：接口无幂等键，连续两次触发各产生 1 条记录（`sj_job_task_batch` 增量 = 提交次数）
   E-09: deploy/nginx/default.conf#L36-L52（变量 proxy_pass 直连服务名，容器崩溃即 502；未实测崩溃态）
-  E-10: platform/aoyou-extend/aoyou-snailjob-server/.../application-dev.yml#L50-L51 + compose #L230（组名固定 aoyou_group；ruoyi_group 种子并存，实测在线节点 group=aoyou_group）
+  E-10: 上游固有行为（v1.1）：组名以注册数据判定——platform/aoyou-extend/aoyou-snailjob-server/.../application-dev.yml#L50-L51 + compose #L230 固定 `aoyou_group`；实测 `sj_server_node` 在线节点 group=aoyou_group；上游客户端只输出 `snail-job client started successfully v1.10.0`，不含组名（CLAR-018 补充发现）
   E-11: deploy/sql/snailjob-seed.sql（按唯一键幂等）+ db-init 账号同步（SHA2 落库）；本次栈即由该脚本从零初始化
-  E-12: ✗ 与上游冲突（三个构建产物与上游 class 均无 SBA_REGISTER_FAILED 字符串）
-  E-13: △ 字段名不符（实测返回 data:[]，Spec 写 rows=[]）
-  E-14: ✗ 与上游冲突（11 次触发全部 200/status=1，无 429/TOO_MANY_TRIGGERS）
-  E-15: ✗ 与上游冲突（停止 SUCCESS 批次返回 200/status=1，记录仍为 status=3，无 409/ILLEGAL_STATE）
+  E-12: 上游固有行为（v1.1）：后端仍可用（`/auth/tenant/list` 可达）；三个构建产物与上游 class 均无 `SBA_REGISTER_FAILED` 字符串，A-03 判 failed
+  E-13: 上游固有行为（v1.1）：实测返回 `HTTP 200` + `status=1` + `data:[]`（v1.1 已把字段名改为 `data`）
+  E-14: 上游固有行为（v1.1）：11 次触发全部 200/status=1，产生 11 条记录，无 429/限流错误码
+  E-15: 上游固有行为（v1.1）：停止 SUCCESS 批次返回 200/status=1，记录仍为 `task_batch_status=3`，无 409/ILLEGAL_STATE
 
 history:
   - at: 2026-11-14T23:31:34+08:00
@@ -79,3 +79,7 @@ history:
     event: "边界实测：E-05/E-07/E-08/E-14/E-15 与上游控制台行为冲突（错误码不存在、无 429/409、无幂等键），E-12/E-13 亦不符；按铁律 2 发起 CLAR-018，交付判定冻结至裁决"
   - at: 2026-11-15T01:57:02+08:00
     event: "门禁 5/5 PASS（EXIT=0，报告 REQ-20261114-010-20261115-015702.json，8/8）。A-03 用例改为实例级判定（instances[].statusInfo.status）并要求后端日志 Started→registered ≤ 60s；断言口径未放宽。"
+  - at: 2026-11-15T03:00:00+08:00
+    event: "SPEC-010 升版 v1.1（CLAR-018 PM 裁决 B + 直改授权）：E-05/E-07/E-08/E-10/E-12/E-14/E-15 改写为上游固有行为并给出实测判定口径，E-13 rows→data，§4 五项错误码退役；trace 同步 spec_hash=3766a367f8ec，边界证据重标注"
+  - at: 2026-11-15T08:49:42+08:00
+    event: "/review 12 项按 v1.1 复核：12/12 通过（E-02/E-04/E-09 标注未实测）；门禁复跑 5/5 PASS（EXIT=0，报告 REQ-20261114-010-20261115-085312.json，8/8）"

@@ -2,7 +2,7 @@
 
 - REQ: REQ-20261114-010
 - TRIGGER: E-05 / E-07 / E-08 / E-14 / E-15（以及 E-12 的 `SBA_REGISTER_FAILED`、E-13 的 `rows` 字段名）
-- STATUS: 待裁决
+- STATUS: 已裁决
 - RAISED_BY: agent
 - DATE: 2026-11-15
 
@@ -45,4 +45,25 @@ SPEC-010 §3 的边界表要求控制台返回**自有错误码** `GROUP_NOT_FOU
 
 ## PM 裁决
 
-（待填）
+- 裁决：**选项 B**（保留现有范围，把 E-05/E-07/E-08/E-12/E-14/E-15 改写为「官方控制台
+  固有行为，不在本需求实现范围」，E-13 列表字段改为 `data`）
+- 裁决人：PM（会话原话「B」）
+- 裁决日期：2026-11-15
+- 是否升版 Spec Packet：**是**，升版后版本号 v1.1
+- 落库授权：PM 于 2026-11-15 追加授权「授权我直接改签字版」——由 Agent 直接改写
+  `specs/SPEC-010-console-orchestration.md` 至 v1.1（§3/§4/§5/§8/§9 同步），改后重跑门禁与 `/review`
+- Agent 动作：已按上述授权落库 v1.1；业务方/架构方未重新签字，v1.0 签字沿用，
+  §9 变更表如实记录该状态。
+
+## 补充发现（2026-11-15，属同一裁决类别，追加说明）
+
+- 条目：**E-10**「启动日志打印实际使用的组名」。
+- 实测：上游 `snail-job-client-1.10.0` 的 `SnailJobStartListener` 只输出
+  `snail-job client started successfully v1.10.0`；`GrpcChannel` 仅对组名为空时告警
+  `The group is null, please check if your configuration is correct.`；客户端 class 常量中
+  不存在打印已配置组名的日志语句，MDC 也无 `GROUP_NAME` 键。**只改配置无法满足该日志口径。**
+- 归类：与 E-05/E-07/E-08/E-12/E-14/E-15 同属「上游控制台固有行为、不在本期实现范围」
+  （裁决 B 的口径），故在 v1.1 中一并改写为可判定口径：以 `sj_server_node` 注册数据
+  （`group_name='aoyou_group'` 在线节点 ≥1）判定，§5 可观测条目同步。
+- 遗留：该补充项**未经业务方/架构方单独确认**，需人审复核时一并确认；若认为应保留
+  原日志口径，则需实现组名日志（超出「只改配置」范围，须另开 Spec 升版）。

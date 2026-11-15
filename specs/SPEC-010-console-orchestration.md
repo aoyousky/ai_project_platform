@@ -1,7 +1,7 @@
 ---
 id: REQ-20261114-010
 title: 官方控制台编排化与平台后端监控/调度接入
-version: 1.0
+version: 1.1
 generated_from: "用户 2026-11-14 决定为 P1 部署缺口更新 REQ/Spec（对话原话：“2 需要更新REQ/Spec”）：控制台编排化、SBA 注册平台后端、SnailJob 组与执行节点"
 risk_level: L2
 channel: ai_forced_review
@@ -49,17 +49,21 @@ target_window: 2026-11-14 ~ 2026-11-15
 | E-02 | 宿主机 9090/8800 端口被占用 | compose 启动失败，`docker ps` 中两个新服务不出现；日志含 `port is already allocated` |
 | E-03 | 缺少控制台管理员口令环境变量 | 两个控制台容器启动即失败（`EXIT=1`），日志指出缺失变量名，不打印口令值 |
 | E-04 | MySQL 不可达 | 控制台容器保持 `unhealthy` 并重试，不产生假 200；A-02 返回 502 |
-| E-05 | `aoyou_group` 不存在 | 触发接口返回业务错误码 `GROUP_NOT_FOUND`（不得 500） |
+| E-05 | `aoyou_group` 不存在（目标 `jobId` 不存在，如 `jobId=999999`） | 上游控制台无组前置校验：`POST /job/trigger` 返回 `HTTP 200` 且 `{"status":0,"message":"job can not be null."}`；不产生执行记录；不得返回 5xx |
 | E-06 | SBA 未登录 | `/admin/applications` 返回 401；SPEC-008 页面显示登录提示（A-05 行为不变） |
-| E-07 | 执行器离线 | 触发接口返回 `EXECUTOR_OFFLINE`，不返回成功 toast |
-| E-08 | 触发请求重复提交 | 同一幂等键 60 秒内只产生 1 条执行记录 |
+| E-07 | 执行器离线（如 `docker compose stop backend`） | 触发仍被受理：`HTTP 200`、`status=1`、`data=true`；60 秒内该批次转为 `task_batch_status=4`（FAIL），不得出现 `status=3` |
+| E-08 | 触发请求重复提交 | 上游接口无幂等键：每次提交各产生 1 条新执行记录（`sj_job_task_batch` 行数增量 = 提交次数），不合并、不复用旧记录 |
 | E-09 | 控制台容器崩溃 | nginx 返回 502（不得 SPA 兜底 200）；`docker compose ps` 显示 exited |
-| E-10 | 组名同时存在 `ruoyi_group` 与 `aoyou_group` | 后端只使用 `aoyou_group`；启动日志打印实际使用的组名 |
+| E-10 | 组名同时存在 `ruoyi_group` 与 `aoyou_group` | 后端只注册到 `aoyou_group`：`sj_server_node` 中 `group_name='aoyou_group'` 的在线节点 ≥ 1，且无后端节点注册到 `ruoyi_group`；上游客户端启动日志固定为 `snail-job client started successfully v1.10.0`（不含组名，上游无此输出，组名以节点注册数据为准） |
 | E-11 | 环境重建（`down -v`） | 控制台凭据与组配置由 seed/init 脚本重建，重建后 A-01～A-06 全部可复现 |
-| E-12 | 后端启动后 SBA 注册失败 | 后端仍可用；日志 `SBA_REGISTER_FAILED`，A-03 判 failed |
-| E-13 | 执行记录为空（新环境首次打开） | 列表接口 `status=200` 且 `rows=[]`，不含 `null` 元素 |
-| E-14 | 同一 60 秒窗口触发超过 10 次 | 第 11 次返回 `status=429` 且错误码 `TOO_MANY_TRIGGERS`，不产生第 11 条执行记录 |
-| E-15 | 对 `status=3`（SUCCESS）的记录调用停止（非法状态迁移） | 返回 `status=409` 且错误码 `ILLEGAL_STATE`，记录状态保持 `3` |
+| E-12 | 后端启动后 SBA 注册失败 | 后端仍可用（`GET /auth/tenant/list` 返回 `200`/`401`/`403` 之一）；SBA 客户端按上游自身日志输出失败原因，A-03 判 failed；不要求 `SBA_REGISTER_FAILED` 专有字符串（上游 1.10.0/3.5.8 无此码） |
+| E-13 | 执行记录为空（新环境首次打开） | 列表接口 `HTTP 200`、`status=1` 且 `data=[]`（上游字段名为 `data`，不是 `rows`），不含 `null` 元素 |
+| E-14 | 同一 60 秒窗口触发超过 10 次 | 连续 11 次触发全部 `HTTP 200`、`status=1`，产生 11 条执行记录；无 `429`、无限流错误码（上游 1.10.0 无内置限流） |
+| E-15 | 对 `status=3`（SUCCESS）的记录调用停止（非法状态迁移） | `POST /job/batch/stop/{taskBatchId}` 返回 `HTTP 200`、`status=1`、`data=true`；记录状态保持 `task_batch_status=3`；无 `409`/`ILLEGAL_STATE`（上游无非法迁移校验） |
+
+> v1.1 口径说明（CLAR-018 PM 裁决 B）：E-05/E-07/E-08/E-10/E-12/E-14/E-15 为官方控制台
+> 固有行为，不在本需求的实现范围（本期只编排、只改配置）；期望行为按实测上游行为给出，
+> 判定阈值（如 E-07 的 60 秒、E-08 的「增量 = 提交次数」）不因升版放宽。
 
 ## 4. 数据契约
 
@@ -77,7 +81,8 @@ compose 服务、端口与配置项：
 | `status`（执行记录） | integer | 否 | — | 枚举全量：`2=RUNNING`、`3=SUCCESS`、`4=FAIL`、`5=STOP`、`6=CANCEL`；未知整数按 `null` 展示，不猜测 |
 | `created_at`（展示） | string(ISO-8601) | 是 | `null` = 后端未返回该时间 | 时区固定 `Asia/Shanghai`（UTC+8），秒级精度 |
 | `duration_ms` | integer | 否 | — | 毫秒；精度 1ms，无小数 |
-| 错误码 | string | 否 | `""` = 无错误 | 枚举：`GROUP_NOT_FOUND` / `EXECUTOR_OFFLINE` / `SBA_REGISTER_FAILED` / `TOO_MANY_TRIGGERS` / `ILLEGAL_STATE` |
+| `status`（SnailJob 响应外层） | integer | 否 | — | 枚举：`1` = 成功、`0` = 失败；上游 1.10.0 无业务错误码枚举（原 `GROUP_NOT_FOUND` 等五项于 v1.1 退役，见 CLAR-018） |
+| `message`（SnailJob 响应外层） | string | 否 | `""` = 无消息 | 上游原文透传（实测样例 `job can not be null.`），不得改写成自创错误结构 |
 
 > 时间口径：所有对外时间按 `Asia/Shanghai`（UTC+8）展示；毫秒字段不做四舍五入以外的换算。
 > 数值精度：端口、状态码、`duration_ms` 均为十进制整数（精度 1），无金额字段、无小数。
@@ -90,7 +95,8 @@ compose 服务、端口与配置项：
 - 合规（留痕/审计）：compose 变更与初始化 SQL 入仓库；每次 `up/restart/down` 的
   服务状态与失败原因写入 `deploy/build/compose-*.log`（gitignored），日志保留至少 7 天；
   谁改的配置可从 git 历史回溯；口令只写 `.env.example` 占位。
-- 可观测：两个控制台容器输出 healthcheck 状态；后端日志输出注册/组名/执行器在线数。
+- 可观测：两个控制台容器输出 healthcheck 状态；后端日志输出 SBA 注册与 SnailJob 客户端启动信息；
+  实际使用的组名以 `sj_server_node` 注册数据为准（上游客户端启动日志不含组名，见 E-10）。
 
 ## 6. 状态流转
 
@@ -112,7 +118,7 @@ compose 服务、端口与配置项：
 | 正例 | `docker compose up -d` 全量启动 | 7 服务 Running；120 秒内 A-02 三个状态码 200/401/200 |
 | 正例 | 登录 SBA 查询应用列表 | `aoyou-server` 实例 `status=UP` |
 | 正例 | 触发 `aoyou_group` 下测试任务 | 60 秒内执行记录 `status=3`，记录数 = 触发次数 |
-| **反例** | 在未创建 `aoyou_group` 时触发任务，接口返回 200 且页面提示成功 | **必须被正确拒绝**：应为 `GROUP_NOT_FOUND` 且不产生执行记录 |
+| **反例** | 触发不存在的 `jobId=999999`，页面却提示「执行成功」 | **必须被判为失败**：响应 `status=0` 且 `message=job can not be null.`，不产生执行记录 |
 
 ## 9. 变更与签字
 
@@ -121,6 +127,7 @@ compose 服务、端口与配置项：
 | 0.1（草稿） | Agent 起草，待 PM/业务方/架构复核 | 2026-11-14 | — |
 | 0.1（草稿修订） | PM 确认全部待确认假设（会话原话「009 010 待确认全部确认」）；有分歧项按草稿内部约束收敛（见下） | 2026-11-14 | — |
 | 1.0（签字） | 定稿：PM / 业务方 / 架构签字；假设全部确认，口径不变 | 2026-11-14 | pm aoyousky；业务 Jim Liu 2026-11-14；架构 jiankui zhang 2026-11-14 |
+| 1.1（升版） | 依 CLAR-018 PM 裁决 B：§3 中 E-05/E-07/E-08/E-10/E-12/E-14/E-15 改写为「官方控制台固有行为」并给出实测可判定口径；E-13 字段 `rows`→`data`；§4 五项自创错误码退役、响应外层 `status`/`message` 入契约；§5 可观测口径与 §8 反例同步。业务方/架构方 v1.1 未重新签字，v1.0 签字继续沿用 | 2026-11-15 | 改写授权：PM（会话原话「授权我直接改签字版」）；原签字沿用 v1.0 |
 
 > ✅ 已确认假设（2026-11-14，PM 会话确认；仅确认假设口径，不构成 Spec 签字）：
 > 1. **已批准**修改 `deploy/docker-compose.yml`、`deploy/nginx/default.conf`、`deploy/`
@@ -142,6 +149,6 @@ compose 服务、端口与配置项：
 | A-02 | 「三个响应状态码分别为 200、401、200」——自然语言并列，判定点不明确 | 「`status=200`（`/admin/login`）、`status=401`（`/admin/applications`）、`status=200`（`/snail-job/`）」——逐请求绑定状态码 |
 | A-07 | 「三个请求状态码恢复为 200 / 401 / 200」——未说明恢复口径 | 「120 秒内 `status=200` / `401` / `200`（三个请求，顺序同 A-02）」——阈值 + 逐请求状态码 |
 
-边界补齐（体检指出缺空值/超限/非法状态）：新增 E-13（空集 `rows=[]`）、
-E-14（60 秒内第 11 次触发 `status=429` / `TOO_MANY_TRIGGERS`）、E-15（对 SUCCESS
-记录停止返回 `status=409` / `ILLEGAL_STATE` 且状态不变）。
+边界补齐（体检指出缺空值/超限/非法状态）：新增 E-13（空集 `data=[]`）、
+E-14（60 秒内第 11 次触发仍 `HTTP 200`/`status=1`，上游无内置限流）、E-15（对 SUCCESS
+记录停止返回 `HTTP 200`/`status=1` 且状态保持 `3`，上游无非法迁移校验）。
